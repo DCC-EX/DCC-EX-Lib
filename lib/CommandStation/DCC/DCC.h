@@ -85,6 +85,12 @@ public:
     int writeCVBit(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t, writeCVBitResponse&) volatile;
     int readCV(uint16_t, uint16_t, uint16_t, readCVResponse&) volatile;
 
+    void writeOnetoTrack() volatile;
+    void writeZerotoTrack() volatile;
+    void writeCutouttoTrack() volatile;
+    void recoverFromCutout() volatile;
+    void writeRailcomPulsetoTrack() volatile;
+
     void check() volatile;
     void powerOn() volatile;
     void powerOff() volatile;

@@ -16,6 +16,7 @@
 struct DCChdw {
     bool is_prog_track;
     bool use_dual_signal;
+    Tcc* timer;
     uint8_t timer_num, gclk_num;
     uint8_t signal_a_pin, signal_a_group, signal_a_timer_bit, signal_a_timer_mux;
     uint8_t signal_b_pin, signal_b_group, signal_b_timer_bit, signal_b_timer_mux;

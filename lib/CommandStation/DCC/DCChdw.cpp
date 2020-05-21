@@ -7,6 +7,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     hdw.is_prog_track = false;
     hdw.use_dual_signal = 1;
 
+    hdw.timer = TCC0;
     hdw.timer_num = 0;
     hdw.gclk_num = 4;
 
@@ -38,6 +39,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     hdw.is_prog_track = true;
     hdw.use_dual_signal = 1;
 
+    hdw.timer = TCC1;
     hdw.timer_num = 1;
     hdw.gclk_num = 5;
 
