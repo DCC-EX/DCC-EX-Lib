@@ -7,10 +7,6 @@
 #include "../OpenMRRControl.h"
 #include <inttypes.h>
 
-#ifndef SCNu8
-    #define SCNu8 "hhu"
-#endif
-
 volatile DCC* CommParser::mainTrack;
 volatile DCC* CommParser::progTrack;
 
@@ -27,13 +23,13 @@ void CommParser::parse(const char *com) {
 
     case 't':       // <t REGISTER CAB SPEED DIRECTION>
         
-        uint8_t throttleDevice;
+        uint16_t throttleDevice;
         uint16_t throttleCab;
-        uint8_t throttleSpeed;
-        uint8_t throttleDirection;
+        uint16_t throttleSpeed;
+        uint16_t throttleDirection;
         setThrottleResponse throttleResponse;
         
-        sscanf(com+1, "%" SCNu8 "%" SCNu16 "%" SCNu8 "%" SCNu8, &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
+        sscanf(com+1, "%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16, &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
 
         mainTrack->setThrottle(throttleDevice, throttleCab, throttleSpeed, throttleDirection, throttleResponse);
 
@@ -46,11 +42,11 @@ void CommParser::parse(const char *com) {
     case 'f':       // <f CAB BYTE1 [BYTE2]>
         
         uint16_t functionCab;
-        uint8_t functionByte1;
-        uint8_t functionByte2;
+        uint16_t functionByte1;
+        uint16_t functionByte2;
         setFunctionResponse functionResponse;
         
-        if(sscanf(com+1, "%" SCNu16 "%" SCNu8 "%" SCNu8, &functionCab, &functionByte1, &functionByte2) == 2)
+        if(sscanf(com+1, "%" SCNu16 "%" SCNu16 "%" SCNu16, &functionCab, &functionByte1, &functionByte2) == 2)
             mainTrack->setFunction(functionCab, functionByte1, functionResponse);
         else 
             mainTrack->setFunction(functionCab, functionByte1, functionByte2, functionResponse);
@@ -81,11 +77,11 @@ void CommParser::parse(const char *com) {
         */
         
         uint16_t accessoryAddress;
-        uint8_t accessoryNumber;
-        uint8_t accessoryActivate;
+        uint16_t accessoryNumber;
+        uint16_t accessoryActivate;
         setAccessoryResponse accessoryResponse;
 
-        sscanf(com+1, "%" SCNu16 "%" SCNu8 "%" SCNu8, &accessoryAddress, &accessoryNumber, &accessoryActivate); 
+        sscanf(com+1, "%" SCNu16 "%" SCNu16 "%" SCNu16, &accessoryAddress, &accessoryNumber, &accessoryActivate); 
         mainTrack->setAccessory(accessoryAddress, accessoryNumber, accessoryActivate, accessoryResponse);
         
         break;
@@ -228,10 +224,10 @@ void CommParser::parse(const char *com) {
        
         uint16_t wcab;
         uint16_t wcv;
-        uint8_t wbValue;
+        uint16_t wbValue;
         writeCVByteMainResponse wresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu8,&wcab,&wcv,&wbValue);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16,&wcab,&wcv,&wbValue);
 
         mainTrack->writeCVByteMain(wcab, wcv, wbValue, wresponse);
         
@@ -252,11 +248,11 @@ void CommParser::parse(const char *com) {
         */
         uint16_t bcab;
         uint16_t bcv;
-        uint8_t bbit;
-        uint8_t bbValue;
+        uint16_t bbit;
+        uint16_t bbValue;
         writeCVBitMainResponse bresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu8 "%" SCNu8,&bcab,&bcv,&bbit,&bbValue);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16,&bcab,&bcv,&bbit,&bbValue);
 
         mainTrack->writeCVBitMain(bcab, bcv, bbit, bbValue, bresponse);
         
@@ -278,11 +274,11 @@ void CommParser::parse(const char *com) {
         */
         
         uint16_t Wcv;
-        uint8_t Wvalue;
+        uint16_t Wvalue;
         uint16_t Wcallbacknum;
         uint16_t Wcallbacksub;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu8 "%" SCNu16 "%" SCNu16,&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16,&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
 
         writeCVByteResponse wcvresponse;
 
@@ -309,13 +305,13 @@ void CommParser::parse(const char *com) {
         */
         
         uint16_t Bcv;
-        uint8_t Bbit;
-        uint8_t Bvalue;
+        uint16_t Bbit;
+        uint16_t Bvalue;
         uint16_t Bcallbacknum;
         uint16_t Bcallbacksub;
         writeCVBitResponse Bresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu8 "%" SCNu8 "%" SCNu16 "%" SCNu16,&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16,&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
 
         progTrack->writeCVBit(Bcv, Bbit, Bvalue, Bcallbacknum, Bcallbacksub, Bresponse);
 
@@ -360,6 +356,7 @@ void CommParser::parse(const char *com) {
         */
         mainTrack->powerOn();
         progTrack->powerOn();
+        CommManager::printf("<p1>");
         break;
 
 /***** TURN OFF POWER FROM MOTOR SHIELD TO TRACKS  ****/
@@ -372,6 +369,7 @@ void CommParser::parse(const char *com) {
         */
         mainTrack->powerOff();
         progTrack->powerOff();
+        CommManager::printf("<p0>");
         break;
 
 /***** READ MAIN OPERATIONS TRACK CURRENT  ****/
@@ -383,7 +381,9 @@ void CommParser::parse(const char *com) {
         *    returns: <a CURRENT>
         *    where CURRENT = 0-1024, based on exponentially-smoothed weighting scheme
         */
-        mainTrack->getLastRead();
+        int currRead;
+        currRead = mainTrack->getLastRead();
+        CommManager::printf("<a %d>", currRead);
         break;
 
 /***** READ STATUS OF DCC++ BASE STATION  ****/
