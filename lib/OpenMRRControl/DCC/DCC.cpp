@@ -1,18 +1,18 @@
 #include "DCC.h"
-#include "../CommInterface/CommManager.h"
 
 #define  CURRENT_SAMPLE_TIME        1
-#define  CURRENT_SAMPLE_SMOOTHING          0.01
+#define  CURRENT_SAMPLE_SMOOTHING   0.01
+#define  RETRY_MILLIS    10000
 
 DCC::DCC(int numDev, DCChdw hdw) {
-    this->hdwSettings = hdw;
-    // memcpy((void*)&hdwSettings, &hdw, sizeof(DCChdw));
-    this->numDev = numDev;
+    this->hdwSettings = hdw;            // Save the hardware settings for this track
+    this->numDev = numDev;              // Save the number of devices allowed on this track
     
-    PORT->Group[hdwSettings.enable_pin_group].PINCFG[hdwSettings.enable_pin].bit.INEN = 1;
-    PORT->Group[hdwSettings.enable_pin_group].OUTCLR.reg = 1 << hdwSettings.enable_pin;
+    // Set up the enable pin for this track
+    pinMode(hdwSettings.enable_pin, OUTPUT);
+    digitalWrite(hdwSettings.enable_pin, LOW);
 
-    // Create and initialize a device (old:registers) table
+    // Create and initialize a device table
     dev = (Device*)calloc(numDev+1, sizeof(Device));     // Device memory allocation. Happens dynamically.
     for (size_t i = 0; i <= numDev; i++)                    
         dev[i].initPackets();                               // Initialize packets in each device
@@ -33,7 +33,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
     init_timers();
 }
 
-void DCC::loadPacket(int nDev, uint8_t *b, int nBytes, int nRepeat) volatile {
+void DCC::loadPacket(int nDev, uint8_t *b, uint8_t nBytes, uint8_t nRepeat) volatile {
     // LOAD DCC PACKET INTO TEMPORARY REGISTER 0, OR PERMANENT REGISTERS 1 THROUGH DCC_PACKET_QUEUE_MAX (INCLUSIVE)
     // CONVERTS 2, 3, 4, OR 5 BYTES INTO A DCC BIT STREAM WITH PREAMBLE, CHECKSUM, AND PROPER BYTE SEPARATORS
     // BITSTREAM IS STORED IN UP TO A 10-BYTE ARRAY (USING AT MOST 76 OF 80 BITS)
@@ -87,11 +87,11 @@ void DCC::loadPacket(int nDev, uint8_t *b, int nBytes, int nRepeat) volatile {
     maxLoadedDev=max(maxLoadedDev,nextDev);
 }
 
-int DCC::setThrottle(uint8_t nReg, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) volatile {
+int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) volatile {
     uint8_t b[5];                      // save space for checksum byte
     uint8_t nB=0;
 
-    if(nReg<1 || nReg>numDev)
+    if(nDev<1 || nDev>numDev)
         return ERR_OUT_OF_RANGE;
 
     if(cab>127)
@@ -106,16 +106,18 @@ int DCC::setThrottle(uint8_t nReg, uint16_t cab, uint8_t tSpeed, bool tDirection
         tSpeed=0;
     }
 
-    loadPacket(nReg,b,nB,0);
+    loadPacket(nDev,b,nB,0);
 
-    response.device = nReg;
+    response.device = nDev;
     response.direction = tDirection;
     response.speed = tSpeed;
 
-    speedTable[nReg]=tDirection==1?tSpeed:-tSpeed;
+    speedTable[nDev]=tDirection==1?tSpeed:-tSpeed;
+
+    return ERR_OK;
 }
 
-int DCC::setFunction(uint16_t cab, uint8_t byte1) volatile {
+int DCC::setFunction(uint16_t cab, uint8_t byte1, setFunctionResponse& response) volatile {
     uint8_t b[4];
     uint8_t nB = 0;
 
@@ -126,10 +128,10 @@ int DCC::setFunction(uint16_t cab, uint8_t byte1) volatile {
 
     loadPacket(0,b,nB,4);       // Repeat the packet four times
 
-    return 0;       // Will implement error handling later
+    return ERR_OK;       // Will implement error handling later
 }
 
-int DCC::setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2) volatile {
+int DCC::setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2, setFunctionResponse& response) volatile {
     uint8_t b[5];
     uint8_t nB = 0;
 
@@ -141,10 +143,10 @@ int DCC::setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2) volatile {
 
     loadPacket(0,b,nB,4);       // Repeat the packet four times
 
-    return 0;       // Will implement error handling later
+    return ERR_OK;       // Will implement error handling later
 }
 
-int DCC::setAccessory(uint16_t address, uint8_t number, bool activate) volatile{
+int DCC::setAccessory(uint16_t address, uint8_t number, bool activate, setAccessoryResponse& response) volatile{
     byte b[3];                      // save space for checksum byte
     
     b[0]=address%64+128;                                           // first byte is of the form 10AAAAAA, where AAAAAA represent 6 least signifcant bits of accessory address
@@ -152,10 +154,10 @@ int DCC::setAccessory(uint16_t address, uint8_t number, bool activate) volatile{
 
     loadPacket(0,b,2,4);        // Repeat the packet four times
 
-    return 0;        // Will implement error handling later
+    return ERR_OK;        // Will implement error handling later
 }
 
-int DCC::writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue) volatile {
+int DCC::writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, writeCVByteMainResponse& response) volatile {
   byte b[6];                      // save space for checksum byte
   byte nB=0;
 
@@ -171,10 +173,10 @@ int DCC::writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue) volatile {
 
   loadPacket(0,b,nB,4);
 
-  return 0;         // Will implement error handling later
+  return ERR_OK;         // Will implement error handling later
 }
 
-int DCC::writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue) volatile {
+int DCC::writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue, writeCVBitMainResponse& response) volatile {
   byte b[6];                      // save space for checksum byte
   byte nB=0;
 
@@ -197,7 +199,7 @@ int DCC::writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue)
 
 } // RegisterList::writeCVBitMain()
 
-int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVResponse& response) volatile {
+int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVByteResponse& response) volatile {
     uint8_t bWrite[4];
     int c,d,base;
 
@@ -289,6 +291,8 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     response.bNum = bNum;
     response.bValue = bValue;
     response.cv = cv+1;
+
+    return ERR_OK;
 }
 
 
@@ -359,50 +363,40 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     response.callback = callback;
     response.callbackSub = callbackSub;
     response.bValue = bValue;
+
+    return ERR_OK;
 }
 
 void DCC::check() volatile {
-    if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) {
+    // if we have exceeded the CURRENT_SAMPLE_TIME we need to check if we are over/under current.
+	if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) { // TODO can we integrate this with the readBaseCurrent and ackDetect routines?
 		lastCheckTime = millis();
-		current = analogRead(hdwSettings.current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + current * (1.0 - CURRENT_SAMPLE_SMOOTHING);
-		if(current > hdwSettings.trigger_value && digitalRead(hdwSettings.enable_pin)) {
-			powerOff(false, true);
-			triggered=true;
-		} else if(current < hdwSettings.trigger_value && triggered) {
-			powerOn();
-			triggered=false;
+		reading = analogRead(hdwSettings.current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
+		current = (reading * hdwSettings.current_conversion_factor); // get current in milliamps
+		if(current > hdwSettings.trigger_value && digitalRead(hdwSettings.enable_pin)) { // TODO convert this to integer match
+			powerOff();
+			tripped=true;
+			lastTripTime=millis();
+		} else if(current < hdwSettings.trigger_value && tripped) { // TODO need to put a delay in here so it only tries after X seconds
+			if (millis() - lastTripTime > RETRY_MILLIS) {  // TODO make this a global constant
+			  powerOn();
+			  tripped=false;
+			}
 		}
 	}
+
 }
 
-void DCC::powerOn(bool announce) volatile {
+void DCC::powerOn() volatile {
 	digitalWrite(hdwSettings.enable_pin, HIGH);
-	if(announce) {
-		CommManager::printf("<p1 %s>", hdwSettings.track_name);
-	}
 }
 
-void DCC::powerOff(bool announce, bool overCurrent) volatile {
+void DCC::powerOff() volatile {
 	digitalWrite(hdwSettings.enable_pin, LOW);
-	if(announce) {
-		if(overCurrent) {
-			CommManager::printf("<p2 %s>", hdwSettings.track_name);
-		} else {
-			CommManager::printf("<p0 %s>", hdwSettings.track_name);
-		}
-	}
 }
 
 int DCC::getLastRead() volatile {
 	return current;
-}
-
-void DCC::showStatus() volatile {
-	if(digitalRead(hdwSettings.enable_pin) == LOW) {
-		CommManager::printf("<p0 %s>", hdwSettings.track_name);
-	} else {
-		CommManager::printf("<p1 %s>", hdwSettings.track_name);
-	}
 }
 
 uint8_t DCC::idlePacket[3]={0xFF,0x00,0};                 // always leave extra byte for checksum computation

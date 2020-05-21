@@ -14,84 +14,41 @@ void CommParser::init(volatile DCC* mainTrack_, volatile DCC* progTrack_) {
     progTrack = progTrack_;
 } 
 
+// See documentation on DCC class for info on this section
 void CommParser::parse(const char *com) {
     switch(com[0]) {
     
 /***** SET ENGINE THROTTLES USING 128-STEP SPEED CONTROL ****/
 
     case 't':       // <t REGISTER CAB SPEED DIRECTION>
-        /*
-        *    sets the throttle for a given register/cab combination
-        *
-        *    REGISTER: an internal register number, from 1 through MAX_MAIN_REGISTERS (inclusive), to store the DCC packet used to control this throttle setting
-        *    CAB:  the short (1-127) or long (128-10293) address of the engine decoder
-        *    SPEED: throttle speed from 0-126, or -1 for emergency stop (resets SPEED to 0)
-        *    DIRECTION: 1=forward, 0=reverse.  Setting direction when speed=0 or speed=-1 only effects directionality of cab lighting for a stopped train
-        *
-        *    returns: <T REGISTER SPEED DIRECTION>
-        *
-        */
         
-        uint8_t thdevice;
-        uint16_t thcab;
-        uint8_t thspeed;
-        bool thdirection;
-        setThrottleResponse thresponse;
+        uint8_t throttleDevice;
+        uint16_t throttleCab;
+        uint8_t throttleSpeed;
+        bool throttleDirection;
+        setThrottleResponse throttleResponse;
         
-        sscanf(com+1, "%d %d %d %d", &thdevice, &thcab, &thspeed, &thdirection);
+        sscanf(com+1, "%d %d %d %d", &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
 
-        mainTrack->setThrottle(thdevice, thcab, thspeed, thdirection, thresponse);
+        mainTrack->setThrottle(throttleDevice, throttleCab, throttleSpeed, throttleDirection, throttleResponse);
 
-        CommManager::printf("<T %d %d %d>", thresponse.device, thresponse.speed, thresponse.direction);
+        CommManager::printf("<T %d %d %d>", throttleResponse.device, throttleResponse.speed, throttleResponse.direction);
         
         break;
     
 /***** OPERATE ENGINE DECODER FUNCTIONS F0-F28 ****/
 
     case 'f':       // <f CAB BYTE1 [BYTE2]>
-        /*
-        *    turns on and off engine decoder functions F0-F28 (F0 is sometimes called FL)
-        *    NOTE: setting requests transmitted directly to mobile engine decoder --- current state of engine functions is not stored by this program
-        *
-        *    CAB:  the short (1-127) or long (128-10293) address of the engine decoder
-        *
-        *    To set functions F0-F4 on (=1) or off (=0):
-        *
-        *    BYTE1:  128 + F1*1 + F2*2 + F3*4 + F4*8 + F0*16
-        *    BYTE2:  omitted
-        *
-        *    To set functions F5-F8 on (=1) or off (=0):
-        *
-        *    BYTE1:  176 + F5*1 + F6*2 + F7*4 + F8*8
-        *    BYTE2:  omitted
-        *
-        *    To set functions F9-F12 on (=1) or off (=0):
-        *
-        *    BYTE1:  160 + F9*1 +F10*2 + F11*4 + F12*8
-        *    BYTE2:  omitted
-        *
-        *    To set functions F13-F20 on (=1) or off (=0):
-        *
-        *    BYTE1: 222
-        *    BYTE2: F13*1 + F14*2 + F15*4 + F16*8 + F17*16 + F18*32 + F19*64 + F20*128
-        *
-        *    To set functions F21-F28 on (=1) of off (=0):
-        *
-        *    BYTE1: 223
-        *    BYTE2: F21*1 + F22*2 + F23*4 + F24*8 + F25*16 + F26*32 + F27*64 + F28*128
-        *
-        *    returns: NONE
-        *
-        */
         
-        uint16_t funcab;
-        uint8_t funbyte1;
-        uint8_t funbyte2;
+        uint16_t functionCab;
+        uint8_t functionByte1;
+        uint8_t functionByte2;
+        setFunctionResponse functionResponse;
         
-        if(sscanf(com+1, "%d %d %d", &funcab, &funbyte1, &funbyte2) == 2)
-            mainTrack->setFunction(funcab, funbyte1);
+        if(sscanf(com+1, "%d %d %d", &functionCab, &functionByte1, &functionByte2) == 2)
+            mainTrack->setFunction(functionCab, functionByte1, functionResponse);
         else 
-            mainTrack->setFunction(funcab, funbyte1, funbyte2);
+            mainTrack->setFunction(functionCab, functionByte1, functionByte2, functionResponse);
         
         break;
 
@@ -118,12 +75,13 @@ void CommParser::parse(const char *com) {
         *    returns: NONE
         */
         
-        uint16_t staaddress;
-        uint8_t stanumber;
-        bool staactivate;
+        uint16_t accessoryAddress;
+        uint8_t accessoryNumber;
+        bool accessoryActivate;
+        setAccessoryResponse accessoryResponse;
 
-        sscanf(com+1, "%d %d %d", &staaddress, &stanumber, &staactivate); 
-        mainTrack->setAccessory(staaddress, stanumber, staactivate);
+        sscanf(com+1, "%d %d %d", &accessoryAddress, &accessoryNumber, &accessoryActivate); 
+        mainTrack->setAccessory(accessoryAddress, accessoryNumber, accessoryActivate, accessoryResponse);
         
         break;
     
@@ -266,10 +224,11 @@ void CommParser::parse(const char *com) {
         uint16_t wcab;
         uint16_t wcv;
         uint8_t wbValue;
+        writeCVByteMainResponse wresponse;
 
         sscanf(com+1,"%d %d %d",&wcab,&wcv,&wbValue);
 
-        mainTrack->writeCVByteMain(wcab, wcv, wbValue);
+        mainTrack->writeCVByteMain(wcab, wcv, wbValue, wresponse);
         
         break;
 
@@ -290,10 +249,11 @@ void CommParser::parse(const char *com) {
         uint16_t bcv;
         uint8_t bbit;
         uint8_t bbValue;
+        writeCVBitMainResponse bresponse;
 
         sscanf(com+1,"%d %d %d %d",&bcab,&bcv,&bbit,&bbValue);
 
-        mainTrack->writeCVBitMain(bcab, bcv, bbit, bbValue);
+        mainTrack->writeCVBitMain(bcab, bcv, bbit, bbValue, bresponse);
         
         break;
 
@@ -319,7 +279,7 @@ void CommParser::parse(const char *com) {
 
         sscanf(com+1,"%d %d %d %d",&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
 
-        writeCVResponse wcvresponse;
+        writeCVByteResponse wcvresponse;
 
         progTrack->writeCVByte(Wcv, Wvalue, Wcallbacknum, Wcallbacksub, wcvresponse);
 
@@ -348,13 +308,13 @@ void CommParser::parse(const char *com) {
         uint8_t Bvalue;
         uint16_t Bcallbacknum;
         uint16_t Bcallbacksub;
-        writeCVBitResponse wcvbresponse;
+        writeCVBitResponse Bresponse;
 
         sscanf(com+1,"%d %d %d %d %d",&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
 
-        progTrack->writeCVBit(Bcv, Bbit, Bvalue, Bcallbacknum, Bcallbacksub, wcvbresponse);
+        progTrack->writeCVBit(Bcv, Bbit, Bvalue, Bcallbacknum, Bcallbacksub, Bresponse);
 
-        CommManager::printf("<r%d|%d|%d %d %d>", wcvbresponse.callback, wcvbresponse.callbackSub, wcvbresponse.cv, wcvbresponse.bNum, wcvbresponse.bValue);
+        CommManager::printf("<r%d|%d|%d %d %d>", Bresponse.callback, Bresponse.callbackSub, Bresponse.cv, Bresponse.bNum, Bresponse.bValue);
         
         break;
 

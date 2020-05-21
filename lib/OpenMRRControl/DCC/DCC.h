@@ -21,7 +21,7 @@ struct setThrottleResponse {
     int direction;
 };
 
-struct writeCVResponse {
+struct writeCVByteResponse {
     int callback;
     int callbackSub;
     int cv;
@@ -43,6 +43,22 @@ struct readCVResponse {
     int bValue;
 };
 
+struct setFunctionResponse {
+    // Fill later
+};
+
+struct setAccessoryResponse {
+    // Fill later
+};
+
+struct writeCVByteMainResponse {
+    // Fill later
+};
+
+struct writeCVBitMainResponse {
+    // Fill later
+};
+
 class DCC {
 public:
     static DCC* Create_WSM_SAMCommandStation_Main(int numDev);
@@ -57,21 +73,21 @@ public:
 
     void init_timers();
     void interrupt_handler() volatile;
-    void loadPacket(int nDev, uint8_t *b, int nBytes, int nRepeat) volatile;
+    void loadPacket(int, uint8_t *, uint8_t, uint8_t) volatile;
     
     int setThrottle(uint8_t, uint16_t, uint8_t, bool, setThrottleResponse&) volatile;
-    int setFunction(uint16_t, uint8_t) volatile;
-    int setFunction(uint16_t, uint8_t, uint8_t) volatile;
-    int setAccessory(uint16_t, uint8_t, bool) volatile;
-    int writeCVByteMain(uint16_t, uint16_t, uint8_t) volatile;
-    int writeCVBitMain(uint16_t, uint16_t, uint8_t, uint8_t) volatile;
-    int writeCVByte(uint16_t, uint8_t, uint16_t, uint16_t, writeCVResponse&) volatile;
+    int setFunction(uint16_t, uint8_t, setFunctionResponse&) volatile;
+    int setFunction(uint16_t, uint8_t, uint8_t, setFunctionResponse&) volatile;
+    int setAccessory(uint16_t, uint8_t, bool, setAccessoryResponse&) volatile;
+    int writeCVByteMain(uint16_t, uint16_t, uint8_t, writeCVByteMainResponse&) volatile;
+    int writeCVBitMain(uint16_t, uint16_t, uint8_t, uint8_t, writeCVBitMainResponse&) volatile;
+    int writeCVByte(uint16_t, uint8_t, uint16_t, uint16_t, writeCVByteResponse&) volatile;
     int writeCVBit(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t, writeCVBitResponse&) volatile;
     int readCV(uint16_t, uint16_t, uint16_t, readCVResponse&) volatile;
 
     void check() volatile;
-    void powerOn(bool announce=true) volatile;
-    void powerOff(bool announce=true, bool overCurrent=false) volatile;
+    void powerOn() volatile;
+    void powerOff() volatile;
     int getLastRead() volatile;
     void showStatus() volatile;
 
@@ -98,9 +114,11 @@ public:
     static uint8_t resetPacket[];
     static uint8_t bitMask[];
 
+    float reading;
 	float current;
-	bool triggered;
+	bool tripped;
 	long int lastCheckTime;
+    long int lastTripTime;
 };
 
 
