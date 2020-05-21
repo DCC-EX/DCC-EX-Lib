@@ -5,6 +5,11 @@
 #include "../Accessories/Outputs.h"
 #include "../Accessories/EEStore.h"
 #include "../OpenMRRControl.h"
+#include <inttypes.h>
+
+#ifndef SCNu8
+    #define SCNu8 "hhu"
+#endif
 
 volatile DCC* CommParser::mainTrack;
 volatile DCC* CommParser::progTrack;
@@ -25,10 +30,10 @@ void CommParser::parse(const char *com) {
         uint8_t throttleDevice;
         uint16_t throttleCab;
         uint8_t throttleSpeed;
-        bool throttleDirection;
+        uint8_t throttleDirection;
         setThrottleResponse throttleResponse;
         
-        sscanf(com+1, "%d %d %d %d", &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
+        sscanf(com+1, "%" SCNu8 "%" SCNu16 "%" SCNu8 "%" SCNu8, &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
 
         mainTrack->setThrottle(throttleDevice, throttleCab, throttleSpeed, throttleDirection, throttleResponse);
 
@@ -45,7 +50,7 @@ void CommParser::parse(const char *com) {
         uint8_t functionByte2;
         setFunctionResponse functionResponse;
         
-        if(sscanf(com+1, "%d %d %d", &functionCab, &functionByte1, &functionByte2) == 2)
+        if(sscanf(com+1, "%" SCNu16 "%" SCNu8 "%" SCNu8, &functionCab, &functionByte1, &functionByte2) == 2)
             mainTrack->setFunction(functionCab, functionByte1, functionResponse);
         else 
             mainTrack->setFunction(functionCab, functionByte1, functionByte2, functionResponse);
@@ -77,10 +82,10 @@ void CommParser::parse(const char *com) {
         
         uint16_t accessoryAddress;
         uint8_t accessoryNumber;
-        bool accessoryActivate;
+        uint8_t accessoryActivate;
         setAccessoryResponse accessoryResponse;
 
-        sscanf(com+1, "%d %d %d", &accessoryAddress, &accessoryNumber, &accessoryActivate); 
+        sscanf(com+1, "%" SCNu16 "%" SCNu8 "%" SCNu8, &accessoryAddress, &accessoryNumber, &accessoryActivate); 
         mainTrack->setAccessory(accessoryAddress, accessoryNumber, accessoryActivate, accessoryResponse);
         
         break;
@@ -150,7 +155,7 @@ void CommParser::parse(const char *com) {
 
         case 2:                     // argument is string with id number of output followed by zero (LOW) or one (HIGH)
             o=Output::get(on);
-            if(t!=NULL)
+            if(o!=NULL)
                 o->activate(os);
             else
                 CommManager::printf("<X>");
@@ -226,7 +231,7 @@ void CommParser::parse(const char *com) {
         uint8_t wbValue;
         writeCVByteMainResponse wresponse;
 
-        sscanf(com+1,"%d %d %d",&wcab,&wcv,&wbValue);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu8,&wcab,&wcv,&wbValue);
 
         mainTrack->writeCVByteMain(wcab, wcv, wbValue, wresponse);
         
@@ -251,7 +256,7 @@ void CommParser::parse(const char *com) {
         uint8_t bbValue;
         writeCVBitMainResponse bresponse;
 
-        sscanf(com+1,"%d %d %d %d",&bcab,&bcv,&bbit,&bbValue);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu8 "%" SCNu8,&bcab,&bcv,&bbit,&bbValue);
 
         mainTrack->writeCVBitMain(bcab, bcv, bbit, bbValue, bresponse);
         
@@ -277,7 +282,7 @@ void CommParser::parse(const char *com) {
         uint16_t Wcallbacknum;
         uint16_t Wcallbacksub;
 
-        sscanf(com+1,"%d %d %d %d",&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
+        sscanf(com+1,"%" SCNu16 "%" SCNu8 "%" SCNu16 "%" SCNu16,&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
 
         writeCVByteResponse wcvresponse;
 
@@ -310,7 +315,7 @@ void CommParser::parse(const char *com) {
         uint16_t Bcallbacksub;
         writeCVBitResponse Bresponse;
 
-        sscanf(com+1,"%d %d %d %d %d",&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
+        sscanf(com+1,"%" SCNu16 "%" SCNu8 "%" SCNu8 "%" SCNu16 "%" SCNu16,&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
 
         progTrack->writeCVBit(Bcv, Bbit, Bvalue, Bcallbacknum, Bcallbacksub, Bresponse);
 
@@ -337,7 +342,7 @@ void CommParser::parse(const char *com) {
         uint16_t Rcallbacksub;
         readCVResponse rcvresponse;
 
-        sscanf(com+1,"%d %d %d",&Rcv,&Rcallbacknum,&Rcallbacksub);
+        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16,&Rcv,&Rcallbacknum,&Rcallbacksub);
         
         progTrack->readCV(Rcv, Rcallbacknum, Rcallbacksub, rcvresponse);
 
@@ -390,13 +395,13 @@ void CommParser::parse(const char *com) {
         *
         *    returns: series of status messages that can be read by an interface to determine status of DCC++ Base Station and important settings
         */
-        mainTrack->showStatus();
+        // mainTrack->showStatus();
         for(int i=1;i<=mainTrack->numDev;i++){
             if(mainTrack->speedTable[i]==0)
             continue;
             CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i]>0 ? mainTrack->speedTable[i] : -mainTrack->speedTable[i], mainTrack->speedTable[i]>0 ? 1 : 0);
         }
-        CommManager::printf("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", "SAMD21 Command Station", mainTrack->hdwSettings.track_name, VERSION, __DATE__, __TIME__);
+        CommManager::printf("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", "SAMD21 Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
         CommManager::showInitInfo();
         Turnout::show();
         Output::show();

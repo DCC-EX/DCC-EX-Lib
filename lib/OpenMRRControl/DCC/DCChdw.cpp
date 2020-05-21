@@ -4,7 +4,6 @@
 DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     DCChdw hdw;
 
-    hdw.track_name = "Main";
     hdw.is_prog_track = false;
     hdw.use_dual_signal = 1;
 
@@ -34,7 +33,6 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
 DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     DCChdw hdw;
     
-    hdw.track_name = "Prog";
     hdw.is_prog_track = true;
     hdw.use_dual_signal = 1;
 

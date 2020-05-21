@@ -5,7 +5,8 @@
 void Turnout::activate(int s, DCC* track){
   char c[20];
   data.tStatus=(s>0);                                    // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
-  track->setAccessory(data.address, data.subAddress, data.tStatus);
+  setAccessoryResponse response;
+  track->setAccessory(data.address, data.subAddress, data.tStatus, response);
   if(num>0)
     EEPROM.put(num,data.tStatus);
   CommManager::printf("<H %d %d>", data.id, data.tStatus);

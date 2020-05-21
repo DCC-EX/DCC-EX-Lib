@@ -33,7 +33,6 @@ struct DCChdw {
 ```
 A brief explanation of the parameters in the DCChdw struct:
 
--  ```char * track_name``` - name of the track that you are setting up. Typically main or prog.
 - ```bool is_prog_track``` - set true if the track will be current limited to 250mA and function as a programming track. Note that currently CommManager and JMRI only support one programming track and one main track.
 - ```bool use_dual_signal``` - if true, the dcc signal will be generate on two pins instead of one, 180 degrees out of phase with each other. Useful for chips like the DRV8876
 - ```uint8_t timer_num``` - selects the instance of TCC that will be used to denerate the clock signal. Currently only TCC0-2 are supported by the CMSIS core for Arduino, TCC3 still needs to be implemented. 

@@ -14,7 +14,6 @@
 #define RC_CUTOUT_DURATION 5220 // 435us
 
 struct DCChdw {
-    char * track_name;
     bool is_prog_track;
     bool use_dual_signal;
     uint8_t timer_num, gclk_num;
