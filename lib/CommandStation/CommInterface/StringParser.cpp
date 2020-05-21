@@ -1,4 +1,4 @@
-#include "CommParser.h"
+#include "StringParser.h"
 #include "CommManager.h"
 #include "../Accessories/Turnouts.h"
 #include "../Accessories/Sensors.h"
@@ -7,16 +7,16 @@
 #include "../CommandStation.h"
 #include <inttypes.h>
 
-volatile DCC* CommParser::mainTrack;
-volatile DCC* CommParser::progTrack;
+volatile DCC* StringParser::mainTrack;
+volatile DCC* StringParser::progTrack;
 
-void CommParser::init(volatile DCC* mainTrack_, volatile DCC* progTrack_) {
+void StringParser::init(volatile DCC* mainTrack_, volatile DCC* progTrack_) {
     mainTrack = mainTrack_;
     progTrack = progTrack_;
 } 
 
 // See documentation on DCC class for info on this section
-void CommParser::parse(const char *com) {
+void StringParser::parse(const char *com) {
     switch(com[0]) {
     
 /***** SET ENGINE THROTTLES USING 128-STEP SPEED CONTROL ****/

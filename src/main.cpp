@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include "CommandStation.h"
 
-volatile DCC* mainTrack = DCC::Create_WSM_SAMCommandStation_Main(10);
+volatile DCC* mainTrack = DCC::Create_WSM_SAMCommandStation_Main(50);
 volatile DCC* progTrack = DCC::Create_WSM_SAMCommandStation_Prog(2);
 
 void setup() {
 	CommManager::registerInterface(new SerialInterface(SerialUSB));
-	CommParser::init(mainTrack, progTrack);
+	StringParser::init(mainTrack, progTrack);
 	CommManager::showInitInfo();
 }
 

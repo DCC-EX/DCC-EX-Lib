@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "../DCC/DCC.h"
 
-struct CommParser
+struct StringParser
 {
     static volatile DCC *mainTrack, *progTrack;
     static void init(volatile DCC*, volatile DCC*);

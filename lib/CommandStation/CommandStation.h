@@ -7,6 +7,6 @@
 #include "DCC/DCC.h"
 #include "CommInterface/CommManager.h"
 #include "CommInterface/CommInterfaceSerial.h"
-#include "CommInterface/CommParser.h"
+#include "CommInterface/StringParser.h"
 
 #endif
