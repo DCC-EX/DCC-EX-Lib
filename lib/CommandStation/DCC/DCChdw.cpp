@@ -26,6 +26,8 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     hdw.trigger_value = 5500; // Trips at 5500mA
     hdw.current_conversion_factor = 1.60972; // Sanity check: 4096*1.60972 = 6593.40 mA, about right.
 
+    hdw.preambleBits = 16;
+
     return new DCC(numDev, hdw);
 }
 
@@ -54,6 +56,8 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     hdw.current_sense_pin = A1; // Arduino pin
     hdw.trigger_value = 250;       
     hdw.current_conversion_factor = 0.73242;
+
+    hdw.preambleBits = 22;
 
     return new DCC(numDev, hdw);
 }

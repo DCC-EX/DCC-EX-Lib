@@ -1,5 +1,7 @@
 #include "DCC.h"
 
+byte DCC::bitMask[]={0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};         // masks used in interrupt routine to speed the query of a single bit in a Packet
+
 void DCC::init_timers() {
     // Allow readback of the DCC output pins
     PORT->Group[hdwSettings.signal_a_group].PINCFG[hdwSettings.signal_a_pin].reg=(uint8_t)PORT_PINCFG_INEN;
@@ -129,27 +131,59 @@ void DCC::interrupt_handler() volatile {
         if (TCC0->INTFLAG.bit.OVF)             
         { 
             TCC0->INTFLAG.bit.OVF = 1;
-            if(currentBit == currentDev->activePacket->nBits) {    /* IF no more bits in this DCC Packet */
-                currentBit = 0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ 
-                if(nRepeat > 0 && currentDev == dev) {               /*   IF current Register is first Register AND should be repeated */ 
-                    nRepeat--;                                        /*     decrement repeat count; result is this same Packet will be repeated */ 
-                } else if(nextDev != NULL) {                           /*   ELSE IF another Register has been updated */ 
-                    currentDev = nextDev;                             /*     update currentReg to nextReg */ 
-                    nextDev = NULL;                                     /*     reset nextReg to NULL */ 
-                    tempPacket = currentDev->activePacket;            /*     flip active and update Packets */ 
+
+            if(currentBit == 8) {
+                currentBit = 0;
+                currentByte++;
+                generateStartBit = true;
+            }
+
+            if(currentByte == currentDev->activePacket->nBytes) {   // If we've reached the end of the payload
+                currentByte = 0;
+                currentBit = 0;
+                generateStartBit = false;
+                preambleLeft = hdwSettings.preambleBits + 1; // Terminate the last packet with a 1, and begin the next with required preamble bits
+                if(nRepeat > 0 && currentDev == dev) {
+                    nRepeat--;
+                }
+                else if(nextDev != NULL) {
+                    currentDev = nextDev;
+                    nextDev = NULL;
+                    tempPacket = currentDev->activePacket;
                     currentDev->activePacket = currentDev->updatePacket; 
-                    currentDev->updatePacket = tempPacket;               
-                } else {                                               /*   ELSE simply move to next Register */ 
-                    if(currentDev == maxLoadedDev)                    /*     BUT IF this is last Register loaded */ 
-                        currentDev = dev;                               /*       first reset currentReg to base Register, THEN */ 
-                    currentDev++;                                     /*     increment current Register (note this logic causes Register[0] to be skipped when simply cycling through all Registers) */ 
-                }                                                     /*   END-ELSE */ 
-                }                                                       /*   END-IF: currentReg, activePacket, and currentBit should now be properly set to point to next DCC bit */ 
-                if(currentDev->activePacket->buf[currentBit/8] & bitMask[currentBit%8]){    /* IF bit is a ONE */ 
+                    currentDev->updatePacket = tempPacket; 
+                } 
+                else {                                               
+                    if(currentDev == maxLoadedDev)                    
+                        currentDev = dev;                               
+                    currentDev++;                                    
+                }    
+            }
+
+            if(preambleLeft > 0) {
+                preambleLeft--;
+                if(preambleLeft == 0)
+                    generateStartBit = true;
+                TCC0->CC[0].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC0->CC[1].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC0->PER.reg = DCC_ONE_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
+                break;
+            }
+
+            if(generateStartBit) {
+                generateStartBit = false;
+                TCC0->CC[0].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC0->CC[1].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC0->PER.reg = DCC_ZERO_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
+                break;
+            }
+             
+            if(currentDev->activePacket->payload[currentByte] & bitMask[currentBit]){    /* IF bit is a ONE */ 
                 TCC0->CC[0].reg = DCC_ONE_BIT_PULSE_DURATION;                                         /*   set register CC0 for timer N to half cycle duration of DCC ONE bit */
                 TCC0->CC[1].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */  
                 TCC0->PER.reg = DCC_ONE_BIT_TOTAL_DURATION;                                         /*   set register PER for timer N to full cycle duration of DCC ONE bit */ 
-                } else{                                                                             /* ELSE it is a ZERO */ 
+            } 
+            else{                                                                             /* ELSE it is a ZERO */ 
                 TCC0->CC[0].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
                 TCC0->CC[1].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
                 TCC0->PER.reg = DCC_ZERO_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
@@ -162,27 +196,59 @@ void DCC::interrupt_handler() volatile {
         if (TCC1->INTFLAG.bit.OVF)             
         { 
             TCC1->INTFLAG.bit.OVF = 1;
-            if(currentBit == currentDev->activePacket->nBits) {    /* IF no more bits in this DCC Packet */
-                currentBit = 0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ 
-                if(nRepeat > 0 && currentDev == dev) {               /*   IF current Register is first Register AND should be repeated */ 
-                    nRepeat--;                                        /*     decrement repeat count; result is this same Packet will be repeated */ 
-                } else if(nextDev != NULL) {                           /*   ELSE IF another Register has been updated */ 
-                    currentDev = nextDev;                             /*     update currentReg to nextReg */ 
-                    nextDev = NULL;                                     /*     reset nextReg to NULL */ 
-                    tempPacket = currentDev->activePacket;            /*     flip active and update Packets */ 
+
+            if(currentBit == 8) {
+                currentBit = 0;
+                currentByte++;
+                generateStartBit = true;
+            }
+
+            if(currentByte == currentDev->activePacket->nBytes) {   // If we've reached the end of the payload
+                currentByte = 0;
+                currentBit = 0;
+                generateStartBit = false;
+                preambleLeft = hdwSettings.preambleBits + 1; // Terminate the last packet with a 1, and begin the next with required preamble bits
+                if(nRepeat > 0 && currentDev == dev) {
+                    nRepeat--;
+                }
+                else if(nextDev != NULL) {
+                    currentDev = nextDev;
+                    nextDev = NULL;
+                    tempPacket = currentDev->activePacket;
                     currentDev->activePacket = currentDev->updatePacket; 
-                    currentDev->updatePacket = tempPacket;               
-                } else {                                               /*   ELSE simply move to next Register */ 
-                    if(currentDev == maxLoadedDev)                    /*     BUT IF this is last Register loaded */ 
-                        currentDev = dev;                               /*       first reset currentReg to base Register, THEN */ 
-                    currentDev++;                                     /*     increment current Register (note this logic causes Register[0] to be skipped when simply cycling through all Registers) */ 
-                }                                                     /*   END-ELSE */ 
-                }                                                       /*   END-IF: currentReg, activePacket, and currentBit should now be properly set to point to next DCC bit */ 
-                if(currentDev->activePacket->buf[currentBit/8] & bitMask[currentBit%8]){    /* IF bit is a ONE */ 
+                    currentDev->updatePacket = tempPacket; 
+                } 
+                else {                                               
+                    if(currentDev == maxLoadedDev)                    
+                        currentDev = dev;                               
+                    currentDev++;                                    
+                }    
+            }
+
+            if(preambleLeft > 0) {
+                preambleLeft--;
+                if(preambleLeft == 0)
+                    generateStartBit = true;
+                TCC1->CC[0].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC1->CC[1].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC1->PER.reg = DCC_ONE_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
+                break;
+            }
+
+            if(generateStartBit) {
+                generateStartBit = false;
+                TCC1->CC[0].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC1->CC[1].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC1->PER.reg = DCC_ZERO_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
+                break;
+            }
+             
+            if(currentDev->activePacket->payload[currentByte] & bitMask[currentBit]){    /* IF bit is a ONE */ 
                 TCC1->CC[0].reg = DCC_ONE_BIT_PULSE_DURATION;                                         /*   set register CC0 for timer N to half cycle duration of DCC ONE bit */
                 TCC1->CC[1].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */  
                 TCC1->PER.reg = DCC_ONE_BIT_TOTAL_DURATION;                                         /*   set register PER for timer N to full cycle duration of DCC ONE bit */ 
-                } else{                                                                             /* ELSE it is a ZERO */ 
+            } 
+            else{                                                                             /* ELSE it is a ZERO */ 
                 TCC1->CC[0].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
                 TCC1->CC[1].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
                 TCC1->PER.reg = DCC_ZERO_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
@@ -191,30 +257,62 @@ void DCC::interrupt_handler() volatile {
         }
         break;
     case 2:
-        if (TCC1->INTFLAG.bit.OVF)             
+        if (TCC2->INTFLAG.bit.OVF)             
         { 
-            TCC1->INTFLAG.bit.OVF = 1;
-            if(currentBit == currentDev->activePacket->nBits) {    /* IF no more bits in this DCC Packet */
-                currentBit = 0;                                       /*   reset current bit pointer and determine which Register and Packet to process next--- */ 
-                if(nRepeat > 0 && currentDev == dev) {               /*   IF current Register is first Register AND should be repeated */ 
-                    nRepeat--;                                        /*     decrement repeat count; result is this same Packet will be repeated */ 
-                } else if(nextDev != NULL) {                           /*   ELSE IF another Register has been updated */ 
-                    currentDev = nextDev;                             /*     update currentReg to nextReg */ 
-                    nextDev = NULL;                                     /*     reset nextReg to NULL */ 
-                    tempPacket = currentDev->activePacket;            /*     flip active and update Packets */ 
+            TCC2->INTFLAG.bit.OVF = 1;
+
+            if(currentBit == 8) {
+                currentBit = 0;
+                currentByte++;
+                generateStartBit = true;
+            }
+
+            if(currentByte == currentDev->activePacket->nBytes) {   // If we've reached the end of the payload
+                currentByte = 0;
+                currentBit = 0;
+                generateStartBit = false;
+                preambleLeft = hdwSettings.preambleBits + 1; // Terminate the last packet with a 1, and begin the next with required preamble bits
+                if(nRepeat > 0 && currentDev == dev) {
+                    nRepeat--;
+                }
+                else if(nextDev != NULL) {
+                    currentDev = nextDev;
+                    nextDev = NULL;
+                    tempPacket = currentDev->activePacket;
                     currentDev->activePacket = currentDev->updatePacket; 
-                    currentDev->updatePacket = tempPacket;               
-                } else {                                               /*   ELSE simply move to next Register */ 
-                    if(currentDev == maxLoadedDev)                    /*     BUT IF this is last Register loaded */ 
-                        currentDev = dev;                               /*       first reset currentReg to base Register, THEN */ 
-                    currentDev++;                                     /*     increment current Register (note this logic causes Register[0] to be skipped when simply cycling through all Registers) */ 
-                }                                                     /*   END-ELSE */ 
-                }                                                       /*   END-IF: currentReg, activePacket, and currentBit should now be properly set to point to next DCC bit */ 
-                if(currentDev->activePacket->buf[currentBit/8] & bitMask[currentBit%8]){    /* IF bit is a ONE */ 
+                    currentDev->updatePacket = tempPacket; 
+                } 
+                else {                                               
+                    if(currentDev == maxLoadedDev)                    
+                        currentDev = dev;                               
+                    currentDev++;                                    
+                }    
+            }
+
+            if(preambleLeft > 0) {
+                preambleLeft--;
+                if(preambleLeft == 0)
+                    generateStartBit = true;
+                TCC2->CC[0].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC2->CC[1].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC2->PER.reg = DCC_ONE_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
+                break;
+            }
+
+            if(generateStartBit) {
+                generateStartBit = false;
+                TCC2->CC[0].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC2->CC[1].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
+                TCC2->PER.reg = DCC_ZERO_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
+                break;
+            }
+             
+            if(currentDev->activePacket->payload[currentByte] & bitMask[currentBit]){    /* IF bit is a ONE */ 
                 TCC2->CC[0].reg = DCC_ONE_BIT_PULSE_DURATION;                                         /*   set register CC0 for timer N to half cycle duration of DCC ONE bit */
                 TCC2->CC[1].reg = DCC_ONE_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */  
                 TCC2->PER.reg = DCC_ONE_BIT_TOTAL_DURATION;                                         /*   set register PER for timer N to full cycle duration of DCC ONE bit */ 
-                } else{                                                                             /* ELSE it is a ZERO */ 
+            } 
+            else{                                                                             /* ELSE it is a ZERO */ 
                 TCC2->CC[0].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC0 for timer N to half cycle duration of DCC ZERO bit */ 
                 TCC2->CC[1].reg = DCC_ZERO_BIT_PULSE_DURATION;                                        /*   set register CC1 for timer N to half cycle duration of DCC ZERO bit */ 
                 TCC2->PER.reg = DCC_ZERO_BIT_TOTAL_DURATION;                                        /*   set register PER for timer N to full cycle duration of DCC ZERO bit */ 
@@ -225,4 +323,3 @@ void DCC::interrupt_handler() volatile {
     }
 }
 
-byte DCC::bitMask[]={0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};         // masks used in interrupt routine to speed the query of a single bit in a Packet

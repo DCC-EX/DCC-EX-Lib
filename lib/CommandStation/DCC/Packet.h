@@ -3,17 +3,14 @@
 
 #include "Arduino.h"
 
-#define DCC_PACKET_MAX_SIZE 10
+#define DCC_PACKET_MAX_SIZE 6       // 5 Bytes plus checksum. Preamble and start bits are added by the interrupt handler.
 
 struct Packet
 {
     /// Packet payload bytes
-    uint8_t buf[DCC_PACKET_MAX_SIZE];
+    uint8_t payload[DCC_PACKET_MAX_SIZE];
     /// Number of bits in the packet
-    uint8_t nBits;
-    /// Feedback key. Identifier used to attribute Railcom data to a specific packet. 
-    /// Will be updated after packet is transmitted to the track.
-    uintptr_t feedback_key;
+    uint8_t nBytes;
 };
 
 #endif

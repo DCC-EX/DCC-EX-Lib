@@ -106,7 +106,10 @@ public:
     Packet* constructionPacket;
     
     uint8_t currentBit;
+    uint8_t currentByte;
     uint8_t nRepeat;
+    uint8_t preambleLeft;
+    bool generateStartBit;
     
     int* speedTable;
 

@@ -2,7 +2,10 @@
 
 #define  CURRENT_SAMPLE_TIME        1
 #define  CURRENT_SAMPLE_SMOOTHING   0.01
-#define  RETRY_MILLIS    10000
+#define  RETRY_MILLIS    1000
+
+uint8_t DCC::idlePacket[3]={0xFF,0x00,0};                 // always leave extra byte for checksum computation
+uint8_t DCC::resetPacket[3]={0x00,0x00,0};
 
 DCC::DCC(int numDev, DCChdw hdw) {
     this->hdwSettings = hdw;            // Save the hardware settings for this track
@@ -26,6 +29,8 @@ DCC::DCC(int numDev, DCChdw hdw) {
 
     currentBit = 0;
     nRepeat = 0;
+    preambleLeft = 0;
+    generateStartBit = false;
 
     speedTable = (int *)calloc(numDev+1, sizeof(int *));
 
@@ -35,7 +40,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
 
 void DCC::loadPacket(int nDev, uint8_t *b, uint8_t nBytes, uint8_t nRepeat) volatile {
     // LOAD DCC PACKET INTO TEMPORARY REGISTER 0, OR PERMANENT REGISTERS 1 THROUGH DCC_PACKET_QUEUE_MAX (INCLUSIVE)
-    // CONVERTS 2, 3, 4, OR 5 BYTES INTO A DCC BIT STREAM WITH PREAMBLE, CHECKSUM, AND PROPER BYTE SEPARATORS
+    // CONVERTS 2, 3, 4, OR 5 BYTES INTO A DCC BIT STREAM WITH CHECKSUM AND PROPER BYTE SEPARATORS
     // BITSTREAM IS STORED IN UP TO A 10-BYTE ARRAY (USING AT MOST 76 OF 80 BITS)
 
     nDev=nDev % (numDev+1);          // force nDev to be between 0 and numDev, inclusive
@@ -47,38 +52,31 @@ void DCC::loadPacket(int nDev, uint8_t *b, uint8_t nBytes, uint8_t nRepeat) vola
 
     Device *r=devMap[nDev];           // set Register to be updated
     Packet *p=r->updatePacket;          // set Packet in the Register to be updated
-    uint8_t *buf=p->buf;                   // set byte buffer in the Packet to be updated
+    uint8_t *payload=p->payload;                   // set byte buffer in the Packet to be updated
 
     b[nBytes]=b[0];                        // copy first byte into what will become the checksum byte
     for(int i=1;i<nBytes;i++)              // XOR remaining bytes into checksum byte
         b[nBytes]^=b[i];
     nBytes++;                              // increment number of bytes in packet to include checksum byte
 
-    buf[0]=0xFF;                        // first 8 bytes of 22-byte preamble
-    buf[1]=0xFF;                        // second 8 bytes of 22-byte preamble
-    buf[2]=0xFC + bitRead(b[0],7);      // last 6 bytes of 22-byte preamble + data start bit + b[0], bit 7
-    buf[3]=b[0]<<1;                     // b[0], bits 6-0 + data start bit
-    buf[4]=b[1];                        // b[1], all bits
-    buf[5]=b[2]>>1;                     // b[2], bits 7-1
-    buf[6]=b[2]<<7;                     // b[2], bit 0
+    payload[0] = b[0];                          // b[0], full byte
+    payload[1] = b[1];
+    payload[2] = b[2]; 
 
     if(nBytes==3){
-        p->nBits=49;
+        p->nBytes = 3;
     } else{
-        buf[6]+=b[3]>>2;                  // b[3], bits 7-2
-        buf[7]=b[3]<<6;                   // b[3], bit 1-0
+        payload[3] = b[3];
         if(nBytes==4){
-        p->nBits=58;
+            p->nBytes = 4;
         } else{
-        buf[7]+=b[4]>>3;                // b[4], bits 7-3
-        buf[8]=b[4]<<5;                 // b[4], bits 2-0
-        if(nBytes==5){
-            p->nBits=67;
-        } else{
-            buf[8]+=b[5]>>4;              // b[5], bits 7-4
-            buf[9]=b[5]<<4;               // b[5], bits 3-0
-            p->nBits=76;
-        } // >5 bytes
+            payload[4] = b[4];
+            if(nBytes==5){
+                p->nBytes = 5;
+            } else{
+                payload[5] = b[5];
+                p->nBytes = 6;
+            } // >5 bytes
         } // >4 bytes
     } // >3 bytes
 
@@ -399,5 +397,3 @@ int DCC::getLastRead() volatile {
 	return current;
 }
 
-uint8_t DCC::idlePacket[3]={0xFF,0x00,0};                 // always leave extra byte for checksum computation
-uint8_t DCC::resetPacket[3]={0x00,0x00,0};
