@@ -4,7 +4,7 @@
 #include "../Accessories/Sensors.h"
 #include "../Accessories/Outputs.h"
 #include "../Accessories/EEStore.h"
-#include "../OpenMRRControl.h"
+#include "../CommandStation.h"
 #include <inttypes.h>
 
 volatile DCC* CommParser::mainTrack;

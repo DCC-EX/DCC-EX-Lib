@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "OpenMRRControl.h"
+#include "CommandStation.h"
 
 volatile DCC* mainTrack = DCC::Create_WSM_SAMCommandStation_Main(10);
 volatile DCC* progTrack = DCC::Create_WSM_SAMCommandStation_Prog(2);
