@@ -1,0 +1,14 @@
+"name": "OpenMRRControl",
+"version": "1.0.0",
+"repository":
+{
+    "type": "git",
+    "url": "https://github.com/davidcutting42/CommandStation"
+},
+"description": "",
+"authors":
+{
+    "name": "David Cutting",
+    "email": "davidcutting42@gmail.com",
+    "url": "https://github.com/davidcutting42"
+}
