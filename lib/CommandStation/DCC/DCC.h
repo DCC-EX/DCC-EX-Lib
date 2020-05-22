@@ -64,7 +64,7 @@ public:
     static DCC* Create_WSM_SAMCommandStation_Main(int numDev);
     static DCC* Create_WSM_SAMCommandStation_Prog(int numDev);
 
-    DCChdw hdwSettings;
+    DCChdw hdw;
     
     /// Constructor for DCC class.
     /// @param hdwSettings Pin numbers, timing, etc needed for DCC signal generation. Use static 

@@ -8,12 +8,12 @@ uint8_t DCC::idlePacket[3]={0xFF,0x00,0};                 // always leave extra 
 uint8_t DCC::resetPacket[3]={0x00,0x00,0};
 
 DCC::DCC(int numDev, DCChdw hdw) {
-    this->hdwSettings = hdw;            // Save the hardware settings for this track
+    this->hdw = hdw;            // Save the hardware settings for this track
     this->numDev = numDev;              // Save the number of devices allowed on this track
     
     // Set up the enable pin for this track
-    pinMode(hdwSettings.enable_pin, OUTPUT);
-    digitalWrite(hdwSettings.enable_pin, LOW);
+    pinMode(hdw.enable_pin, OUTPUT);
+    digitalWrite(hdw.enable_pin, LOW);
 
     // Create and initialize a device table
     dev = (Device*)calloc(numDev+1, sizeof(Device));     // Device memory allocation. Happens dynamically.
@@ -216,7 +216,7 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     base=0;
 
     for(int j=0;j<ACK_BASE_COUNT;j++)
-        base+=analogRead(hdwSettings.current_sense_pin);
+        base+=analogRead(hdw.current_sense_pin);
     base/=ACK_BASE_COUNT;
     
     bWrite[0]=0x74+(highByte(cv)&0x03);   // set-up to re-verify entire byte
@@ -226,7 +226,7 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     loadPacket(0,bWrite,3,6);             // NMRA recommends 6 write or reset packets for decoder recovery time
     
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdwSettings.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
         if(c>ACK_SAMPLE_THRESHOLD)
         d=1;
     }
@@ -265,7 +265,7 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     base=0;
 
     for(int j=0;j<ACK_BASE_COUNT;j++)
-        base+=analogRead(hdwSettings.current_sense_pin);
+        base+=analogRead(hdw.current_sense_pin);
     base/=ACK_BASE_COUNT;
     
     bitClear(bWrite[2],4);              // change instruction code from Write Bit to Verify Bit
@@ -274,7 +274,7 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     loadPacket(0,bWrite,3,6);           // NMRA recommends 6 write or reset packets for decoder recovery time
         
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdwSettings.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
         if(c>ACK_SAMPLE_THRESHOLD)
         d=1;
     }
@@ -311,7 +311,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
         d=0;
         base=0;
         for(int j=0;j<ACK_BASE_COUNT;j++) {
-            base+=analogRead(hdwSettings.current_sense_pin);
+            base+=analogRead(hdw.current_sense_pin);
         }
     base/=ACK_BASE_COUNT;
 
@@ -322,7 +322,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     loadPacket(0, idlePacket, 2, 6);          // NMRA recommends 6 idle or reset packets for decoder recovery time
 
         for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdwSettings.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
         if(c>ACK_SAMPLE_THRESHOLD) {
             d=1;
         }
@@ -335,7 +335,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     base=0;
 
     for(int j=0;j<ACK_BASE_COUNT;j++) {
-        base+=analogRead(hdwSettings.current_sense_pin);
+        base+=analogRead(hdw.current_sense_pin);
     }
     base/=ACK_BASE_COUNT;
 
@@ -347,7 +347,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     loadPacket(0, idlePacket, 2, 6);      // NMRA recommends 6 idle or reset packets for decoder recovery time
     
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdwSettings.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
         if(c>ACK_SAMPLE_THRESHOLD)
         d=1;
     }
@@ -369,13 +369,13 @@ void DCC::check() volatile {
     // if we have exceeded the CURRENT_SAMPLE_TIME we need to check if we are over/under current.
 	if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) { // TODO can we integrate this with the readBaseCurrent and ackDetect routines?
 		lastCheckTime = millis();
-		reading = analogRead(hdwSettings.current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
-		current = (reading * hdwSettings.current_conversion_factor); // get current in milliamps
-		if(current > hdwSettings.trigger_value && digitalRead(hdwSettings.enable_pin)) { // TODO convert this to integer match
+		reading = analogRead(hdw.current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
+		current = (reading * hdw.current_conversion_factor); // get current in milliamps
+		if(current > hdw.trigger_value && digitalRead(hdw.enable_pin)) { // TODO convert this to integer match
 			powerOff();
 			tripped=true;
 			lastTripTime=millis();
-		} else if(current < hdwSettings.trigger_value && tripped) { // TODO need to put a delay in here so it only tries after X seconds
+		} else if(current < hdw.trigger_value && tripped) { // TODO need to put a delay in here so it only tries after X seconds
 			if (millis() - lastTripTime > RETRY_MILLIS) {  // TODO make this a global constant
 			  powerOn();
 			  tripped=false;
@@ -386,11 +386,11 @@ void DCC::check() volatile {
 }
 
 void DCC::powerOn() volatile {
-	digitalWrite(hdwSettings.enable_pin, HIGH);
+	digitalWrite(hdw.enable_pin, HIGH);
 }
 
 void DCC::powerOff() volatile {
-	digitalWrite(hdwSettings.enable_pin, LOW);
+	digitalWrite(hdw.enable_pin, LOW);
 }
 
 int DCC::getLastRead() volatile {

@@ -11,13 +11,11 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     hdw.timer_num = 0;
     hdw.gclk_num = 4;
 
-    hdw.signal_a_pin = PIN_PA20;
-    hdw.signal_a_group = 0;
+    hdw.signal_a_pin = 6u;  // Arduino pin
     hdw.signal_a_timer_bit = 6;
     hdw.signal_a_timer_mux = MUX_PA20F_TCC0_WO6;
 
-    hdw.signal_b_pin = PIN_PA21;
-    hdw.signal_b_group = 0;
+    hdw.signal_b_pin = 7u;  // Arduino pin
     hdw.signal_b_timer_bit = 7;
     hdw.signal_b_timer_mux = MUX_PA21F_TCC0_WO7;
 
@@ -43,13 +41,11 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     hdw.timer_num = 1;
     hdw.gclk_num = 5;
 
-    hdw.signal_a_pin = PIN_PA06;
-    hdw.signal_a_group = 0;
+    hdw.signal_a_pin = 8u;  // Arduino pin
     hdw.signal_a_timer_bit = 0;
     hdw.signal_a_timer_mux = MUX_PA06E_TCC1_WO0;
 
-    hdw.signal_b_pin = PIN_PA07;
-    hdw.signal_b_group = 0;
+    hdw.signal_b_pin = 9u;  // Arduino pin
     hdw.signal_b_timer_bit = 1;
     hdw.signal_b_timer_mux = MUX_PA07E_TCC1_WO1;
 
