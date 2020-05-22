@@ -156,44 +156,44 @@ int DCC::setAccessory(uint16_t address, uint8_t number, bool activate, setAccess
 }
 
 int DCC::writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, writeCVByteMainResponse& response) volatile {
-  byte b[6];                      // save space for checksum byte
-  byte nB=0;
+    byte b[6];                      // save space for checksum byte
+    byte nB=0;
 
-  cv--;
+    cv--;
 
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;      // convert train number into a two-byte address
+    if(cab>127)
+        b[nB++]=highByte(cab) | 0xC0;      // convert train number into a two-byte address
 
-  b[nB++]=lowByte(cab);
-  b[nB++]=0xEC+(highByte(cv)&0x03);   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  b[nB++]=lowByte(cv);
-  b[nB++]=bValue;
+    b[nB++]=lowByte(cab);
+    b[nB++]=0xEC+(highByte(cv)&0x03);   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
+    b[nB++]=lowByte(cv);
+    b[nB++]=bValue;
 
-  loadPacket(0,b,nB,4);
+    loadPacket(0,b,nB,4);
 
-  return ERR_OK;         // Will implement error handling later
+    return ERR_OK;         // Will implement error handling later
 }
 
 int DCC::writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue, writeCVBitMainResponse& response) volatile {
-  byte b[6];                      // save space for checksum byte
-  byte nB=0;
+    byte b[6];                      // save space for checksum byte
+    byte nB=0;
 
-  cv--;
+    cv--;
 
-  bValue=bValue%2;
-  bNum=bNum%8;
+    bValue=bValue%2;
+    bNum=bNum%8;
 
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;      // convert train number into a two-byte address
+    if(cab>127)
+        b[nB++]=highByte(cab) | 0xC0;      // convert train number into a two-byte address
 
-  b[nB++]=lowByte(cab);
-  b[nB++]=0xE8+(highByte(cv)&0x03);   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  b[nB++]=lowByte(cv);
-  b[nB++]=0xF0+bValue*8+bNum;
+    b[nB++]=lowByte(cab);
+    b[nB++]=0xE8+(highByte(cv)&0x03);   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
+    b[nB++]=lowByte(cv);
+    b[nB++]=0xF0+bValue*8+bNum;
 
-  loadPacket(0,b,nB,4);
+    loadPacket(0,b,nB,4);
 
-  return ERR_OK;
+    return ERR_OK;
 
 } // RegisterList::writeCVBitMain()
 

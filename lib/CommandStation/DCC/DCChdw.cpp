@@ -8,7 +8,6 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     hdw.use_dual_signal = 1;
 
     hdw.timer = TCC0;
-    hdw.timer_num = 0;
     hdw.gclk_num = 4;
 
     hdw.signal_a_pin = 6u;  // Arduino pin
@@ -38,7 +37,6 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     hdw.use_dual_signal = 1;
 
     hdw.timer = TCC1;
-    hdw.timer_num = 1;
     hdw.gclk_num = 5;
 
     hdw.signal_a_pin = 8u;  // Arduino pin
