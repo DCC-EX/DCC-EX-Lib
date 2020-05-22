@@ -30,8 +30,10 @@ struct DCChdw {
     // is the resolution or the range of the sensor (12bits). volts_per_amp
     // is the number of volts out of the current sensor board that corresponds
     // to one amp of current.
-    /////////////////////////////////////////////////////////////////////////////////////
+    
     float current_conversion_factor;
+
+    /////////////////////////////////////////////////////////////////////////////////////
 
     uint8_t preambleBits;
 };
