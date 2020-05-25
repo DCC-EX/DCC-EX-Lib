@@ -1,3 +1,5 @@
+#if defined (ATSAMD21G)
+
 #include <Arduino.h>
 #include "CommInterfaceUSB.h"
 #include "StringParser.h"
@@ -36,3 +38,5 @@ void USBInterface::showInitInfo() {
 void USBInterface::send(const char *buf) {
 	serialStream.print(buf);
 }
+
+#endif

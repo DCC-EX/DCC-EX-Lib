@@ -7,6 +7,9 @@
 #include "DCC/DCC.h"
 #include "CommInterface/CommManager.h"
 #include "CommInterface/CommInterfaceSerial.h"
+#if defined (ATSAMD21G)
+#include "CommInterface/CommInterfaceUSB.h"
+#endif
 #include "CommInterface/StringParser.h"
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef CommInterfaceSerial_h
-#define CommInterfaceSerial_h
+#ifndef CommInterfaceUSB_h
+#define CommInterfaceUSB_h
 
 #include "CommInterface.h"
 #include <Arduino.h>

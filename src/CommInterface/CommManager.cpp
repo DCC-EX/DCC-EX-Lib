@@ -1,6 +1,9 @@
 #include "CommManager.h"
 #include <Arduino.h>
+
+#if defined (ATSAMD21G)
 #include <cstdarg>
+#endif
 
 CommInterface *CommManager::interfaces[5] = {NULL, NULL, NULL, NULL, NULL};
 int CommManager::nextInterface = 0;
