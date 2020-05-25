@@ -1,4 +1,7 @@
 #include "DCC.h"
+#if defined(ATMEGA328) || defined(ATMEGA2560)
+#include <DIO2.h>
+#endif
 
 void DCC::interrupt_handler() {
     if(interrupt1()) {
@@ -11,15 +14,31 @@ bool DCC::interrupt1() {
   // otherwise can cause hangs in main loop waiting for the pendingBuffer. 
     switch (state) {
     case 0:  // start of bit transmission
+        #if defined(ATMEGA328) || defined(ATMEGA2560)
+        digitalWrite2(hdw.signal_a_pin, HIGH);
+        #else
         digitalWrite(hdw.signal_a_pin, HIGH);
+        #endif
         if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-            digitalWrite(hdw.signal_b_pin, LOW);
+            #if defined(ATMEGA328) || defined(ATMEGA2560)
+            digitalWrite2(hdw.signal_a_pin, LOW);
+            #else
+            digitalWrite(hdw.signal_a_pin, LOW);
+            #endif
         state = 1;
         return true; // must call interrupt2 to set timing of bits
     case 1:  // 58us after case 0 if the bit is a zero, 100us after case 1 if the bit is a one.
+        #if defined(ATMEGA328) || defined(ATMEGA2560)
+        digitalWrite2(hdw.signal_a_pin, LOW);
+        #else
         digitalWrite(hdw.signal_a_pin, LOW);
+        #endif
         if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-            digitalWrite(hdw.signal_b_pin, HIGH);
+            #if defined(ATMEGA328) || defined(ATMEGA2560)
+            digitalWrite2(hdw.signal_a_pin, HIGH);
+            #else
+            digitalWrite(hdw.signal_a_pin, HIGH);
+            #endif
         state = 0;
         break;
     }
