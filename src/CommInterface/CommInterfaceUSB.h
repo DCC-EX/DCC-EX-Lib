@@ -3,17 +3,16 @@
 
 #include "CommInterface.h"
 #include <Arduino.h>
-#include <HardwareSerial.h>
 
-class SerialInterface : public CommInterface {
+class USBInterface : public CommInterface {
 public:
-	SerialInterface(HardwareSerial &serial, long baud=115200);
+	USBInterface(Serial_ &serial, long baud=115200);	// Baud doesn't really matter but keep it for consistency.
 	void process();
 	void showConfiguration();
 	void showInitInfo();
 	void send(const char *buf);
 protected:
-	HardwareSerial &serialStream;
+	Serial_ &serialStream;
 	long baud;
 	String buffer;
 	bool inCommandPayload;

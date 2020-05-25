@@ -1,15 +1,15 @@
 #include <Arduino.h>
-#include "CommInterfaceSerial.h"
+#include "CommInterfaceUSB.h"
 #include "StringParser.h"
 #include "CommManager.h"
 #include "../DCC/DCC.h"
 
-SerialInterface::SerialInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {
+USBInterface::USBInterface(Serial_ &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {
 	serialStream.begin(baud);
 	serialStream.flush();
 }
 
-void SerialInterface::process() {
+void USBInterface::process() {
 	while(serialStream.available()) {
 		char ch = serialStream.read();
 		if (ch == '<') {
@@ -25,15 +25,14 @@ void SerialInterface::process() {
 	}
 }
 
-void SerialInterface::showConfiguration() {
-	serialStream.print("Hardware Serial - Speed:");
-	serialStream.println(baud);
+void USBInterface::showConfiguration() {
+	serialStream.println("USB");
 }
 
-void SerialInterface::showInitInfo() {
+void USBInterface::showInitInfo() {
 	CommManager::printf("<N0:SERIAL>");
 }
 
-void SerialInterface::send(const char *buf) {
+void USBInterface::send(const char *buf) {
 	serialStream.print(buf);
 }
