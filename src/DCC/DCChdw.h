@@ -3,13 +3,17 @@
 
 #include <Arduino.h>
 
+enum control_type_t : uint8_t {
+    DIRECTION_ENABLE,
+    DUAL_DIRECTION_INVERTED,
+    DIRECTION_BRAKE_ENABLE
+};
+
 struct DCChdw {
+    control_type_t control_scheme;
+
     bool is_prog_track;
-    bool use_dual_signal;
     bool enable_railcom;
-    Sercom* railcom_sercom;
-    Tcc* timer;
-    uint8_t gclk_num;
     uint8_t signal_a_pin;
     uint8_t signal_b_pin;
     uint8_t enable_pin;

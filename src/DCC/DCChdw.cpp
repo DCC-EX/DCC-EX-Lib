@@ -4,20 +4,13 @@
 DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     DCChdw hdw;
 
+    hdw.control_scheme = DUAL_DIRECTION_INVERTED;
+
     hdw.is_prog_track = false;
-    hdw.use_dual_signal = true;
     hdw.enable_railcom = true;
 
-    hdw.timer = TCC0;
-    hdw.gclk_num = 4;
-
-    hdw.signal_a_pin = 6u;  // Arduino pin
-    hdw.signal_a_timer_bit = 6;
-    hdw.signal_a_timer_mux = MUX_PA20F_TCC0_WO6;
-
-    hdw.signal_b_pin = 7u;  // Arduino pin
-    hdw.signal_b_timer_bit = 7;
-    hdw.signal_b_timer_mux = MUX_PA21F_TCC0_WO7;
+    hdw.signal_a_pin = 6u;  // Arduino pin, used always as the direction pin
+    hdw.signal_b_pin = 7u;  // Arduino pin, used as the direction pin, brake pin, or disabled
 
     hdw.enable_pin = 3; // Arduino pin
 
@@ -27,35 +20,35 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
 
     hdw.preambleBits = 16;
 
-    return new DCC(numDev, hdw);
+#if defined (ATSAMD21G)
+    return new DCC(numDev, hdw, TimerTCC0);
+#elif defined (ATMEGA2560)
+    return new DCC(numDev, hdw, Timer1);
+#endif
 }
 
 // DRV8876 on custom board
 DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     DCChdw hdw;
     
+    hdw.control_scheme = DUAL_DIRECTION_INVERTED;
+
     hdw.is_prog_track = true;
-    hdw.use_dual_signal = 1;
     hdw.enable_railcom = false;
 
-    hdw.timer = TCC1;
-    hdw.gclk_num = 5;
-
-    hdw.signal_a_pin = 8u;  // Arduino pin
-    hdw.signal_a_timer_bit = 0;
-    hdw.signal_a_timer_mux = MUX_PA06E_TCC1_WO0;
-
-    hdw.signal_b_pin = 9u;  // Arduino pin
-    hdw.signal_b_timer_bit = 1;
-    hdw.signal_b_timer_mux = MUX_PA07E_TCC1_WO1;
+    hdw.signal_a_pin = 8u;  // Arduino pin, used always as the direction pin
+    hdw.signal_b_pin = 9u;  // Arduino pin, used as the direction pin, brake pin, or disabled
 
     hdw.enable_pin = 4;     // Arduino pin
 
     hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;       
-    hdw.current_conversion_factor = 0.73242;
+    hdw.trigger_value = 250;  // Trips at 250mA
+    hdw.current_conversion_factor = 0.73242; // Sanity check: 4096*0.73242 = 2999.99 mA, about right.
 
     hdw.preambleBits = 22;
-
-    return new DCC(numDev, hdw);
+#if defined (ATSAMD21G)
+    return new DCC(numDev, hdw, TimerTCC1);
+#elif defined (ATMEGA2560)
+    return new DCC(numDev, hdw, Timer3);
+#endif
 }
