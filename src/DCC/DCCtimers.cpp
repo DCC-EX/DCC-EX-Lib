@@ -21,9 +21,9 @@ bool DCC::interrupt1() {
         #endif
         if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
             #if defined(ATMEGA328) || defined(ATMEGA2560)
-            digitalWrite2(hdw.signal_a_pin, LOW);
+            digitalWrite2(hdw.signal_b_pin, LOW);
             #else
-            digitalWrite(hdw.signal_a_pin, LOW);
+            digitalWrite(hdw.signal_b_pin, LOW);
             #endif
         state = 1;
         return true; // must call interrupt2 to set timing of bits
@@ -35,9 +35,9 @@ bool DCC::interrupt1() {
         #endif
         if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
             #if defined(ATMEGA328) || defined(ATMEGA2560)
-            digitalWrite2(hdw.signal_a_pin, HIGH);
+            digitalWrite2(hdw.signal_b_pin, HIGH);
             #else
-            digitalWrite(hdw.signal_a_pin, HIGH);
+            digitalWrite(hdw.signal_b_pin, HIGH);
             #endif
         state = 0;
         break;
