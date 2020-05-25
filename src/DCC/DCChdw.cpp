@@ -21,9 +21,9 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     hdw.preambleBits = 16;
 
 #if defined (ATSAMD21G)
-    return new DCC(numDev, hdw, TimerTCC0);
+    return new DCC(numDev, hdw, &TimerTCC0);
 #elif defined (ATMEGA2560)
-    return new DCC(numDev, hdw, Timer1);
+    return new DCC(numDev, hdw, &Timer1);
 #endif
 }
 
@@ -47,8 +47,8 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
 
     hdw.preambleBits = 22;
 #if defined (ATSAMD21G)
-    return new DCC(numDev, hdw, TimerTCC1);
+    return new DCC(numDev, hdw, &TimerTCC1);
 #elif defined (ATMEGA2560)
-    return new DCC(numDev, hdw, Timer3);
+    return new DCC(numDev, hdw, &Timer3);
 #endif
 }

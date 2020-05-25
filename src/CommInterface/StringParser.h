@@ -6,8 +6,8 @@
 
 struct StringParser
 {
-    static volatile DCC *mainTrack, *progTrack;
-    static void init(volatile DCC*, volatile DCC*);
+    static DCC *mainTrack, *progTrack;
+    static void init(DCC* mainTrack_, DCC* progTrack_);
     static void parse(const char *);
 };
 

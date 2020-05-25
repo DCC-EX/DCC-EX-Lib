@@ -1,5 +1,10 @@
 #include "DCC.h"
-#include <ArduinoTimers.h>
+
+void DCC::interrupt_handler() {
+    if(interrupt1()) {
+        interrupt2();
+    }
+}
 
 bool DCC::interrupt1() {
   // NOTE: this must consume transmission buffers even if the power is off 
@@ -27,7 +32,7 @@ void DCC::interrupt2() {
     if (remainingPreambles > 0 ) {
         currentBit=true;
         remainingPreambles--;
-        int_timer.setPeriod(58);
+        int_timer->setPeriod(58);
         return;
     }
   
@@ -36,9 +41,9 @@ void DCC::interrupt2() {
     bits_sent++;
 
     if(currentBit) {
-        int_timer.setPeriod(58);
+        int_timer->setPeriod(58);
     } else {
-        int_timer.setPeriod(100);
+        int_timer->setPeriod(100);
     }
 
     // If this is the last bit of a byte, prepare for the next byte 

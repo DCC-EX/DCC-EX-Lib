@@ -83,7 +83,7 @@ public:
     /// Constructor for DCC class.
     /// @param hdwSettings Pin numbers, timing, etc needed for DCC signal generation. Use static 
     ///     factory constructors to generate or roll your own with the DCChdw struct.
-    DCC(int numDev, DCChdw hdwSettings, Timer int_timer);
+    DCC(int numDev, DCChdw hdwSettings, Timer *int_timer);
 
     void init_timers();
     void interrupt_handler();
@@ -134,7 +134,7 @@ public:
 
     uint8_t state;
 
-    Timer int_timer;
+    Timer* int_timer;
 };
 
 

@@ -7,10 +7,10 @@
 #include "../CommandStation.h"
 #include <inttypes.h>
 
-volatile DCC* StringParser::mainTrack;
-volatile DCC* StringParser::progTrack;
+DCC* StringParser::mainTrack;
+DCC* StringParser::progTrack;
 
-void StringParser::init(volatile DCC* mainTrack_, volatile DCC* progTrack_) {
+void StringParser::init(DCC* mainTrack_, DCC* progTrack_) {
     mainTrack = mainTrack_;
     progTrack = progTrack_;
 } 

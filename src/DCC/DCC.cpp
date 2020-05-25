@@ -4,7 +4,7 @@
 #define  CURRENT_SAMPLE_SMOOTHING   0.01
 #define  RETRY_MILLIS    1000
 
-DCC::DCC(int numDev, DCChdw hdw, Timer int_timer) {
+DCC::DCC(int numDev, DCChdw hdw, Timer *int_timer) {
     this->hdw = hdw;            // Save the hardware settings for this track
     this->numDev = numDev;              // Save the number of devices allowed on this track
     this->int_timer = int_timer;
