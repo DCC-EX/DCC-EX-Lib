@@ -23,7 +23,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
 #if defined (ATSAMD21G)
     return new DCC(numDev, hdw, &TimerTCC0);
 #elif defined (ATMEGA2560)
-    return new DCC(numDev, hdw, &Timer1);
+    return new DCC(numDev, hdw, &Timer4);
 #endif
 }
 

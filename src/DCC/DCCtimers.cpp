@@ -10,8 +10,8 @@ void DCC::interrupt_handler() {
 }
 
 bool DCC::interrupt1() {
-  // NOTE: this must consume transmission buffers even if the power is off 
-  // otherwise can cause hangs in main loop waiting for the pendingBuffer. 
+    // NOTE: this must consume transmission buffers even if the power is off 
+    // otherwise can cause hangs in main loop waiting for the pendingBuffer. 
     switch (state) {
     case 0:  // start of bit transmission
         #if defined(ATMEGA328) || defined(ATMEGA2560)
@@ -26,8 +26,9 @@ bool DCC::interrupt1() {
             digitalWrite(hdw.signal_b_pin, LOW);
             #endif
         state = 1;
-        return true; // must call interrupt2 to set timing of bits
-    case 1:  // 58us after case 0 if the bit is a zero, 100us after case 1 if the bit is a one.
+        return true; // must call interrupt2 to set currentBit
+
+    case 1:  // 58us after case 0
         #if defined(ATMEGA328) || defined(ATMEGA2560)
         digitalWrite2(hdw.signal_a_pin, LOW);
         #else
@@ -39,6 +40,23 @@ bool DCC::interrupt1() {
             #else
             digitalWrite(hdw.signal_b_pin, HIGH);
             #endif
+        else state = 2;
+        break;
+    case 2:  // 116us after case 0
+        #if defined(ATMEGA328) || defined(ATMEGA2560)
+        digitalWrite2(hdw.signal_a_pin, LOW);
+        #else
+        digitalWrite(hdw.signal_a_pin, LOW);
+        #endif
+        if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
+            #if defined(ATMEGA328) || defined(ATMEGA2560)
+            digitalWrite2(hdw.signal_b_pin, HIGH);
+            #else
+            digitalWrite(hdw.signal_b_pin, HIGH);
+            #endif
+        state = 3;
+        break;
+    case 3:  // finished sending zero bit  
         state = 0;
         break;
     }
@@ -51,19 +69,12 @@ void DCC::interrupt2() {
     if (remainingPreambles > 0 ) {
         currentBit=true;
         remainingPreambles--;
-        int_timer->setPeriod(58);
         return;
     }
   
     // beware OF 9-BIT MASK  generating a zero to start each byte   
     currentBit=transmitPacket[bytes_sent] & bitMask[bits_sent];
     bits_sent++;
-
-    if(currentBit) {
-        int_timer->setPeriod(58);
-    } else {
-        int_timer->setPeriod(100);
-    }
 
     // If this is the last bit of a byte, prepare for the next byte 
     
