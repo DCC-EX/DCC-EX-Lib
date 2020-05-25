@@ -29,17 +29,20 @@ bool DCC::interrupt1() {
         return true; // must call interrupt2 to set currentBit
 
     case 1:  // 58us after case 0
-        #if defined(ATMEGA328) || defined(ATMEGA2560)
-        digitalWrite2(hdw.signal_a_pin, LOW);
-        #else
-        digitalWrite(hdw.signal_a_pin, LOW);
-        #endif
-        if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
+        if (currentBit) {
             #if defined(ATMEGA328) || defined(ATMEGA2560)
-            digitalWrite2(hdw.signal_b_pin, HIGH);
+            digitalWrite2(hdw.signal_a_pin, LOW);
             #else
-            digitalWrite(hdw.signal_b_pin, HIGH);
+            digitalWrite(hdw.signal_a_pin, LOW);
             #endif
+            if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
+                #if defined(ATMEGA328) || defined(ATMEGA2560)
+                digitalWrite2(hdw.signal_b_pin, HIGH);
+                #else
+                digitalWrite(hdw.signal_b_pin, HIGH);
+                #endif
+            state = 0;
+        }
         else state = 2;
         break;
     case 2:  // 116us after case 0
