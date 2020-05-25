@@ -109,22 +109,24 @@ void DCC::interrupt_handler() volatile {
             }    
         }
 
+        // Preamble generation code
         if(preambleLeft > 0) {
             preambleLeft--;
             if(preambleLeft == 0)
                 generateStartBit = true;
+            // Railcom cutout generation code - only done for main tracks
             if(!hdw.is_prog_track) {
-                if(preambleLeft == hdw.preambleBits - 2) {
-                    writeRailcomPulsetoTrack();
+                if(preambleLeft == hdw.preambleBits - 2) {  //  If we've already written one- 1 bit to the track
+                    writeRailcomPulsetoTrack();             //  Pulse the track to begin the railcom cutout
                 return;
                 }
-                else if(preambleLeft == hdw.preambleBits - 3) {
-                    writeCutouttoTrack();
-                    preambleLeft -= 2;
+                else if(preambleLeft == hdw.preambleBits - 3) { // We're off timing now, using preambleLeft as a status keeper
+                    writeCutouttoTrack();                   // Start the cutout on the track
+                    preambleLeft -= 2;                      // Jump ahead an additional two bits (total three plus extra time from pulse at beginning)
                     return;
                 }
                 else if(preambleLeft == hdw.preambleBits - 6) {
-                    recoverFromCutout();
+                    recoverFromCutout();                    // Turn the track back on, now we will generate the rest of the preamble bits.
                 }
             }
             writeOnetoTrack(); 

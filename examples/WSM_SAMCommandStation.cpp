@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "CommandStation.h"
+#include "../src/CommandStation.h"
 
 volatile DCC* mainTrack = DCC::Create_WSM_SAMCommandStation_Main(50);
 volatile DCC* progTrack = DCC::Create_WSM_SAMCommandStation_Prog(2);

@@ -5,7 +5,8 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     DCChdw hdw;
 
     hdw.is_prog_track = false;
-    hdw.use_dual_signal = 1;
+    hdw.use_dual_signal = true;
+    hdw.enable_railcom = true;
 
     hdw.timer = TCC0;
     hdw.gclk_num = 4;
@@ -35,6 +36,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     
     hdw.is_prog_track = true;
     hdw.use_dual_signal = 1;
+    hdw.enable_railcom = false;
 
     hdw.timer = TCC1;
     hdw.gclk_num = 5;
