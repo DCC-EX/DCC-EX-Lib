@@ -26,8 +26,8 @@ DCC::DCC(int numDev, DCChdw hdw) {
     nextDev = 0;
     
     // Allocate memory for the speed table
-    speedTable = (Speed *)calloc(numDev, sizeof(Speed *));
-    for (size_t i = 0; i < numDev; i++)
+    speedTable = (Speed *)calloc(numDev, sizeof(Speed));
+    for (int i = 0; i < numDev; i++)
     {
         speedTable[i].cab = 0;      // Initialize to zero so we don't get a bunch of noise on the track at startup
         speedTable[i].forward = true;
