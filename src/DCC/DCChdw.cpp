@@ -20,11 +20,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
 
     hdw.preambleBits = 16;
 
-#if defined (ATSAMD21G)
-    return new DCC(numDev, hdw, &TimerTCC0);
-#elif defined (ATMEGA2560)
-    return new DCC(numDev, hdw, &Timer4);
-#endif
+    return new DCC(numDev, hdw, &TimerB);
 }
 
 // DRV8876 on custom board
@@ -46,9 +42,6 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     hdw.current_conversion_factor = 0.73242; // Sanity check: 4096*0.73242 = 2999.99 mA, about right.
 
     hdw.preambleBits = 22;
-#if defined (ATSAMD21G)
-    return new DCC(numDev, hdw, &TimerTCC1);
-#elif defined (ATMEGA2560)
-    return new DCC(numDev, hdw, &Timer3);
-#endif
+
+    return new DCC(numDev, hdw, &TimerC);
 }
