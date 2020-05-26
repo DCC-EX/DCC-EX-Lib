@@ -19,4 +19,4 @@ protected:
 	bool inCommandPayload;
 };
 
-#endif /* COMMINTERFACESERIAL_H_ */
+#endif

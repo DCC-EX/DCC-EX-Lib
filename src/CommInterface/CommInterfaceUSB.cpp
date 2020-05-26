@@ -1,4 +1,4 @@
-#if defined (ATSAMD21G)
+#if defined(ARDUINO_ARCH_SAMD)
 
 #include <Arduino.h>
 #include "CommInterfaceUSB.h"

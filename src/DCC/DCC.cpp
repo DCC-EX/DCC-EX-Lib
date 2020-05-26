@@ -1,33 +1,30 @@
 #include "DCC.h"
 
-#define  CURRENT_SAMPLE_TIME        1
-#define  CURRENT_SAMPLE_SMOOTHING   0.01
-#define  RETRY_MILLIS    1000
+DCC::DCC(int numDev, DCChdw hdw) {
+    this->hdw = hdw;            
+    this->numDev = numDev;      
 
-DCC::DCC(int numDev, DCChdw hdw, Timer *int_timer) {
-    this->hdw = hdw;            // Save the hardware settings for this track
-    this->numDev = numDev;              // Save the number of devices allowed on this track
-    this->int_timer = int_timer;
-    
-    // Set up the pins for this track
+    // Set up the output pins for this track
     pinMode(hdw.signal_a_pin, OUTPUT);
     digitalWrite(hdw.signal_a_pin, LOW);
-
     if(hdw.control_scheme == DUAL_DIRECTION_INVERTED || hdw.control_scheme == DIRECTION_BRAKE_ENABLE) {
         pinMode(hdw.signal_b_pin, OUTPUT);
         digitalWrite(hdw.signal_b_pin, LOW);
     }
-
     pinMode(hdw.enable_pin, OUTPUT);
     digitalWrite(hdw.enable_pin, LOW);
 
+    // Set up the current sense pin
+    pinMode(hdw.current_sense_pin, INPUT);
+
+    // Set up the state of the waveform generator
+    state = 0;
     currentBit = 0;
     transmitRepeats = 0;
     remainingPreambles = 0;
     generateStartBit = false;
-
-    state = 0;
-
+    
+    // Allocate memory for the speed table
     speedTable = (int *)calloc(numDev+1, sizeof(int *));
 }
 
@@ -332,7 +329,14 @@ void DCC::check() {
 	if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) { // TODO can we integrate this with the readBaseCurrent and ackDetect routines?
 		lastCheckTime = millis();
 		reading = analogRead(hdw.current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
-		current = (reading * hdw.current_conversion_factor); // get current in milliamps
+		
+#if defined(ARDUINO_ARCH_AVR)   // Todo: Using this as a 3.3V/5V and precision detector, but need more robust way to do this.
+        current = ((reading / 1023) * 5) * 1000 * hdw.amps_per_volt;
+#elif defined(ARDUINO_ARCH_SAMD)
+        current = ((reading / 4095) * 3.3) * 1000 * hdw.amps_per_volt;
+#else
+    #error "Cannot compile - invalid architecture for current sensing"
+#endif
 		if(current > hdw.trigger_value && digitalRead(hdw.enable_pin)) { // TODO convert this to integer match
 			powerOff();
 			tripped=true;

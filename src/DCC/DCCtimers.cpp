@@ -1,5 +1,7 @@
 #include "DCC.h"
-#if defined(ATMEGA328) || defined(ATMEGA2560)
+
+// Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot faster.
+#if defined(ARDUINO_ARCH_AVR)
 #include <DIO2.h>
 #endif
 
@@ -14,13 +16,13 @@ bool DCC::interrupt1() {
     // otherwise can cause hangs in main loop waiting for the pendingBuffer. 
     switch (state) {
     case 0:  // start of bit transmission
-        #if defined(ATMEGA328) || defined(ATMEGA2560)
+        #if defined(ARDUINO_ARCH_AVR)
         digitalWrite2(hdw.signal_a_pin, HIGH);
         #else
         digitalWrite(hdw.signal_a_pin, HIGH);
         #endif
         if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-            #if defined(ATMEGA328) || defined(ATMEGA2560)
+            #if defined(ARDUINO_ARCH_AVR)
             digitalWrite2(hdw.signal_b_pin, LOW);
             #else
             digitalWrite(hdw.signal_b_pin, LOW);
@@ -30,13 +32,13 @@ bool DCC::interrupt1() {
 
     case 1:  // 58us after case 0
         if (currentBit) {
-            #if defined(ATMEGA328) || defined(ATMEGA2560)
+            #if defined(ARDUINO_ARCH_AVR)
             digitalWrite2(hdw.signal_a_pin, LOW);
             #else
             digitalWrite(hdw.signal_a_pin, LOW);
             #endif
             if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-                #if defined(ATMEGA328) || defined(ATMEGA2560)
+                #if defined(ARDUINO_ARCH_AVR)
                 digitalWrite2(hdw.signal_b_pin, HIGH);
                 #else
                 digitalWrite(hdw.signal_b_pin, HIGH);
@@ -46,13 +48,13 @@ bool DCC::interrupt1() {
         else state = 2;
         break;
     case 2:  // 116us after case 0
-        #if defined(ATMEGA328) || defined(ATMEGA2560)
+        #if defined(ARDUINO_ARCH_AVR)
         digitalWrite2(hdw.signal_a_pin, LOW);
         #else
         digitalWrite(hdw.signal_a_pin, LOW);
         #endif
         if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-            #if defined(ATMEGA328) || defined(ATMEGA2560)
+            #if defined(ARDUINO_ARCH_AVR)
             digitalWrite2(hdw.signal_b_pin, HIGH);
             #else
             digitalWrite(hdw.signal_b_pin, HIGH);

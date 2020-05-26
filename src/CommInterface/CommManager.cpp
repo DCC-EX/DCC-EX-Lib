@@ -1,7 +1,7 @@
 #include "CommManager.h"
 #include <Arduino.h>
 
-#if defined (ATSAMD21G)
+#if defined(ARDUINO_ARCH_SAMD)
 #include <cstdarg>
 #endif
 
