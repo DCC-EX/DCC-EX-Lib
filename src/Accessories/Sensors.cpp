@@ -49,7 +49,7 @@ decide to ignore the <q ID> return and only react to <Q ID> triggers.
 
 
 #include "Sensors.h"
-#include "../Accessories/EEStore.h"
+#include "EEStore.h"
 #include "../CommInterface/CommManager.h"
 #include "../DCC/DCC.h"
 

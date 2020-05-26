@@ -13,5 +13,6 @@
 #endif
 
 #include "CommInterface/StringParser.h"
+#include "Accessories/EEStore.h"
 
 #endif

@@ -1,10 +1,14 @@
 #ifndef EEPROM_h
 #define EEPROM_h
 
-#include <SparkFun_External_EEPROM.h>
 #include <Arduino.h>
 
+#if defined(ARDUINO_ARCH_SAMD)
+#include <SparkFun_External_EEPROM.h>
 extern ExternalEEPROM EEPROM;
+#else
+#include <EEPROM.h>
+#endif
 
 #define EESTORE_ID "DCC++"
 
