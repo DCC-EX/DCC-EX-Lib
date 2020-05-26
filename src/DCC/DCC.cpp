@@ -55,13 +55,13 @@ void DCC::updateSpeed() {
 
     // each time around the Arduino loop, we resend a loco speed packet reminder
     nextDev++;
-    if(nextDev <= numDev) {
+    if(nextDev < numDev) {
         if (speedTable[nextDev].cab > 0) {
             setThrottleResponse response;
             setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
         }
     } else {
-        nextDev = 0;
+        nextDev = -1;
     }
 }
 
