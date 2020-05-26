@@ -26,7 +26,13 @@ DCC::DCC(int numDev, DCChdw hdw) {
     nextDev = 0;
     
     // Allocate memory for the speed table
-    speedTable = (Speed *)calloc(numDev+1, sizeof(Speed *));
+    speedTable = (Speed *)calloc(numDev, sizeof(Speed *));
+    for (size_t i = 0; i < numDev; i++)
+    {
+        speedTable[i].cab = 0;      // Initialize to zero so we don't get a bunch of noise on the track at startup
+        speedTable[i].forward = true;
+        speedTable[i].speed = 0;
+    }
 }
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats) {
@@ -45,7 +51,7 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repe
 }
 
 void DCC::updateSpeed() {
-    if (packetPending) return;
+    if (packetPending) return;  // Don't let this block the main loop
 
     // each time around the Arduino loop, we resend a loco speed packet reminder
     nextDev++;
