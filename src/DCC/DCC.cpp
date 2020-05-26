@@ -23,7 +23,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
     transmitRepeats = 0;
     remainingPreambles = 0;
     generateStartBit = false;
-    nextDev = 1;
+    nextDev = 0;
     
     // Allocate memory for the speed table
     speedTable = (Speed *)calloc(numDev+1, sizeof(Speed));
@@ -37,7 +37,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats) {
     if (byteCount>=DCC_PACKET_MAX_SIZE) return; // allow for chksum
-    while(packetPending) delay(1);
+    while(packetPending);       // Wait for the pending packet to be transmitted
     
     uint8_t checksum=0;
     for (int b=0; b<byteCount; b++) {
@@ -72,13 +72,9 @@ void DCC::updateSpeed() {
 }
 
 int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) {
-    response.device = nDev;
-    response.direction = tDirection;
-    response.speed = tSpeed;
-
     speedTable[nDev].speed = tSpeed;
     speedTable[nDev].cab = cab;
-    speedTable[nDev].forward = tDirection;  // Todo: is this forward or backward == 1?
+    speedTable[nDev].forward = tDirection; 
 
     return setThrottle2(nDev, cab, tSpeed, tDirection, response);
 }
@@ -103,6 +99,10 @@ int DCC::setThrottle2(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirectio
     }
 
     schedulePacket(b, nB, 0);
+
+    response.device = nDev;
+    response.direction = tDirection;
+    response.speed = tSpeed;
 
     return ERR_OK;
 }
