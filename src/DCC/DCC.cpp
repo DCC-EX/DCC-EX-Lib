@@ -23,9 +23,10 @@ DCC::DCC(int numDev, DCChdw hdw) {
     transmitRepeats = 0;
     remainingPreambles = 0;
     generateStartBit = false;
+    nextDev = 0;
     
     // Allocate memory for the speed table
-    speedTable = (int *)calloc(numDev+1, sizeof(int *));
+    speedTable = (Speed *)calloc(numDev+1, sizeof(Speed *));
 }
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats) {
@@ -41,6 +42,21 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repe
     pendingLength = byteCount+1;
     pendingRepeats = repeats;
     packetPending = true;
+}
+
+void DCC::updateSpeed() {
+    if (packetPending) return;
+
+    // each time around the Arduino loop, we resend a loco speed packet reminder
+    nextDev++;
+    if(nextDev <= numDev) {
+        if (speedTable[nextDev].cab > 0) {
+            setThrottleResponse response;
+            setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
+        }
+    } else {
+        nextDev = 0;
+    }
 }
 
 int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) {
@@ -68,7 +84,9 @@ int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection
     response.direction = tDirection;
     response.speed = tSpeed;
 
-    speedTable[nDev]=tDirection==1?tSpeed:-tSpeed;
+    speedTable[nDev].speed = tSpeed;
+    speedTable[nDev].cab = cab;
+    speedTable[nDev].forward = tDirection;  // Todo: is this forward or backward == 1?
 
     return ERR_OK;
 }

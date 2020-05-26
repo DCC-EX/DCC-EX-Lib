@@ -83,7 +83,13 @@ public:
     DCC(int numDev, DCChdw hdwSettings);
 
     // Call this function every 58us from the main code
-    void interrupt_handler();
+    void interruptHandler();
+
+    // Call this function every loop
+    void loop() {
+        updateSpeed();
+        check();
+    }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
     int setFunction(uint16_t cab, uint8_t byte1, setFunctionResponse& response);
@@ -95,19 +101,28 @@ public:
     int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVBitResponse& response);
     int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResponse& response);
 
-    void check();
     void powerOn();
     void powerOff();
     int getLastRead();
     void showStatus();
-    
-    // Holds speed of all locomotives on the track for update
-    int* speedTable;
 
     int numDev;
 
+    struct Speed {
+        uint16_t cab;
+        uint8_t speed;
+        bool forward;
+    };
+
+    Speed* speedTable;
+
 private:
+    void check();
+    void updateSpeed();
+
     DCChdw hdw;
+
+    int nextDev;
 
     // Data for the currently transmitted packet
     uint8_t bits_sent;

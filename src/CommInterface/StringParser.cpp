@@ -397,9 +397,9 @@ void StringParser::parse(const char *com) {
         */
         // mainTrack->showStatus();
         for(int i=1;i<=mainTrack->numDev;i++){
-            if(mainTrack->speedTable[i]==0)
+            if(mainTrack->speedTable[i].speed==0)
             continue;
-            CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i]>0 ? mainTrack->speedTable[i] : -mainTrack->speedTable[i], mainTrack->speedTable[i]>0 ? 1 : 0);
+            CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i].speed, mainTrack->speedTable[i].forward);
         }
         CommManager::printf("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", "SAMD21 Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
         CommManager::showInitInfo();

@@ -5,7 +5,7 @@
 #include <DIO2.h>
 #endif
 
-void DCC::interrupt_handler() {
+void DCC::interruptHandler() {
     if(interrupt1()) {
         interrupt2();
     }
