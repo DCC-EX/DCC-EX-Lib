@@ -3,6 +3,7 @@
 #include "Sensors.h"
 #include "Outputs.h"
 
+
 #if defined(ARDUINO_ARCH_SAMD)
 ExternalEEPROM EEPROM;
 #endif
@@ -13,7 +14,7 @@ void EEStore::init(){
 #endif
 
     eeStore=(EEStore *)calloc(1,sizeof(EEStore));
-
+    
     EEPROM.get(0,eeStore->data);                                       // get eeStore data
 
     if(strncmp(eeStore->data.id,EESTORE_ID,sizeof(EESTORE_ID))!=0){    // check to see that eeStore contains valid DCC++ ID
