@@ -92,6 +92,7 @@ public:
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
+    int setThrottle2(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
     int setFunction(uint16_t cab, uint8_t byte1, setFunctionResponse& response);
     int setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2, setFunctionResponse& response);
     int setAccessory(uint16_t address, uint8_t number, bool activate, setAccessoryResponse& response);

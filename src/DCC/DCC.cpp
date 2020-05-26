@@ -9,7 +9,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
     digitalWrite(hdw.signal_a_pin, LOW);
     if(hdw.control_scheme == DUAL_DIRECTION_INVERTED || hdw.control_scheme == DIRECTION_BRAKE_ENABLE) {
         pinMode(hdw.signal_b_pin, OUTPUT);
-        digitalWrite(hdw.signal_b_pin, LOW);
+        digitalWrite(hdw.signal_b_pin, HIGH);
     }
     pinMode(hdw.enable_pin, OUTPUT);
     digitalWrite(hdw.enable_pin, LOW);
@@ -23,11 +23,11 @@ DCC::DCC(int numDev, DCChdw hdw) {
     transmitRepeats = 0;
     remainingPreambles = 0;
     generateStartBit = false;
-    nextDev = 0;
+    nextDev = 1;
     
     // Allocate memory for the speed table
-    speedTable = (Speed *)calloc(numDev, sizeof(Speed));
-    for (int i = 0; i < numDev; i++)
+    speedTable = (Speed *)calloc(numDev+1, sizeof(Speed));
+    for (int i = 0; i < numDev+1; i++)
     {
         speedTable[i].cab = 0;      // Initialize to zero so we don't get a bunch of noise on the track at startup
         speedTable[i].forward = true;
@@ -37,7 +37,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats) {
     if (byteCount>=DCC_PACKET_MAX_SIZE) return; // allow for chksum
-    while(packetPending);
+    while(packetPending) delay(1);
     
     uint8_t checksum=0;
     for (int b=0; b<byteCount; b++) {
@@ -53,19 +53,37 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repe
 void DCC::updateSpeed() {
     if (packetPending) return;  // Don't let this block the main loop
 
-    // each time around the Arduino loop, we resend a loco speed packet reminder
-    nextDev++;
-    if(nextDev < numDev) {
+    for (; nextDev < numDev; nextDev++) {
         if (speedTable[nextDev].cab > 0) {
             setThrottleResponse response;
-            setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
+            setThrottle2(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
+            nextDev++;
+            return;
         }
-    } else {
-        nextDev = -1;
+    }
+    for (nextDev = 0; nextDev < numDev; nextDev++) {
+        if (speedTable[nextDev].cab > 0) {
+            setThrottleResponse response;
+            setThrottle2(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
+            nextDev++;
+            return;
+        }
     }
 }
 
 int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) {
+    response.device = nDev;
+    response.direction = tDirection;
+    response.speed = tSpeed;
+
+    speedTable[nDev].speed = tSpeed;
+    speedTable[nDev].cab = cab;
+    speedTable[nDev].forward = tDirection;  // Todo: is this forward or backward == 1?
+
+    return setThrottle2(nDev, cab, tSpeed, tDirection, response);
+}
+
+int DCC::setThrottle2(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) {
     uint8_t b[5];                      // save space for checksum byte
     uint8_t nB=0;
 
@@ -85,14 +103,6 @@ int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection
     }
 
     schedulePacket(b, nB, 0);
-
-    response.device = nDev;
-    response.direction = tDirection;
-    response.speed = tSpeed;
-
-    speedTable[nDev].speed = tSpeed;
-    speedTable[nDev].cab = cab;
-    speedTable[nDev].forward = tDirection;  // Todo: is this forward or backward == 1?
 
     return ERR_OK;
 }

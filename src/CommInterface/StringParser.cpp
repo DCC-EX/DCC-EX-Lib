@@ -23,13 +23,13 @@ void StringParser::parse(const char *com) {
 
     case 't':       // <t REGISTER CAB SPEED DIRECTION>
         
-        uint16_t throttleDevice;
-        uint16_t throttleCab;
-        uint16_t throttleSpeed;
-        uint16_t throttleDirection;
+        int throttleDevice;
+        int throttleCab;
+        int throttleSpeed;
+        int throttleDirection;
         setThrottleResponse throttleResponse;
         
-        sscanf(com+1, "%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16, &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
+        sscanf(com+1, "%d %d %d %d", &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
 
         mainTrack->setThrottle(throttleDevice, throttleCab, throttleSpeed, throttleDirection, throttleResponse);
 
@@ -41,12 +41,12 @@ void StringParser::parse(const char *com) {
 
     case 'f':       // <f CAB BYTE1 [BYTE2]>
         
-        uint16_t functionCab;
-        uint16_t functionByte1;
-        uint16_t functionByte2;
+        int functionCab;
+        int functionByte1;
+        int functionByte2;
         setFunctionResponse functionResponse;
         
-        if(sscanf(com+1, "%" SCNu16 "%" SCNu16 "%" SCNu16, &functionCab, &functionByte1, &functionByte2) == 2)
+        if(sscanf(com+1, "%d %d %d", &functionCab, &functionByte1, &functionByte2) == 2)
             mainTrack->setFunction(functionCab, functionByte1, functionResponse);
         else 
             mainTrack->setFunction(functionCab, functionByte1, functionByte2, functionResponse);
@@ -76,12 +76,12 @@ void StringParser::parse(const char *com) {
         *    returns: NONE
         */
         
-        uint16_t accessoryAddress;
-        uint16_t accessoryNumber;
-        uint16_t accessoryActivate;
+        int accessoryAddress;
+        int accessoryNumber;
+        int accessoryActivate;
         setAccessoryResponse accessoryResponse;
 
-        sscanf(com+1, "%" SCNu16 "%" SCNu16 "%" SCNu16, &accessoryAddress, &accessoryNumber, &accessoryActivate); 
+        sscanf(com+1, "%d %d %d", &accessoryAddress, &accessoryNumber, &accessoryActivate); 
         mainTrack->setAccessory(accessoryAddress, accessoryNumber, accessoryActivate, accessoryResponse);
         
         break;
@@ -222,12 +222,12 @@ void StringParser::parse(const char *com) {
         *    returns: NONE
         */
        
-        uint16_t wcab;
-        uint16_t wcv;
-        uint16_t wbValue;
+        int wcab;
+        int wcv;
+        int wbValue;
         writeCVByteMainResponse wresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16,&wcab,&wcv,&wbValue);
+        sscanf(com+1,"%d %d %d",&wcab,&wcv,&wbValue);
 
         mainTrack->writeCVByteMain(wcab, wcv, wbValue, wresponse);
         
@@ -246,13 +246,13 @@ void StringParser::parse(const char *com) {
         *
         *    returns: NONE
         */
-        uint16_t bcab;
-        uint16_t bcv;
-        uint16_t bbit;
-        uint16_t bbValue;
+        int bcab;
+        int bcv;
+        int bbit;
+        int bbValue;
         writeCVBitMainResponse bresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16,&bcab,&bcv,&bbit,&bbValue);
+        sscanf(com+1,"%d %d %d %d",&bcab,&bcv,&bbit,&bbValue);
 
         mainTrack->writeCVBitMain(bcab, bcv, bbit, bbValue, bresponse);
         
@@ -273,12 +273,12 @@ void StringParser::parse(const char *com) {
         *    where VALUE is a number from 0-255 as read from the requested CV, or -1 if verificaiton read fails
         */
         
-        uint16_t Wcv;
-        uint16_t Wvalue;
-        uint16_t Wcallbacknum;
-        uint16_t Wcallbacksub;
+        int Wcv;
+        int Wvalue;
+        int Wcallbacknum;
+        int Wcallbacksub;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16,&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
+        sscanf(com+1,"%d %d %d %d",&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
 
         writeCVByteResponse wcvresponse;
 
@@ -304,14 +304,14 @@ void StringParser::parse(const char *com) {
         *    where VALUE is a number from 0-1 as read from the requested CV bit, or -1 if verificaiton read fails
         */
         
-        uint16_t Bcv;
-        uint16_t Bbit;
-        uint16_t Bvalue;
-        uint16_t Bcallbacknum;
-        uint16_t Bcallbacksub;
+        int Bcv;
+        int Bbit;
+        int Bvalue;
+        int Bcallbacknum;
+        int Bcallbacksub;
         writeCVBitResponse Bresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16 "%" SCNu16,&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
+        sscanf(com+1,"%d %d %d %d %d",&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
 
         progTrack->writeCVBit(Bcv, Bbit, Bvalue, Bcallbacknum, Bcallbacksub, Bresponse);
 
@@ -333,12 +333,12 @@ void StringParser::parse(const char *com) {
         *    where VALUE is a number from 0-255 as read from the requested CV, or -1 if read could not be verified
         */
         
-        uint16_t Rcv;
-        uint16_t Rcallbacknum;
-        uint16_t Rcallbacksub;
+        int Rcv;
+        int Rcallbacknum;
+        int Rcallbacksub;
         readCVResponse rcvresponse;
 
-        sscanf(com+1,"%" SCNu16 "%" SCNu16 "%" SCNu16,&Rcv,&Rcallbacknum,&Rcallbacksub);
+        sscanf(com+1,"%d %d %d",&Rcv,&Rcallbacknum,&Rcallbacksub);
         
         progTrack->readCV(Rcv, Rcallbacknum, Rcallbacksub, rcvresponse);
 
@@ -401,7 +401,7 @@ void StringParser::parse(const char *com) {
             continue;
             CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i].speed, mainTrack->speedTable[i].forward);
         }
-        CommManager::printf("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", "SAMD21 Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
+        CommManager::printf("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
         CommManager::showInitInfo();
         Turnout::show();
         Output::show();
