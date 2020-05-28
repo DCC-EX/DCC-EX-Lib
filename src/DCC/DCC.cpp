@@ -38,7 +38,7 @@ DCC::DCC(int numDev, DCChdw settings) {
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats) {
     if (byteCount>=DCC_PACKET_MAX_SIZE) return; // allow for chksum
-    while(packetPending) yield();       // Wait for the pending packet to be transmitted
+    while(packetPending) delay(1);       // Wait for the pending packet to be transmitted
     
     uint8_t checksum=0;
     for (int b=0; b<byteCount; b++) {
