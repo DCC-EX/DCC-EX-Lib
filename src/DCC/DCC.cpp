@@ -1,7 +1,7 @@
 #include "DCC.h"
 
-DCC::DCC(int numDev, DCChdw hdw) {
-    this->hdw = hdw;            
+DCC::DCC(int numDev, DCChdw settings) {
+    this->hdw = settings;            
     this->numDev = numDev;      
 
     // Set up the output pins for this track
@@ -24,10 +24,11 @@ DCC::DCC(int numDev, DCChdw hdw) {
     remainingPreambles = 0;
     generateStartBit = false;
     nextDev = 0;
+    packetPending = false;
     
     // Allocate memory for the speed table
     speedTable = (Speed *)calloc(numDev+1, sizeof(Speed));
-    for (int i = 0; i < numDev+1; i++)
+    for (int i = 0; i <= numDev+1; i++)
     {
         speedTable[i].cab = 0;      // Initialize to zero so we don't get a bunch of noise on the track at startup
         speedTable[i].forward = true;
@@ -37,7 +38,7 @@ DCC::DCC(int numDev, DCChdw hdw) {
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats) {
     if (byteCount>=DCC_PACKET_MAX_SIZE) return; // allow for chksum
-    while(packetPending);       // Wait for the pending packet to be transmitted
+    while(packetPending) yield();       // Wait for the pending packet to be transmitted
     
     uint8_t checksum=0;
     for (int b=0; b<byteCount; b++) {
@@ -56,7 +57,7 @@ void DCC::updateSpeed() {
     for (; nextDev < numDev; nextDev++) {
         if (speedTable[nextDev].cab > 0) {
             setThrottleResponse response;
-            setThrottle2(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
+            setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
             nextDev++;
             return;
         }
@@ -64,7 +65,7 @@ void DCC::updateSpeed() {
     for (nextDev = 0; nextDev < numDev; nextDev++) {
         if (speedTable[nextDev].cab > 0) {
             setThrottleResponse response;
-            setThrottle2(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
+            setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, speedTable[nextDev].forward, response);
             nextDev++;
             return;
         }
@@ -72,14 +73,6 @@ void DCC::updateSpeed() {
 }
 
 int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) {
-    speedTable[nDev].speed = tSpeed;
-    speedTable[nDev].cab = cab;
-    speedTable[nDev].forward = tDirection; 
-
-    return setThrottle2(nDev, cab, tSpeed, tDirection, response);
-}
-
-int DCC::setThrottle2(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response) {
     uint8_t b[5];                      // save space for checksum byte
     uint8_t nB=0;
 
@@ -99,6 +92,10 @@ int DCC::setThrottle2(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirectio
     }
 
     schedulePacket(b, nB, 0);
+
+    speedTable[nDev].speed = tSpeed;
+    speedTable[nDev].cab = cab;
+    speedTable[nDev].forward = tDirection; 
 
     response.device = nDev;
     response.direction = tDirection;

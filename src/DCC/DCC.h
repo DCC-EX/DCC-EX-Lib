@@ -10,6 +10,11 @@
 
 #define DCC_PACKET_MAX_SIZE 6 
 
+#define NUM_DEVICES_MAIN 50
+#define NUM_DEVICES_PROG 2
+const int numDevicesMain = NUM_DEVICES_MAIN;
+const int numDevicesProg = NUM_DEVICES_PROG;
+
 // Define constants used for reading CVs from the Programming Track
 const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current
 const int ACK_SAMPLE_COUNT = 500;      // number of analogRead samples to take when monitoring current after a CV verify (bit or byte) has been sent 
@@ -80,7 +85,7 @@ public:
     static DCC* Create_WSM_SAMCommandStation_Main(int numDev);
     static DCC* Create_WSM_SAMCommandStation_Prog(int numDev);
 
-    DCC(int numDev, DCChdw hdwSettings);
+    DCC(int numDev, DCChdw settings);
 
     // Call this function every 58us from the main code
     void interruptHandler();
@@ -92,7 +97,6 @@ public:
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
-    int setThrottle2(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
     int setFunction(uint16_t cab, uint8_t byte1, setFunctionResponse& response);
     int setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2, setFunctionResponse& response);
     int setAccessory(uint16_t address, uint8_t number, bool activate, setAccessoryResponse& response);
@@ -112,7 +116,7 @@ public:
     struct Speed {
         uint16_t cab;
         uint8_t speed;
-        bool forward;
+        bool forward;           // Todo: move to a uint8_t because bool takes up 2 bytes
     };
 
     Speed* speedTable;
