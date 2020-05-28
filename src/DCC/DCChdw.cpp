@@ -6,7 +6,7 @@ DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
     hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
 
     hdw.is_prog_track = false;
-    hdw.enable_railcom = true;
+    hdw.enable_railcom = false;
     hdw.railcom_timer = &TimerB;    // Timer2 on UNO, Timer3 on MEGA, TCC1 on SAMD
 
     hdw.signal_a_pin = 12;
@@ -54,7 +54,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
     hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
 
     hdw.is_prog_track = false;
-    hdw.enable_railcom = true;
+    hdw.enable_railcom = false;
     hdw.railcom_timer = &TimerB;    // Timer2 on UNO, Timer3 on MEGA, TCC1 on SAMD
 
     hdw.signal_a_pin = 7;

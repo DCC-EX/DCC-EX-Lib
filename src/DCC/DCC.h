@@ -155,10 +155,14 @@ private:
 
     // Waveform generator state
     uint8_t state;
+
+    // Railcom cutout stuff
+    bool inRailcomCutout;
     
     // Interrupt segments, called in interrupt_handler
-    bool interrupt1();
+    bool interrupt1() volatile;
     void interrupt2();
+    void signal(bool pinA, bool pinB) volatile;
 
     // Loads buffer into the pending packet slot once it is empty.
     void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats);
