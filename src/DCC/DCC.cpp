@@ -216,7 +216,7 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     schedulePacket(bWrite, 3, 6);               // NMRA recommends 6 write or reset packets for decoder recovery time
     
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=analogRead(hdw.current_sense_pin)-base;
         if(c>ACK_SAMPLE_THRESHOLD)
         d=1;
     }
@@ -264,9 +264,9 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     schedulePacket(bWrite, 3, 6);               // NMRA recommends 6 write or reset packets for decoder recovery time
         
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=analogRead(hdw.current_sense_pin)-base;
         if(c>ACK_SAMPLE_THRESHOLD)
-        d=1;
+            d=1;
     }
     
     schedulePacket(resetPacket, 2, 1);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
@@ -312,10 +312,10 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     schedulePacket(idlePacket, 2, 6);           // NMRA recommends 6 idle or reset packets for decoder recovery time
 
         for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
-        if(c>ACK_SAMPLE_THRESHOLD) {
-            d=1;
-        }
+            c=analogRead(hdw.current_sense_pin)-base;
+            if(c>ACK_SAMPLE_THRESHOLD) {
+                d=1;
+            }
         }
         bitWrite(bValue,i,d);
     }
@@ -339,7 +339,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
         c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
         if(c>ACK_SAMPLE_THRESHOLD)
-        d=1;
+            d=1;
     }
     
     schedulePacket(resetPacket, 2, 1);        // Final reset packet completed (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?

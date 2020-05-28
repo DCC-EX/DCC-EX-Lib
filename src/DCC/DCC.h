@@ -15,11 +15,12 @@
 const int numDevicesMain = NUM_DEVICES_MAIN;
 const int numDevicesProg = NUM_DEVICES_PROG;
 
+// Todo: re-add noise cancelling on ACK
 // Define constants used for reading CVs from the Programming Track
 const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current
 const int ACK_SAMPLE_COUNT = 500;      // number of analogRead samples to take when monitoring current after a CV verify (bit or byte) has been sent 
 const float ACK_SAMPLE_SMOOTHING = 0.2;      // exponential smoothing to use in processing the analogRead samples after a CV verify (bit or byte) has been sent
-const int ACK_SAMPLE_THRESHOLD = 30;      // the threshold that the exponentially-smoothed analogRead samples (after subtracting the baseline current) must cross to establish ACKNOWLEDGEMENT
+const int ACK_SAMPLE_THRESHOLD = 3;      // the threshold that the exponentially-smoothed analogRead samples (after subtracting the baseline current) must cross to establish ACKNOWLEDGEMENT
 
 // Define constants used for managing the current on the track
 const int CURRENT_SAMPLE_TIME = 1;
