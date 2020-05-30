@@ -3,10 +3,7 @@
 #include "wiring_private.h"
 #endif
 
-// Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot faster.
-#if defined(ARDUINO_ARCH_AVR)
-#include <DIO2.h>
-#endif
+
 
 
 void DCC::interruptHandler() {

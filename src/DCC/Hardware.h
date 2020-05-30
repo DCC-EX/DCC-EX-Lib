@@ -4,6 +4,11 @@
 #include <Arduino.h>
 #include <ArduinoTimers.h>  
 
+// Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot faster.
+#if defined(ARDUINO_ARCH_AVR)
+#include <DIO2.h>
+#endif
+
 // Define constants used for managing the current on the track
 const int CURRENT_SAMPLE_TIME = 1;
 const float CURRENT_SAMPLE_SMOOTHING = 0.01;
