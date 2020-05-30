@@ -4,7 +4,9 @@
 #include <Arduino.h>
 #include "Hardware.h"
 
+#if defined(ARDUINO_ARCH_SAMD)
 extern Uart mainRailcomUART;
+#endif
 
 #define ERR_OK 0
 #define ERR_OUT_OF_RANGE -1
