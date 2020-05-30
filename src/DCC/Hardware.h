@@ -28,7 +28,6 @@ struct Hardware {
     bool is_prog_track;
     bool enable_railcom;
 
-    
     uint8_t railcom_rx_pin;
     uint8_t railcom_tx_pin;     // Doesn't do anything, but valid pin must be specified to instantiate railcom_serial on some architectures
 #if defined(ARDUINO_ARCH_SAMD) 
@@ -78,10 +77,13 @@ struct Hardware {
     void config_setAmpsPerVolt(float ampsPerVolt) { amps_per_volt = ampsPerVolt; }
     void config_setPreambleBits(uint8_t preambleBits) { this->preambleBits = preambleBits; }
 #if defined(ARDUINO_ARCH_SAMD) 
+    void config_setRailcomSerial(Uart* serial) { railcom_serial = serial; }
     void config_setRailcomSercom(SERCOM* sercom) { railcom_sercom = sercom; }
     void config_setRailcomRxMux(EPioType mux) { railcom_rx_mux = mux; }
     void config_setRailcomRxPad(SercomRXPad pad) { railcom_rx_pad = pad; }
     void config_setRailcomTxPad(SercomUartTXPad pad) { railcom_tx_pad = pad; }
+#else
+    void config_setRailcomSerial(HardwareSerial* serial) { railcom_serial = serial; }
 #endif
 };
 
