@@ -2,7 +2,7 @@
 #define DCC_h
 
 #include <Arduino.h>
-#include "DCChdw.h"
+#include "Hardware.h"
 #include <ArduinoTimers.h>
 
 extern Uart mainRailcomUART;
@@ -132,6 +132,7 @@ private:
     void check();
     void updateSpeed();
     void readRailcomData();
+    void parseRailcomData(const uint8_t data[8]);
 
     DCChdw hdw;
 

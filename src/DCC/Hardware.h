@@ -1,5 +1,5 @@
-#ifndef DCCHardware_h
-#define DCCHardware_h
+#ifndef Hardware_h
+#define Hardware_h
 
 #include <Arduino.h>
 #include <ArduinoTimers.h>  

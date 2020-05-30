@@ -1,7 +1,5 @@
 #include "DCC.h"
 
-
-
 DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
     DCChdw hdw;
 
