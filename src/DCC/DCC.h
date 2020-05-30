@@ -5,6 +5,8 @@
 #include "DCChdw.h"
 #include <ArduinoTimers.h>
 
+extern Uart mainRailcomUART;
+
 #define ERR_OK 0
 #define ERR_OUT_OF_RANGE -1
 
@@ -20,7 +22,7 @@ const int numDevicesProg = NUM_DEVICES_PROG;
 const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current
 const int ACK_SAMPLE_COUNT = 500;      // number of analogRead samples to take when monitoring current after a CV verify (bit or byte) has been sent 
 const float ACK_SAMPLE_SMOOTHING = 0.2;      // exponential smoothing to use in processing the analogRead samples after a CV verify (bit or byte) has been sent
-const int ACK_SAMPLE_THRESHOLD = 3;      // the threshold that the exponentially-smoothed analogRead samples (after subtracting the baseline current) must cross to establish ACKNOWLEDGEMENT
+const int ACK_SAMPLE_THRESHOLD = 30;      // the threshold that the exponentially-smoothed analogRead samples (after subtracting the baseline current) must cross to establish ACKNOWLEDGEMENT
 
 // Define constants used for managing the current on the track
 const int CURRENT_SAMPLE_TIME = 1;
@@ -95,6 +97,8 @@ public:
     void loop() {
         updateSpeed();
         check();
+        if(hdw.enable_railcom) 
+            readRailcomData();
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
@@ -121,10 +125,13 @@ public:
     };
 
     Speed* speedTable;
+    
+    Uart* railcomSerialInst;
 
 private:
     void check();
     void updateSpeed();
+    void readRailcomData();
 
     DCChdw hdw;
 
@@ -157,12 +164,14 @@ private:
     uint8_t state;
 
     // Railcom cutout stuff
+    bool generateRailcomCutout;
     bool inRailcomCutout;
+    bool railcomData;
     
     // Interrupt segments, called in interrupt_handler
-    bool interrupt1() volatile;
+    bool interrupt1();
     void interrupt2();
-    void signal(bool pinA, bool pinB) volatile;
+    void signal(bool pinA, bool pinB);
 
     // Loads buffer into the pending packet slot once it is empty.
     void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats);

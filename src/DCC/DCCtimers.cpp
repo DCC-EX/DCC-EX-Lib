@@ -1,11 +1,14 @@
 #include "DCC.h"
+#if defined(ARDUINO_ARCH_SAMD)
+#include "wiring_private.h"
+#endif
 
 // Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot faster.
 #if defined(ARDUINO_ARCH_AVR)
 #include <DIO2.h>
 #endif
 
-void DCC::signal(bool pinA, bool pinB) volatile {
+void DCC::signal(bool pinA, bool pinB) {
     #if defined(ARDUINO_ARCH_AVR)
     digitalWrite2(hdw.signal_a_pin, pinA);
     if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
@@ -23,7 +26,7 @@ void DCC::interruptHandler() {
     }
 }
 
-bool DCC::interrupt1() volatile {
+bool DCC::interrupt1() {
     // NOTE: this must consume transmission buffers even if the power is off 
     // otherwise can cause hangs in main loop waiting for the pendingBuffer. 
     switch (state) {
@@ -39,31 +42,43 @@ bool DCC::interrupt1() volatile {
         state = 3;
         break; 
     case 3: // 87us after case 0
-        if(currentBit && !inRailcomCutout) {
+        if(currentBit && !generateRailcomCutout) {
             state = 0;
         }
         else state = 4;
-        if(inRailcomCutout) {
+        if(generateRailcomCutout) {
             signal(HIGH, HIGH);     // Start the cutout
+            inRailcomCutout = true;
+            #if defined(ARDUINO_ARCH_SAMD)
+            pinPeripheral(5, PIO_SERCOM); // enable railcom UART
+            #endif
         }
         break;
     case 4:  // 116us after case 0
-        if(!inRailcomCutout) {
+        if(!generateRailcomCutout) {
             signal(LOW,HIGH);
+        } else {
+            
         }
         state = 5;
         break;
     // Case 5 and 6 fall to default case, we simply increment the state
     case 7:
-        if(!inRailcomCutout) {
+        if(!generateRailcomCutout) {
             state = 0;
         }
         else state = 8;
         break;
     // Cases 8-16 are for railcom timing, we increment the state
-    case 17:
-        state = 0;
+    case 18:
+    #if defined(ARDUINO_ARCH_SAMD)
+        pinPeripheral(5, PIO_INPUT);  // Disable the serial read
+    #endif
+        signal(LOW, HIGH);
+        generateRailcomCutout = false;
         inRailcomCutout = false;
+        railcomData = true;
+        state = 0;
         break;
     default:
         state++;
@@ -78,6 +93,11 @@ void DCC::interrupt2() {
   
     if (remainingPreambles > 0 ) {
         currentBit=true;
+        if((hdw.preambleBits - remainingPreambles == 1) && hdw.enable_railcom) {
+            generateRailcomCutout = true;
+            remainingPreambles -= 4;
+            return;
+        }
         remainingPreambles--;
         return;
     }
@@ -97,10 +117,6 @@ void DCC::interrupt2() {
             // end of transmission buffer... repeat or switch to next message
             bytes_sent = 0;
             remainingPreambles=hdw.preambleBits;
-            if(hdw.enable_railcom == true) {
-                inRailcomCutout = true;
-                remainingPreambles -= 4;
-            }
 
             if (transmitRepeats > 0) {
                 transmitRepeats--;

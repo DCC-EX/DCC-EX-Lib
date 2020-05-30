@@ -2,7 +2,7 @@
 #define DCCHardware_h
 
 #include <Arduino.h>
-#include <ArduinoTimers.h>
+#include <ArduinoTimers.h>  
 
 enum control_type_t : uint8_t {
     DIRECTION_ENABLE,
@@ -16,6 +16,7 @@ struct DCChdw {
     bool is_prog_track;
     bool enable_railcom;
     Timer* railcom_timer;       // Optional if !enable_railcom
+    HardwareSerial* railcom_uart;
 
     uint8_t signal_a_pin;
     uint8_t signal_b_pin;       // Inverted output if DUAL_DIRECTION_ENABLED, brake pin if DIRECTION_BRAKE_ENABLE
