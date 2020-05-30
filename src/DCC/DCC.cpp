@@ -1,4 +1,7 @@
 #include "DCC.h"
+#include "wiring_private.h"
+
+
 
 DCC::DCC(int numDev, DCChdw settings) {
     this->hdw = settings;            
@@ -17,6 +20,36 @@ DCC::DCC(int numDev, DCChdw settings) {
     // Set up the current sense pin
     pinMode(hdw.current_sense_pin, INPUT);
 
+    // Set up the railcom comparator DAC and serial (SAMD21 only)
+#if defined(ARDUINO_ARCH_SAMD)
+    if(hdw.enable_railcom) {
+        PORT->Group[0].PINCFG[2].bit.INEN = 0;
+        PORT->Group[0].PINCFG[2].bit.PULLEN = 0;
+        PORT->Group[0].DIRCLR.reg = 1 << 2;
+        PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;        // A0, PA02
+        PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE_B; 
+
+        // Enable and configure the DAC
+        // // Select the voltage reference using CTRLB.REFSEL
+        DAC->CTRLB.bit.REFSEL = 0x0;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        // // Enable the DAC using CTRLA.ENABLE
+        DAC->CTRLA.bit.ENABLE = 1;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        // // Enable the DAC as an external output
+        DAC->CTRLB.bit.EOEN = 1;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        // Set the output voltage
+        DAC->CTRLB.bit.LEFTADJ = 0;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        DAC->DATA.reg = 0x7;    // ~10mV reference voltage
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+
+        //pinPeripheral(5, PIO_INPUT);  // Set the serial read pin to something besides the serial to disable it. 
+        
+    }
+#endif
+
     // Set up the state of the waveform generator
     state = 0;
     currentBit = 0;
@@ -25,6 +58,9 @@ DCC::DCC(int numDev, DCChdw settings) {
     generateStartBit = false;
     nextDev = 0;
     packetPending = false;
+    railcomData = false;
+    generateRailcomCutout = false;
+    inRailcomCutout = false;
     
     // Allocate memory for the speed table
     speedTable = (Speed *)calloc(numDev+1, sizeof(Speed));
