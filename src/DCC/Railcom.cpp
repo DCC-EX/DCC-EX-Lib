@@ -3,6 +3,7 @@
 #include "../CommInterface/CommManager.h"
 
 #if defined(ARDUINO_ARCH_SAMD)
+
 const uint8_t railcom_decode[256] =
 {      INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
        INV,    INV,    INV,    INV,    INV,    INV,    INV,   NACK,
@@ -40,10 +41,10 @@ const uint8_t railcom_decode[256] =
 
 void DCC::readRailcomData() {
     if(inRailcomCutout) return;
-    int bytes = mainRailcomUART.available();
+    int bytes = hdw.railcom_serial->available();
     if(bytes > 8) bytes = 8;
     uint8_t data[bytes];
-    mainRailcomUART.readBytes(data, bytes);
+    hdw.railcom_serial->readBytes(data, bytes);
     if(!railcomData) return;
 
     // for (size_t i = 0; i < bytes; i++)
@@ -59,34 +60,9 @@ void DCC::readRailcomData() {
     // }
     // SerialUSB.println();
 
-    Railcom::parseData(data);
+    // Railcom::parseData(data);
 
     railcomData = false;
 }
 
-
-void Railcom::parseData(const uint8_t data[8]) {
-    
-    
-    for (size_t i = 0; i < 8; i++)
-    {
-        uint8_t decode = railcom_decode[data[i]];
-        uint8_t type = 0xFF;
-        if(decode == ACK) {
-            type = ACK; 
-        }
-        else if(decode == NACK) {
-            type = NACK;
-        } 
-        else if(decode == BUSY) {
-            type = BUSY;
-        }
-        else if(decode >= 64) {
-            
-        }
-
-        // TODO: Finish parseData function
-    }
-    
-}
 #endif

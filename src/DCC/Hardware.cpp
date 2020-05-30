@@ -1,6 +1,11 @@
 #include "Hardware.h"
 #include "wiring_private.h"
 
+Hardware::Hardware() : control_scheme(DIRECTION_ENABLE), 
+                        is_prog_track(false),
+                        enable_railcom(false),
+                        preambleBits(16) {}
+
 void Hardware::init() {
     // Set up the output pins for this track
     pinMode(signal_a_pin, OUTPUT);
@@ -17,8 +22,9 @@ void Hardware::init() {
 
     // Set up the railcom comparator DAC and serial (SAMD21 only)
     // TODO: Move this into a separate function or library
-#if defined(ARDUINO_ARCH_SAMD)
+
     if(enable_railcom) {
+        #if defined(ARDUINO_ARCH_SAMD)
         PORT->Group[0].PINCFG[2].bit.INEN = 0;
         PORT->Group[0].PINCFG[2].bit.PULLEN = 0;
         PORT->Group[0].DIRCLR.reg = 1 << 2;
@@ -41,9 +47,15 @@ void Hardware::init() {
         DAC->DATA.reg = 0x7;    // ~10mV reference voltage
         while(DAC->STATUS.bit.SYNCBUSY==1);
 
+        if(railcom_serial == NULL) {
+            railcom_serial = new Uart(railcom_sercom, railcom_rx_pin, railcom_tx_pin, railcom_rx_pad, railcom_tx_pad);
+        }
+        #endif
+
+        railcom_serial->begin(250000);
         enableRailcomSerial(false);
     }
-#endif
+    
 }
 
 void Hardware::setPower(bool on) {

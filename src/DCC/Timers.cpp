@@ -3,9 +3,6 @@
 #include "wiring_private.h"
 #endif
 
-
-
-
 void DCC::interruptHandler() {
     if(interrupt1()) {
         interrupt2();
