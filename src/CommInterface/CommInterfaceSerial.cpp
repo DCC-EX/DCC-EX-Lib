@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "CommInterfaceSerial.h"
-#include "StringParser.h"
+#include "JMRIParser.h"
 #include "CommManager.h"
 #include "../DCC/DCC.h"
 
@@ -16,7 +16,7 @@ void SerialInterface::process() {
 			inCommandPayload = true;
 			buffer = "";
 		} else if (ch == '>') {
-			StringParser::parse(buffer.c_str());
+			JMRIParser::parse(buffer.c_str());
 			buffer = "";
 			inCommandPayload = false;
 		} else if(inCommandPayload) {

@@ -1,54 +1,8 @@
 #include "DCC.h"
-#include "wiring_private.h"
 
-
-
-DCC::DCC(int numDev, DCChdw settings) {
+DCC::DCC(int numDev, Hardware settings) {
     this->hdw = settings;            
     this->numDev = numDev;      
-
-    // Set up the output pins for this track
-    pinMode(hdw.signal_a_pin, OUTPUT);
-    digitalWrite(hdw.signal_a_pin, LOW);
-    if(hdw.control_scheme == DUAL_DIRECTION_INVERTED || hdw.control_scheme == DIRECTION_BRAKE_ENABLE) {
-        pinMode(hdw.signal_b_pin, OUTPUT);
-        digitalWrite(hdw.signal_b_pin, HIGH);
-    }
-    pinMode(hdw.enable_pin, OUTPUT);
-    digitalWrite(hdw.enable_pin, LOW);
-
-    // Set up the current sense pin
-    pinMode(hdw.current_sense_pin, INPUT);
-
-    // Set up the railcom comparator DAC and serial (SAMD21 only)
-#if defined(ARDUINO_ARCH_SAMD)
-    if(hdw.enable_railcom) {
-        PORT->Group[0].PINCFG[2].bit.INEN = 0;
-        PORT->Group[0].PINCFG[2].bit.PULLEN = 0;
-        PORT->Group[0].DIRCLR.reg = 1 << 2;
-        PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;        // A0, PA02
-        PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE_B; 
-
-        // Enable and configure the DAC
-        // // Select the voltage reference using CTRLB.REFSEL
-        DAC->CTRLB.bit.REFSEL = 0x0;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        // // Enable the DAC using CTRLA.ENABLE
-        DAC->CTRLA.bit.ENABLE = 1;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        // // Enable the DAC as an external output
-        DAC->CTRLB.bit.EOEN = 1;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        // Set the output voltage
-        DAC->CTRLB.bit.LEFTADJ = 0;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        DAC->DATA.reg = 0x7;    // ~10mV reference voltage
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-
-        //pinPeripheral(5, PIO_INPUT);  // Set the serial read pin to something besides the serial to disable it. 
-        
-    }
-#endif
 
     // Set up the state of the waveform generator
     state = 0;
@@ -389,44 +343,5 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     response.bValue = bValue;
 
     return ERR_OK;
-}
-
-void DCC::check() {
-    // if we have exceeded the CURRENT_SAMPLE_TIME we need to check if we are over/under current.
-	if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) { // TODO can we integrate this with the readBaseCurrent and ackDetect routines?
-		lastCheckTime = millis();
-		reading = analogRead(hdw.current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
-		
-#if defined(ARDUINO_ARCH_AVR)   // Todo: Using this as a 3.3V/5V and precision detector, but need more robust way to do this.
-        current = ((reading / 1023) * 5) * 1000 * hdw.amps_per_volt;
-#elif defined(ARDUINO_ARCH_SAMD)
-        current = ((reading / 4095) * 3.3) * 1000 * hdw.amps_per_volt;
-#else
-    #error "Cannot compile - invalid architecture for current sensing"
-#endif
-		if(current > hdw.trigger_value && digitalRead(hdw.enable_pin)) { // TODO convert this to integer match
-			powerOff();
-			tripped=true;
-			lastTripTime=millis();
-		} else if(current < hdw.trigger_value && tripped) { // TODO need to put a delay in here so it only tries after X seconds
-			if (millis() - lastTripTime > RETRY_MILLIS) {  // TODO make this a global constant
-			  powerOn();
-			  tripped=false;
-			}
-		}
-	}
-
-}
-
-void DCC::powerOn() {
-	digitalWrite(hdw.enable_pin, HIGH);
-}
-
-void DCC::powerOff() {
-	digitalWrite(hdw.enable_pin, LOW);
-}
-
-int DCC::getLastRead() {
-	return current;
 }
 

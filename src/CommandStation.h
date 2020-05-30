@@ -12,7 +12,7 @@
     #include "CommInterface/CommInterfaceUSB.h"
 #endif
 
-#include "CommInterface/StringParser.h"
+#include "CommInterface/JMRIParser.h"
 #include "Accessories/EEStore.h"
 
 #endif

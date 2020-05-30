@@ -1,4 +1,4 @@
-#include "StringParser.h"
+#include "JMRIParser.h"
 #include "CommManager.h"
 #include "../Accessories/Turnouts.h"
 #include "../Accessories/Sensors.h"
@@ -7,31 +7,68 @@
 #include "../CommandStation.h"
 #include <inttypes.h>
 
-DCC* StringParser::mainTrack;
-DCC* StringParser::progTrack;
+DCC* JMRIParser::mainTrack;
+DCC* JMRIParser::progTrack;
 
-void StringParser::init(DCC* mainTrack_, DCC* progTrack_) {
+int JMRIParser::p[MAX_PARAMS];
+
+void JMRIParser::init(DCC* mainTrack_, DCC* progTrack_) {
     mainTrack = mainTrack_;
     progTrack = progTrack_;
 } 
 
+int JMRIParser::stringParser(const char *com, int result[]) {
+    byte state=1;
+    byte parameterCount=0;
+    int runningValue=0;
+    const char * remainingCmd=com;  // skips the opcode
+    bool signNegative=false;
+    
+    // clear all parameters in case not enough found
+    for (int i=0;i<MAX_PARAMS;i++) result[i]=0;
+    
+    while(parameterCount<MAX_PARAMS) {
+        char hot=*remainingCmd;
+        switch (state) {
+        case 1: // skipping spaces before a param
+            if (hot==' ') break;
+            if (hot == '\0' || hot=='>') return parameterCount;
+            state=2;
+            continue;
+        case 2: // checking sign
+            signNegative=false;
+            runningValue=0;
+            state=3; 
+            if (hot!='-') continue; 
+            signNegative=true;
+            break; 
+        case 3: // building a parameter   
+            if (hot>='0' && hot<='9') {
+                runningValue=10*runningValue+(hot-'0');
+                break;
+            }
+            result[parameterCount] = runningValue * (signNegative ?-1:1);
+            parameterCount++;
+            state=1; 
+            continue;
+        }   
+        remainingCmd++;
+    }
+    return parameterCount;
+}
+
 // See documentation on DCC class for info on this section
-void StringParser::parse(const char *com) {
+void JMRIParser::parse(const char *com) {
+    int numArgs = stringParser(com+1, p);
+    
     switch(com[0]) {
     
 /***** SET ENGINE THROTTLES USING 128-STEP SPEED CONTROL ****/
 
     case 't':       // <t REGISTER CAB SPEED DIRECTION>
-        
-        int throttleDevice;
-        int throttleCab;
-        int throttleSpeed;
-        int throttleDirection;
         setThrottleResponse throttleResponse;
-        
-        sscanf(com+1, "%d %d %d %d", &throttleDevice, &throttleCab, &throttleSpeed, &throttleDirection);
 
-        mainTrack->setThrottle(throttleDevice, throttleCab, throttleSpeed, throttleDirection, throttleResponse);
+        mainTrack->setThrottle(p[0], p[1], p[2], p[3], throttleResponse);
 
         CommManager::printf("<T %d %d %d>", throttleResponse.device, throttleResponse.speed, throttleResponse.direction);
         
@@ -40,16 +77,12 @@ void StringParser::parse(const char *com) {
 /***** OPERATE ENGINE DECODER FUNCTIONS F0-F28 ****/
 
     case 'f':       // <f CAB BYTE1 [BYTE2]>
-        
-        int functionCab;
-        int functionByte1;
-        int functionByte2;
         setFunctionResponse functionResponse;
         
-        if(sscanf(com+1, "%d %d %d", &functionCab, &functionByte1, &functionByte2) == 2)
-            mainTrack->setFunction(functionCab, functionByte1, functionResponse);
+        if(numArgs == 2)
+            mainTrack->setFunction(p[0], p[1], functionResponse);
         else 
-            mainTrack->setFunction(functionCab, functionByte1, functionByte2, functionResponse);
+            mainTrack->setFunction(p[0], p[1], p[2], functionResponse);
         
         break;
 
@@ -76,13 +109,9 @@ void StringParser::parse(const char *com) {
         *    returns: NONE
         */
         
-        int accessoryAddress;
-        int accessoryNumber;
-        int accessoryActivate;
         setAccessoryResponse accessoryResponse;
 
-        sscanf(com+1, "%d %d %d", &accessoryAddress, &accessoryNumber, &accessoryActivate); 
-        mainTrack->setAccessory(accessoryAddress, accessoryNumber, accessoryActivate, accessoryResponse);
+        mainTrack->setAccessory(p[0], p[1], p[2], accessoryResponse);
         
         break;
     
@@ -101,28 +130,27 @@ void StringParser::parse(const char *com) {
         *   USED TO CREATE/EDIT/REMOVE/SHOW TURNOUT DEFINITIONS
         */
         
-        int n,s,m;
         Turnout *t;
 
-        switch(sscanf(com+1,"%d %d %d",&n,&s,&m)){
+        switch(numArgs){
 
         case 2:                     // argument is string with id number of turnout followed by zero (not thrown) or one (thrown)
-            t=Turnout::get(n);
+            t=Turnout::get(p[0]);
             if(t!=NULL)
-                t->activate(s, (DCC*) mainTrack);
+                t->activate(p[1], (DCC*) mainTrack);
             else
                 CommManager::printf("<X>");
             break;
 
         case 3:                     // argument is string with id number of turnout followed by an address and subAddress
-            Turnout::create(n,s,m,1);
+            Turnout::create(p[0],p[1],p[2],1);
             break;
 
         case 1:                     // argument is a string with id number only
-            Turnout::remove(n);
+            Turnout::remove(p[0]);
             break;
 
-        case -1:                    // no arguments
+        case 0:                    // no arguments
             Turnout::show(1);                  // verbose show
             break;
         }
@@ -144,28 +172,27 @@ void StringParser::parse(const char *com) {
         *   USED TO CREATE/EDIT/REMOVE/SHOW TURNOUT DEFINITIONS
         */
         
-        int on,os,om;
         Output* o;
 
-        switch(sscanf(com+1,"%d %d %d",&on,&os,&om)){
+        switch(numArgs){
 
         case 2:                     // argument is string with id number of output followed by zero (LOW) or one (HIGH)
-            o=Output::get(on);
+            o=Output::get(p[0]);
             if(o!=NULL)
-                o->activate(os);
+                o->activate(p[1]);
             else
                 CommManager::printf("<X>");
             break;
 
         case 3:                     // argument is string with id number of output followed by a pin number and invert flag
-            Output::create(on,os,om,1);
+            Output::create(p[0],p[1],p[2],1);
             break;
 
         case 1:                     // argument is a string with id number only
-            Output::remove(on);
+            Output::remove(p[0]);
             break;
 
-        case -1:                    // no arguments
+        case 0:                    // no arguments
             Output::show(1);                  // verbose show
             break;
         }
@@ -175,20 +202,17 @@ void StringParser::parse(const char *com) {
 /***** CREATE/EDIT/REMOVE/SHOW A SENSOR  ****/
 
     case 'S':
-        
-        int sn,ss,sm;
-
-        switch(sscanf(com+1,"%d %d %d",&sn,&ss,&sm)){
+        switch(numArgs){
 
         case 3:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH)
-            Sensor::create(sn,ss,sm,1);
+            Sensor::create(p[0],p[1],p[2],1);
             break;
 
         case 1:                     // argument is a string with id number only
-            Sensor::remove(sn);
+            Sensor::remove(p[0]);
             break;
 
-        case -1:                    // no arguments
+        case 0:                    // no arguments
             Sensor::show();
             break;
 
@@ -222,14 +246,9 @@ void StringParser::parse(const char *com) {
         *    returns: NONE
         */
        
-        int wcab;
-        int wcv;
-        int wbValue;
         writeCVByteMainResponse wresponse;
 
-        sscanf(com+1,"%d %d %d",&wcab,&wcv,&wbValue);
-
-        mainTrack->writeCVByteMain(wcab, wcv, wbValue, wresponse);
+        mainTrack->writeCVByteMain(p[0], p[1], p[2], wresponse);
         
         break;
 
@@ -246,15 +265,9 @@ void StringParser::parse(const char *com) {
         *
         *    returns: NONE
         */
-        int bcab;
-        int bcv;
-        int bbit;
-        int bbValue;
         writeCVBitMainResponse bresponse;
 
-        sscanf(com+1,"%d %d %d %d",&bcab,&bcv,&bbit,&bbValue);
-
-        mainTrack->writeCVBitMain(bcab, bcv, bbit, bbValue, bresponse);
+        mainTrack->writeCVBitMain(p[0], p[1], p[2], p[3], bresponse);
         
         break;
 
@@ -272,17 +285,10 @@ void StringParser::parse(const char *com) {
         *    returns: <r CALLBACKNUM|CALLBACKSUB|CV Value)
         *    where VALUE is a number from 0-255 as read from the requested CV, or -1 if verificaiton read fails
         */
-        
-        int Wcv;
-        int Wvalue;
-        int Wcallbacknum;
-        int Wcallbacksub;
-
-        sscanf(com+1,"%d %d %d %d",&Wcv,&Wvalue,&Wcallbacknum,&Wcallbacksub);
 
         writeCVByteResponse wcvresponse;
 
-        progTrack->writeCVByte(Wcv, Wvalue, Wcallbacknum, Wcallbacksub, wcvresponse);
+        progTrack->writeCVByte(p[0], p[1], p[2], p[3], wcvresponse);
 
         CommManager::printf("<r%d|%d|%d %d>", wcvresponse.callback, wcvresponse.callbackSub, wcvresponse.cv, wcvresponse.bValue);
 
@@ -304,16 +310,9 @@ void StringParser::parse(const char *com) {
         *    where VALUE is a number from 0-1 as read from the requested CV bit, or -1 if verificaiton read fails
         */
         
-        int Bcv;
-        int Bbit;
-        int Bvalue;
-        int Bcallbacknum;
-        int Bcallbacksub;
         writeCVBitResponse Bresponse;
 
-        sscanf(com+1,"%d %d %d %d %d",&Bcv,&Bbit,&Bvalue,&Bcallbacknum,&Bcallbacksub);
-
-        progTrack->writeCVBit(Bcv, Bbit, Bvalue, Bcallbacknum, Bcallbacksub, Bresponse);
+        progTrack->writeCVBit(p[0], p[1], p[2], p[3], p[4], Bresponse);
 
         CommManager::printf("<r%d|%d|%d %d %d>", Bresponse.callback, Bresponse.callbackSub, Bresponse.cv, Bresponse.bNum, Bresponse.bValue);
         
@@ -333,14 +332,9 @@ void StringParser::parse(const char *com) {
         *    where VALUE is a number from 0-255 as read from the requested CV, or -1 if read could not be verified
         */
         
-        int Rcv;
-        int Rcallbacknum;
-        int Rcallbacksub;
         readCVResponse rcvresponse;
-
-        sscanf(com+1,"%d %d %d",&Rcv,&Rcallbacknum,&Rcallbacksub);
         
-        progTrack->readCV(Rcv, Rcallbacknum, Rcallbacksub, rcvresponse);
+        progTrack->readCV(p[0], p[1], p[2], rcvresponse);
 
         CommManager::printf("<r%d|%d|%d %d>", rcvresponse.callback, rcvresponse.callbackSub, rcvresponse.cv, rcvresponse.bValue);
     
@@ -354,8 +348,8 @@ void StringParser::parse(const char *com) {
         *
         *    returns: <p1>
         */
-        mainTrack->powerOn();
-        progTrack->powerOn();
+        mainTrack->hdw.setPower(true);
+        progTrack->hdw.setPower(true);
         CommManager::printf("<p1>");
         break;
 
@@ -367,8 +361,8 @@ void StringParser::parse(const char *com) {
         *
         *    returns: <p0>
         */
-        mainTrack->powerOff();
-        progTrack->powerOff();
+        mainTrack->hdw.setPower(false);
+        progTrack->hdw.setPower(false);
         CommManager::printf("<p0>");
         break;
 
@@ -381,8 +375,10 @@ void StringParser::parse(const char *com) {
         *    returns: <a CURRENT>
         *    where CURRENT = 0-1024, based on exponentially-smoothed weighting scheme
         */
+
+        // Todo: figure out the scale that JMRI is actually using and scale accordingly
         int currRead;
-        currRead = mainTrack->getLastRead();
+        currRead = mainTrack->hdw.getMilliamps();
         CommManager::printf("<a %d>", currRead);
         break;
 

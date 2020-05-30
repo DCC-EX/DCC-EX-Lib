@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "Hardware.h"
-#include <ArduinoTimers.h>
 
 extern Uart mainRailcomUART;
 
@@ -12,22 +11,12 @@ extern Uart mainRailcomUART;
 
 #define DCC_PACKET_MAX_SIZE 6 
 
-#define NUM_DEVICES_MAIN 50
-#define NUM_DEVICES_PROG 2
-const int numDevicesMain = NUM_DEVICES_MAIN;
-const int numDevicesProg = NUM_DEVICES_PROG;
-
 // Todo: re-add noise cancelling on ACK
 // Define constants used for reading CVs from the Programming Track
 const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current
 const int ACK_SAMPLE_COUNT = 500;      // number of analogRead samples to take when monitoring current after a CV verify (bit or byte) has been sent 
 const float ACK_SAMPLE_SMOOTHING = 0.2;      // exponential smoothing to use in processing the analogRead samples after a CV verify (bit or byte) has been sent
 const int ACK_SAMPLE_THRESHOLD = 30;      // the threshold that the exponentially-smoothed analogRead samples (after subtracting the baseline current) must cross to establish ACKNOWLEDGEMENT
-
-// Define constants used for managing the current on the track
-const int CURRENT_SAMPLE_TIME = 1;
-const float CURRENT_SAMPLE_SMOOTHING = 0.01;
-const int RETRY_MILLIS = 1000;
 
 const byte idlePacket[] = {0xFF, 0x00, 0xFF};
 const byte resetPacket[] = {0x00, 0x00, 0x00};
@@ -88,7 +77,7 @@ public:
     static DCC* Create_WSM_SAMCommandStation_Main(int numDev);
     static DCC* Create_WSM_SAMCommandStation_Prog(int numDev);
 
-    DCC(int numDev, DCChdw settings);
+    DCC(int numDev, Hardware settings);
 
     // Call this function every 58us from the main code
     void interruptHandler();
@@ -96,9 +85,10 @@ public:
     // Call this function every loop
     void loop() {
         updateSpeed();
-        check();
-        if(hdw.enable_railcom) 
+        hdw.checkCurrent();
+        if(hdw.enable_railcom) {
             readRailcomData();
+        }
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
@@ -111,9 +101,6 @@ public:
     int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVBitResponse& response);
     int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResponse& response);
 
-    void powerOn();
-    void powerOff();
-    int getLastRead();
     void showStatus();
 
     int numDev;
@@ -125,16 +112,12 @@ public:
     };
 
     Speed* speedTable;
-    
-    Uart* railcomSerialInst;
+
+    Hardware hdw;
 
 private:
-    void check();
     void updateSpeed();
     void readRailcomData();
-    void parseRailcomData(const uint8_t data[8]);
-
-    DCChdw hdw;
 
     int nextDev;
 
@@ -153,13 +136,6 @@ private:
     uint8_t pendingLength;
     uint8_t pendingPacket[DCC_PACKET_MAX_SIZE];
     uint8_t pendingRepeats;
-
-    // Current reading stuff
-    float reading;
-	float current;
-	bool tripped;
-	long int lastCheckTime;
-    long int lastTripTime;
 
     // Waveform generator state
     uint8_t state;

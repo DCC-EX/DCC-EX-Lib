@@ -1,145 +1,125 @@
-#include "DCC.h"
+#include "Hardware.h"
+#include "wiring_private.h"
 
-DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
-    DCChdw hdw;
+void Hardware::init() {
+    // Set up the output pins for this track
+    pinMode(signal_a_pin, OUTPUT);
+    digitalWrite(signal_a_pin, LOW);
+    if(control_scheme == DUAL_DIRECTION_INVERTED || control_scheme == DIRECTION_BRAKE_ENABLE) {
+        pinMode(signal_b_pin, OUTPUT);
+        digitalWrite(signal_b_pin, HIGH);
+    }
+    pinMode(enable_pin, OUTPUT);
+    digitalWrite(enable_pin, LOW);
 
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
+    // Set up the current sense pin
+    pinMode(current_sense_pin, INPUT);
 
-    hdw.is_prog_track = false;
-    hdw.enable_railcom = false;
-    hdw.railcom_timer = &TimerB;    // Timer2 on UNO, Timer3 on MEGA, TCC1 on SAMD
+    // Set up the railcom comparator DAC and serial (SAMD21 only)
+    // TODO: Move this into a separate function or library
+#if defined(ARDUINO_ARCH_SAMD)
+    if(enable_railcom) {
+        PORT->Group[0].PINCFG[2].bit.INEN = 0;
+        PORT->Group[0].PINCFG[2].bit.PULLEN = 0;
+        PORT->Group[0].DIRCLR.reg = 1 << 2;
+        PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;        // A0, PA02
+        PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE_B; 
 
-    hdw.signal_a_pin = 12;
-    hdw.signal_b_pin = 9;
+        // Enable and configure the DAC
+        // // Select the voltage reference using CTRLB.REFSEL
+        DAC->CTRLB.bit.REFSEL = 0x0;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        // // Enable the DAC using CTRLA.ENABLE
+        DAC->CTRLA.bit.ENABLE = 1;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        // // Enable the DAC as an external output
+        DAC->CTRLB.bit.EOEN = 1;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        // Set the output voltage
+        DAC->CTRLB.bit.LEFTADJ = 0;
+        while(DAC->STATUS.bit.SYNCBUSY==1);
+        DAC->DATA.reg = 0x7;    // ~10mV reference voltage
+        while(DAC->STATUS.bit.SYNCBUSY==1);
 
-    hdw.enable_pin = 4;
-
-    hdw.current_sense_pin = A0;
-    hdw.trigger_value = 1500; // Trips at 1500mA
-    hdw.amps_per_volt = 0.606061;
-
-    hdw.preambleBits = 16;
-
-    return new DCC(numDev, hdw);
+        enableRailcomSerial(false);
+    }
+#endif
 }
 
-DCC* DCC::Create_Arduino_L298Shield_Prog(int numDev) {
-    DCChdw hdw;
-    
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
-
-    hdw.is_prog_track = true;
-    hdw.enable_railcom = false;
-    hdw.railcom_timer = NULL;
-
-    hdw.signal_a_pin = 13;  
-    hdw.signal_b_pin = 8;  
-
-    hdw.enable_pin = 11;     // Arduino pin
-
-    hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;  // Trips at 250mA
-    hdw.amps_per_volt = 0.606061;
-
-    hdw.preambleBits = 22;
-
-    return new DCC(numDev, hdw);
+void Hardware::setPower(bool on) {
+    digitalWrite(enable_pin, on);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-
-DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
-    DCChdw hdw;
-
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
-
-    hdw.is_prog_track = false;
-    hdw.enable_railcom = false;
-    hdw.railcom_timer = &TimerB;    // Timer2 on UNO, Timer3 on MEGA, TCC1 on SAMD
-
-    hdw.signal_a_pin = 7;
-    hdw.signal_b_pin = 9;
-
-    hdw.enable_pin = 4;
-
-    hdw.current_sense_pin = A0;
-    hdw.trigger_value = 3000; // Trips at 3000mA
-    hdw.amps_per_volt = 1.904762;
-
-    hdw.preambleBits = 16;
-
-    return new DCC(numDev, hdw);
+void Hardware::setSignal(bool high) {
+    #if defined(ARDUINO_ARCH_AVR)
+    digitalWrite2(signal_a_pin, high);
+    if(control_scheme == DUAL_DIRECTION_INVERTED)
+        digitalWrite2(signal_b_pin, !high);
+    #else
+    digitalWrite(signal_a_pin, high);
+    if(control_scheme == DUAL_DIRECTION_INVERTED)
+        digitalWrite(signal_b_pin, !high);
+    #endif
 }
 
-DCC* DCC::Create_Pololu_MC33926Shield_Prog(int numDev) {
-    DCChdw hdw;
-    
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
-
-    hdw.is_prog_track = true;
-    hdw.enable_railcom = false;
-    hdw.railcom_timer = NULL;
-
-    hdw.signal_a_pin = 8;  
-    hdw.signal_b_pin = 10;  
-
-    hdw.enable_pin = 5;     // Enables are tied together by default. Cut the !D2 jumper and connect the PROG channel !D2 to this pin.
-
-    hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;  // Trips at 250mA
-    hdw.amps_per_volt = 1.904762;
-
-    hdw.preambleBits = 22;
-
-    return new DCC(numDev, hdw);
+void Hardware::setBrake(bool on) {
+    #if defined(ARDUINO_ARCH_AVR)
+    if(control_scheme == DUAL_DIRECTION_INVERTED) {
+        digitalWrite2(signal_a_pin, on);
+        digitalWrite2(signal_b_pin, on);
+    }
+    else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
+        digitalWrite2(signal_b_pin, on);
+    }
+    #else
+    if(control_scheme == DUAL_DIRECTION_INVERTED) {
+        digitalWrite(signal_a_pin, on);
+        digitalWrite(signal_b_pin, on);
+    }
+    else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
+        digitalWrite(signal_b_pin, on);
+    }
+    #endif
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-
-// TI DRV8874 on custom board
-DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
-    DCChdw hdw;
-
-    hdw.control_scheme = DUAL_DIRECTION_INVERTED;
-
-    hdw.is_prog_track = false;
-    hdw.enable_railcom = true;
-    hdw.railcom_timer = &TimerB;
-
-    hdw.signal_a_pin = 6;
-    hdw.signal_b_pin = 7;
-
-    hdw.enable_pin = 3;
-
-    hdw.current_sense_pin = A5;
-    hdw.trigger_value = 5500; // Trips at 5500mA
-    hdw.amps_per_volt = 1.998004;
-
-    hdw.preambleBits = 16;
-
-    return new DCC(numDev, hdw);
+float Hardware::getMilliamps(float reading) {
+    #if defined(ARDUINO_ARCH_AVR)   // Todo: Using this as a 3.3V/5V and precision detector, but need more robust way to do this.
+        return (reading / 1023 * 5 * 1000 * amps_per_volt);
+    #elif defined(ARDUINO_ARCH_SAMD)
+        return (reading / 4095 * 3.3 * 1000 * amps_per_volt);
+    #else
+        #error "Cannot compile - invalid architecture for current sensing"
+    #endif
 }
 
-// TI DRV8876 on custom board
-DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
-    DCChdw hdw;
-    
-    hdw.control_scheme = DUAL_DIRECTION_INVERTED;
+void Hardware::checkCurrent() {
+    // if we have exceeded the CURRENT_SAMPLE_TIME we need to check if we are over/under current.
+	if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) { // TODO can we integrate this with the readBaseCurrent and ackDetect routines?
+		lastCheckTime = millis();
+		reading = analogRead(current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
 
-    hdw.is_prog_track = true;
-    hdw.enable_railcom = false;
-    hdw.railcom_timer = NULL;
+        current = getMilliamps(reading);
 
-    hdw.signal_a_pin = 8;  
-    hdw.signal_b_pin = 9;  
+		if(current > trigger_value && digitalRead(enable_pin)) {
+			setPower(false);
+			tripped=true;
+			lastTripTime=millis();
+		} 
+        else if(current < trigger_value && tripped) { // TODO need to put a delay in here so it only tries after X seconds
+			if (millis() - lastTripTime > RETRY_MILLIS) {  // TODO make this a global constant
+			    setPower(true);
+			    tripped=false;
+			}
+		}
+	}
+}
 
-    hdw.enable_pin = 4;     // Arduino pin
-
-    hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;  // Trips at 250mA
-    hdw.amps_per_volt = 0.909089;
-
-    hdw.preambleBits = 22;
-
-    return new DCC(numDev, hdw);
+// TODO: fix the sercom enable and disable so it is easier to change pins
+void Hardware::enableRailcomSerial(bool on) {
+#if defined(ARDUINO_ARCH_SAMD)
+    if(on) 
+        pinPeripheral(5, PIO_INPUT);
+    else    
+        pinPeripheral(5, PIO_SERCOM);
+#endif
 }

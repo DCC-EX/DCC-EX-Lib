@@ -8,17 +8,6 @@
 #include <DIO2.h>
 #endif
 
-void DCC::signal(bool pinA, bool pinB) {
-    #if defined(ARDUINO_ARCH_AVR)
-    digitalWrite2(hdw.signal_a_pin, pinA);
-    if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-        digitalWrite2(hdw.signal_b_pin, pinB);
-    #else
-    digitalWrite(hdw.signal_a_pin, pinA);
-    if(hdw.control_scheme == DUAL_DIRECTION_INVERTED)
-        digitalWrite(hdw.signal_b_pin, pinB);
-    #endif
-}
 
 void DCC::interruptHandler() {
     if(interrupt1()) {
@@ -31,13 +20,13 @@ bool DCC::interrupt1() {
     // otherwise can cause hangs in main loop waiting for the pendingBuffer. 
     switch (state) {
     case 0:  // start of bit transmission
-        signal(HIGH, LOW);    
+        hdw.setSignal(HIGH);    
         state = 1;
         return true; // must call interrupt2 to set currentBit
     // Case 1 falls to default case, we simply increment the state
     case 2: // 58us after case 0
         if(currentBit) {
-            signal(LOW, HIGH);
+            hdw.setSignal(LOW);  
         }
         state = 3;
         break; 
@@ -47,18 +36,14 @@ bool DCC::interrupt1() {
         }
         else state = 4;
         if(generateRailcomCutout) {
-            signal(HIGH, HIGH);     // Start the cutout
+            hdw.setBrake(true);    // Start the cutout
             inRailcomCutout = true;
-            #if defined(ARDUINO_ARCH_SAMD)
-            pinPeripheral(5, PIO_SERCOM); // enable railcom UART
-            #endif
+            hdw.enableRailcomSerial(true);
         }
         break;
     case 4:  // 116us after case 0
         if(!generateRailcomCutout) {
-            signal(LOW,HIGH);
-        } else {
-            
+            hdw.setSignal(LOW);
         }
         state = 5;
         break;
@@ -71,10 +56,9 @@ bool DCC::interrupt1() {
         break;
     // Cases 8-16 are for railcom timing, we increment the state
     case 18:
-    #if defined(ARDUINO_ARCH_SAMD)
-        pinPeripheral(5, PIO_INPUT);  // Disable the serial read
-    #endif
-        signal(LOW, HIGH);
+        hdw.enableRailcomSerial(false);
+        hdw.setBrake(false);
+        hdw.setSignal(LOW);
         generateRailcomCutout = false;
         inRailcomCutout = false;
         railcomData = true;
