@@ -88,9 +88,11 @@ public:
     void loop() {
         updateSpeed();
         hdw.checkCurrent();
+    #if defined(ARDUINO_ARCH_SAMD)
         if(hdw.enable_railcom) {
             readRailcomData();
         }
+    #endif
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);

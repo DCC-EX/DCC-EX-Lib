@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+#if defined(ARDUINO_ARCH_SAMD)
 extern const uint8_t railcom_decode[256];
 
 /// invalid value (not conforming to the 4bit weighting requirement)
@@ -42,6 +43,6 @@ struct Railcom
     static void parseData(const uint8_t data[8]);
 };
 
-
+#endif
 
 #endif
