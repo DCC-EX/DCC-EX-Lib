@@ -97,13 +97,19 @@ void DCC::interrupt2() {
             bytes_sent = 0;
             remainingPreambles=hdw.preambleBits;
 
+            noInterrupts();
+            int pendingCount = packetQueue.count();
+            interrupts();
+
             if (transmitRepeats > 0) {
                 transmitRepeats--;
             }
-            else if (packetQueue.count() > 0) {
+            else if (pendingCount > 0) {
                 // Copy pending packet to transmit packet
+                noInterrupts();
                 Packet pendingPacket = packetQueue.pop();   // PlatformIO marks this as an error, but we can just ignore it. It compiles.
-                
+                interrupts();
+
                 for (int b=0;b<pendingPacket.length;b++) transmitPacket[b] = pendingPacket.payload[b];
                 transmitLength=pendingPacket.length;
                 transmitRepeats=pendingPacket.repeats;

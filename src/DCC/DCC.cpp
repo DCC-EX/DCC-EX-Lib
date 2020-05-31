@@ -45,11 +45,16 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repe
     newPacket.transmitID = identifier;
 
     const Packet pushPacket = newPacket;    // Todo: is there a better way to convert from non-const to const?
-    packetQueue.push(pushPacket);   
+    noInterrupts();
+    packetQueue.push(pushPacket);
+    interrupts();   
 }
 
 void DCC::updateSpeed() {
-    if (packetQueue.count() > 5) return;  // Don't let this fill the packetQueue with nonsense
+    noInterrupts();
+    int pendingCount = packetQueue.count();
+    interrupts();
+    if (pendingCount > 5) return;  // Don't let this fill the packetQueue with nonsense
 
     for (; nextDev < numDev; nextDev++) {
         if (speedTable[nextDev].cab > 0) {
