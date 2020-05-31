@@ -3,14 +3,13 @@
 #include "Sensors.h"
 #include "Outputs.h"
 
-
 #if defined(ARDUINO_ARCH_SAMD)
 ExternalEEPROM EEPROM;
 #endif
 
 void EEStore::init(){
 #if defined(ARDUINO_ARCH_SAMD)
-    EEPROM.begin(0x50);     // Address for Microchip 24-series EEPROM with all three A pins grounded (0b1010000 = 0x50)
+    EEPROM.begin(0x50);     // Address for Microchip 24-series EEPROM with all three address pins grounded (0b1010000 = 0x50)
 #endif
 
     eeStore=(EEStore *)calloc(1,sizeof(EEStore));
@@ -29,22 +28,15 @@ void EEStore::init(){
     Turnout::load();    // load turnout definitions
     Sensor::load();     // load sensor definitions
     Output::load();     // load output definitions
-
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 void EEStore::clear(){
-
     sprintf(eeStore->data.id,EESTORE_ID);                           // create blank eeStore structure (no turnouts, no sensors) and save it back to EEPROM
     eeStore->data.nTurnouts=0;
     eeStore->data.nSensors=0;
     eeStore->data.nOutputs=0;
     EEPROM.put(0,eeStore->data);
-
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 void EEStore::store(){
     reset();
@@ -54,23 +46,17 @@ void EEStore::store(){
     EEPROM.put(0,eeStore->data);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 void EEStore::advance(int n){
     eeAddress+=n;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 void EEStore::reset(){
     eeAddress=sizeof(EEStore);
 }
-///////////////////////////////////////////////////////////////////////////////
 
 int EEStore::pointer(){
     return(eeAddress);
 }
-///////////////////////////////////////////////////////////////////////////////
 
 EEStore *EEStore::eeStore=NULL;
 int EEStore::eeAddress=0;

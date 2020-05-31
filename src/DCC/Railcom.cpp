@@ -47,20 +47,7 @@ void DCC::readRailcomData() {
     hdw.railcom_serial->readBytes(data, bytes);
     if(!railcomData) return;
 
-    // for (size_t i = 0; i < bytes; i++)
-    // {
-    //     SerialUSB.print(data[i], HEX);
-    //     SerialUSB.print(" ");
-    // }
-    // SerialUSB.println();
-    // for (size_t i = 0; i < bytes; i++)
-    // {
-    //     SerialUSB.print(railcom_decode[data[i]], HEX);
-    //     SerialUSB.print(" ");
-    // }
-    // SerialUSB.println();
-
-    // Railcom::parseData(data);
+    // Do something with data
 
     railcomData = false;
 }

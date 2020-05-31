@@ -88,27 +88,7 @@ void JMRIParser::parse(const char *com) {
 
 /***** OPERATE STATIONARY ACCESSORY DECODERS  ****/
 
-    case 'a':       // <a ADDRESS SUBADDRESS ACTIVATE>
-        /*
-        *    turns an accessory (stationary) decoder on or off
-        *
-        *    ADDRESS:  the primary address of the decoder (0-511)
-        *    SUBADDRESS: the subaddress of the decoder (0-3)
-        *    ACTIVATE: 1=on (set), 0=off (clear)
-        *
-        *    Note that many decoders and controllers combine the ADDRESS and SUBADDRESS into a single number, N,
-        *    from  1 through a max of 2044, where
-        *
-        *    N = (ADDRESS - 1) * 4 + SUBADDRESS + 1, for all ADDRESS>0
-        *
-        *    OR
-        *
-        *    ADDRESS = INT((N - 1) / 4) + 1
-        *    SUBADDRESS = (N - 1) % 4
-        *
-        *    returns: NONE
-        */
-        
+    case 'a':       // <a ADDRESS SUBADDRESS ACTIVATE>        
         setAccessoryResponse accessoryResponse;
 
         mainTrack->setAccessory(p[0], p[1], p[2], accessoryResponse);
@@ -117,19 +97,7 @@ void JMRIParser::parse(const char *com) {
     
 /***** CREATE/EDIT/REMOVE/SHOW & OPERATE A TURN-OUT  ****/
 
-    case 'T':       // <T ID THROW>
-        /*
-        *   <T ID THROW>:                sets turnout ID to either the "thrown" or "unthrown" position
-        *
-        *   ID: the numeric ID (0-32767) of the turnout to control
-        *   THROW: 0 (unthrown) or 1 (thrown)
-        *
-        *   returns: <H ID THROW> or <X> if turnout ID does not exist
-        *
-        *   *** SEE ACCESSORIES.CPP FOR COMPLETE INFO ON THE DIFFERENT VARIATIONS OF THE "T" COMMAND
-        *   USED TO CREATE/EDIT/REMOVE/SHOW TURNOUT DEFINITIONS
-        */
-        
+    case 'T':       // <T ID THROW>      
         Turnout *t;
 
         switch(numArgs){
@@ -160,18 +128,6 @@ void JMRIParser::parse(const char *com) {
 /***** CREATE/EDIT/REMOVE/SHOW & OPERATE AN OUTPUT PIN  ****/
 
     case 'Z':       // <Z ID ACTIVATE>
-        /*
-        *   <Z ID ACTIVATE>:          sets output ID to either the "active" or "inactive" state
-        *
-        *   ID: the numeric ID (0-32767) of the output to control
-        *   ACTIVATE: 0 (active) or 1 (inactive)
-        *
-        *   returns: <Y ID ACTIVATE> or <X> if output ID does not exist
-        *
-        *   *** SEE OUTPUTS.CPP FOR COMPLETE INFO ON THE DIFFERENT VARIATIONS OF THE "O" COMMAND
-        *   USED TO CREATE/EDIT/REMOVE/SHOW TURNOUT DEFINITIONS
-        */
-        
         Output* o;
 
         switch(numArgs){
@@ -236,16 +192,6 @@ void JMRIParser::parse(const char *com) {
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/
 
     case 'w':      // <w CAB CV VALUE>
-        /*
-        *    writes, without any verification, a Configuration Variable to the decoder of an engine on the main operations track
-        *
-        *    CAB:  the short (1-127) or long (128-10293) address of the engine decoder
-        *    CV: the number of the Configuration Variable memory location in the decoder to write to (1-1024)
-        *    VALUE: the value to be written to the Configuration Variable memory location (0-255)
-        *
-        *    returns: NONE
-        */
-       
         writeCVByteMainResponse wresponse;
 
         mainTrack->writeCVByteMain(p[0], p[1], p[2], wresponse);
@@ -255,16 +201,6 @@ void JMRIParser::parse(const char *com) {
 /***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/
 
     case 'b':      // <b CAB CV BIT VALUE>
-        /*
-        *    writes, without any verification, a single bit within a Configuration Variable to the decoder of an engine on the main operations track
-        *
-        *    CAB:  the short (1-127) or long (128-10293) address of the engine decoder
-        *    CV: the number of the Configuration Variable memory location in the decoder to write to (1-1024)
-        *    BIT: the bit number of the Configurarion Variable regsiter to write (0-7)
-        *    VALUE: the value of the bit to be written (0-1)
-        *
-        *    returns: NONE
-        */
         writeCVBitMainResponse bresponse;
 
         mainTrack->writeCVBitMain(p[0], p[1], p[2], p[3], bresponse);
@@ -274,17 +210,6 @@ void JMRIParser::parse(const char *com) {
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON PROGRAMMING TRACK  ****/
 
     case 'W':      // <W CV VALUE CALLBACKNUM CALLBACKSUB>
-        /*
-        *    writes, and then verifies, a Configuration Variable to the decoder of an engine on the programming track
-        *
-        *    CV: the number of the Configuration Variable memory location in the decoder to write to (1-1024)
-        *    VALUE: the value to be written to the Configuration Variable memory location (0-255)
-        *    CALLBACKNUM: an arbitrary integer (0-32767) that is ignored by the Base Station and is simply echoed back in the output - useful for external programs that call this function
-        *    CALLBACKSUB: a second arbitrary integer (0-32767) that is ignored by the Base Station and is simply echoed back in the output - useful for external programs (e.g. DCC++ Interface) that call this function
-        *
-        *    returns: <r CALLBACKNUM|CALLBACKSUB|CV Value)
-        *    where VALUE is a number from 0-255 as read from the requested CV, or -1 if verificaiton read fails
-        */
 
         writeCVByteResponse wcvresponse;
 
@@ -297,18 +222,6 @@ void JMRIParser::parse(const char *com) {
 /***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON PROGRAMMING TRACK  ****/
 
     case 'B':      // <B CV BIT VALUE CALLBACKNUM CALLBACKSUB>
-        /*
-        *    writes, and then verifies, a single bit within a Configuration Variable to the decoder of an engine on the programming track
-        *
-        *    CV: the number of the Configuration Variable memory location in the decoder to write to (1-1024)
-        *    BIT: the bit number of the Configurarion Variable memory location to write (0-7)
-        *    VALUE: the value of the bit to be written (0-1)
-        *    CALLBACKNUM: an arbitrary integer (0-32767) that is ignored by the Base Station and is simply echoed back in the output - useful for external programs that call this function
-        *    CALLBACKSUB: a second arbitrary integer (0-32767) that is ignored by the Base Station and is simply echoed back in the output - useful for external programs (e.g. DCC++ Interface) that call this function
-        *
-        *    returns: <r CALLBACKNUM|CALLBACKSUB|CV BIT VALUE)
-        *    where VALUE is a number from 0-1 as read from the requested CV bit, or -1 if verificaiton read fails
-        */
         
         writeCVBitResponse Bresponse;
 
@@ -320,18 +233,7 @@ void JMRIParser::parse(const char *com) {
 
 /***** READ CONFIGURATION VARIABLE BYTE FROM ENGINE DECODER ON PROGRAMMING TRACK  ****/
 
-    case 'R':     // <R CV CALLBACKNUM CALLBACKSUB>
-        /*
-        *    reads a Configuration Variable from the decoder of an engine on the programming track
-        *
-        *    CV: the number of the Configuration Variable memory location in the decoder to read from (1-1024)
-        *    CALLBACKNUM: an arbitrary integer (0-32767) that is ignored by the Base Station and is simply echoed back in the output - useful for external programs that call this function
-        *    CALLBACKSUB: a second arbitrary integer (0-32767) that is ignored by the Base Station and is simply echoed back in the output - useful for external programs (e.g. DCC++ Interface) that call this function
-        *
-        *    returns: <r CALLBACKNUM|CALLBACKSUB|CV VALUE)
-        *    where VALUE is a number from 0-255 as read from the requested CV, or -1 if read could not be verified
-        */
-        
+    case 'R':     // <R CV CALLBACKNUM CALLBACKSUB>        
         readCVResponse rcvresponse;
         
         progTrack->readCV(p[0], p[1], p[2], rcvresponse);
@@ -343,11 +245,6 @@ void JMRIParser::parse(const char *com) {
 /***** TURN ON POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
     case '1':      // <1>
-        /*
-        *    enables power from the motor shield to the main operations and programming tracks
-        *
-        *    returns: <p1>
-        */
         mainTrack->hdw.setPower(true);
         progTrack->hdw.setPower(true);
         CommManager::printf("<p1>");
@@ -356,11 +253,6 @@ void JMRIParser::parse(const char *com) {
 /***** TURN OFF POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
     case '0':     // <0>
-        /*
-        *    disables power from the motor shield to the main operations and programming tracks
-        *
-        *    returns: <p0>
-        */
         mainTrack->hdw.setPower(false);
         progTrack->hdw.setPower(false);
         CommManager::printf("<p0>");
@@ -369,12 +261,6 @@ void JMRIParser::parse(const char *com) {
 /***** READ MAIN OPERATIONS TRACK CURRENT  ****/
 
     case 'c':     // <c>
-        /*
-        *    reads current being drawn on main operations track
-        *
-        *    returns: <a CURRENT>
-        *    where CURRENT = 0-1024, based on exponentially-smoothed weighting scheme
-        */
 
         // Todo: figure out the scale that JMRI is actually using and scale accordingly
         int currRead;
@@ -385,13 +271,7 @@ void JMRIParser::parse(const char *com) {
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
     case 's':      // <s>
-        /*
-        *    returns status messages containing track power status, throttle status, turn-out status, and a version number
-        *    NOTE: this is very useful as a first command for an interface to send to this sketch in order to verify connectivity and update any GUI to reflect actual throttle and turn-out settings
-        *
-        *    returns: series of status messages that can be read by an interface to determine status of DCC++ Base Station and important settings
-        */
-        // mainTrack->showStatus();
+        //mainTrack->showStatus(); Todo:re-add this
         for(int i=1;i<=mainTrack->numDev;i++){
             if(mainTrack->speedTable[i].speed==0)
             continue;
@@ -407,12 +287,6 @@ void JMRIParser::parse(const char *com) {
 /***** STORE SETTINGS IN EEPROM  ****/
 
     case 'E':     // <E>
-        /*
-        *    stores settings for turnouts and sensors EEPROM
-        *
-        *    returns: <e nTurnouts nSensors>
-        */
-
         EEStore::store();
         CommManager::printf("<e %d %d %d>", EEStore::eeStore->data.nTurnouts, EEStore::eeStore->data.nSensors, EEStore::eeStore->data.nOutputs);
         break;
@@ -420,11 +294,6 @@ void JMRIParser::parse(const char *com) {
 /***** CLEAR SETTINGS IN EEPROM  ****/
 
     case 'e':     // <e>
-        /*
-        *    clears settings for Turnouts in EEPROM
-        *
-        *    returns: <O>
-        */
 
         EEStore::clear();
         CommManager::printf("<O>");
@@ -433,11 +302,6 @@ void JMRIParser::parse(const char *com) {
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/
 
     case ' ':     // < >
-        /*
-        *    simply prints a carriage return - useful when interacting with Ardiuno through serial monitor window
-        *
-        *    returns: a carriage return
-        */
         CommManager::printf("\n");
         break;
     }

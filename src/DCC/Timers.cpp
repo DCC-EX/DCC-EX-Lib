@@ -56,6 +56,7 @@ bool DCC::interrupt1() {
         generateRailcomCutout = false;
         inRailcomCutout = false;
         railcomData = true;
+        lastID = transmitID;
         state = 0;
         break;
     default:
@@ -99,12 +100,14 @@ void DCC::interrupt2() {
             if (transmitRepeats > 0) {
                 transmitRepeats--;
             }
-            else if (packetPending) {
+            else if (packetQueue.count() > 0) {
                 // Copy pending packet to transmit packet
-                for (int b=0;b<pendingLength;b++) transmitPacket[b] = pendingPacket[b];
-                transmitLength=pendingLength;
-                transmitRepeats=pendingRepeats;
-                packetPending=false;
+                Packet pendingPacket = packetQueue.pop();   // PlatformIO marks this as an error, but we can just ignore it. It compiles.
+                
+                for (int b=0;b<pendingPacket.length;b++) transmitPacket[b] = pendingPacket.payload[b];
+                transmitLength=pendingPacket.length;
+                transmitRepeats=pendingPacket.repeats;
+                transmitID=pendingPacket.transmitID;
             }
             else {
                 // Fortunately reset and idle packets are the same length

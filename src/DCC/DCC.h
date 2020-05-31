@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "Hardware.h"
+#include "Queue.h"
 
 #if defined(ARDUINO_ARCH_SAMD)
 extern Uart mainRailcomUART;
@@ -28,22 +29,35 @@ struct setThrottleResponse {
     int device;
     int speed;
     int direction;
+    uint32_t transactionID;
 };
 
 struct setFunctionResponse {
     // Fill later. Possibly an integral part of railcom?
+    uint32_t transactionID;
 };
 
 struct setAccessoryResponse {
     // Fill later
+    uint32_t transactionID;
 };
 
 struct writeCVByteMainResponse {
     // Fill later. Important part of railcom.
+    uint32_t transactionID;
 };
 
 struct writeCVBitMainResponse {
     // Fill later. Important part of railcom.
+    uint32_t transactionID;
+};
+
+struct readCVMainResponse {
+    int callback;
+    int callbackSub;
+    int cv;
+    int bValue;
+    uint32_t transactionID;
 };
 
 struct writeCVByteResponse {
@@ -51,6 +65,7 @@ struct writeCVByteResponse {
     int callbackSub;
     int cv;
     int bValue;
+    // Doesn't need a transaction ID because this is for programming track
 };
 
 struct writeCVBitResponse {
@@ -59,6 +74,7 @@ struct writeCVBitResponse {
     int cv;
     int bNum;
     int bValue;
+    // Doesn't need a transaction ID because this is for programming track
 };
 
 struct readCVResponse {
@@ -66,6 +82,7 @@ struct readCVResponse {
     int callbackSub;
     int cv;
     int bValue;
+    // Doesn't need a transaction ID because this is for programming track
 };
 
 class DCC {
@@ -105,8 +122,6 @@ public:
     int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVBitResponse& response);
     int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResponse& response);
 
-    void showStatus();
-
     int numDev;
 
     struct Speed {
@@ -125,6 +140,15 @@ private:
 
     int nextDev;
 
+    struct Packet {
+        uint8_t payload[DCC_PACKET_MAX_SIZE];
+        uint8_t length;
+        uint8_t repeats;
+        uint64_t transmitID;
+    };
+
+    Queue<Packet> packetQueue = Queue<Packet>(20);
+
     // Data for the currently transmitted packet
     uint8_t bits_sent;
     uint8_t bytes_sent;
@@ -134,12 +158,16 @@ private:
     bool generateStartBit;  
     uint8_t transmitPacket[DCC_PACKET_MAX_SIZE];
     uint8_t transmitLength;
-    
-    // Data for the pending packet
-    bool packetPending;
-    uint8_t pendingLength;
-    uint8_t pendingPacket[DCC_PACKET_MAX_SIZE];
-    uint8_t pendingRepeats;
+    uint32_t transmitID;
+
+    // The ID of the last DCC packet to get processed (for railcom)
+    uint32_t lastID;
+
+    static uint32_t counterID;
+    static void incrementCounterID() { 
+        counterID++;
+        if(counterID == 0) counterID = 1;
+    }
 
     // Waveform generator state
     uint8_t state;
@@ -155,7 +183,7 @@ private:
     void signal(bool pinA, bool pinB);
 
     // Loads buffer into the pending packet slot once it is empty.
-    void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats);
+    void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats, uint32_t identifier);
 };
 
 #endif
