@@ -22,6 +22,9 @@ bool DCC::interrupt1() {
         if(currentBit) {
             hdw.setSignal(LOW);  
         }
+        if(generateRailcomCutout) {
+            hdw.enableRailcomSerial(true);  // Start this a little early so it has time to start up
+        }
         state = 3;
         break; 
     case 3: // 87us after case 0
@@ -32,7 +35,6 @@ bool DCC::interrupt1() {
         if(generateRailcomCutout) {
             hdw.setBrake(true);    // Start the cutout
             inRailcomCutout = true;
-            hdw.enableRailcomSerial(true);
         }
         break;
     case 4:  // 116us after case 0
@@ -48,14 +50,14 @@ bool DCC::interrupt1() {
         }
         else state = 8;
         break;
-    // Cases 8-16 are for railcom timing, we increment the state
+    // Cases 8-17 are for railcom timing, we increment the state
     case 18:
-        hdw.enableRailcomSerial(false);
         hdw.setBrake(false);
         hdw.setSignal(LOW);
+        hdw.enableRailcomSerial(false);
+        railcomData = true;
         generateRailcomCutout = false;
         inRailcomCutout = false;
-        railcomData = true;
         lastID = transmitID;
         state = 0;
         break;

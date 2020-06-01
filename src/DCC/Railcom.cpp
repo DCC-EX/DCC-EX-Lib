@@ -43,11 +43,15 @@ void DCC::readRailcomData() {
     if(inRailcomCutout) return;
     int bytes = hdw.railcom_serial->available();
     if(bytes > 8) bytes = 8;
-    uint8_t data[bytes];
+    uint8_t data[8];
     hdw.railcom_serial->readBytes(data, bytes);
     if(!railcomData) return;
+    for (size_t i = 0; i < bytes; i++)
+    {
+        //data[i] = railcom_decode[data[i]];
+    }    
 
-    // Do something with data
+    CommManager::printf("<F %d %X %X %X %X %X %X %X %X>\n\r", lastID, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]); 
 
     railcomData = false;
 }

@@ -24,7 +24,7 @@ void Hardware::init() {
     // TODO: Move this into a separate function or library
 
     if(enable_railcom) {
-        #if defined(ARDUINO_ARCH_SAMD)
+    #if defined(ARDUINO_ARCH_SAMD)
         PORT->Group[0].PINCFG[2].bit.INEN = 0;
         PORT->Group[0].PINCFG[2].bit.PULLEN = 0;
         PORT->Group[0].DIRCLR.reg = 1 << 2;
@@ -44,18 +44,17 @@ void Hardware::init() {
         // Set the output voltage
         DAC->CTRLB.bit.LEFTADJ = 0;
         while(DAC->STATUS.bit.SYNCBUSY==1);
-        DAC->DATA.reg = 0x7;    // ~10mV reference voltage
+        DAC->DATA.reg = 0x9;    // ~10mV reference voltage
         while(DAC->STATUS.bit.SYNCBUSY==1);
 
-        if(railcom_serial == NULL) {
+        if(railcom_serial == nullptr) {
             railcom_serial = new Uart(railcom_sercom, railcom_rx_pin, railcom_tx_pin, railcom_rx_pad, railcom_tx_pad);
         }
-        #endif
-
-        railcom_serial->begin(250000);
-        enableRailcomSerial(false);
+    #endif
     }
-    
+
+    tripped = false;
+    pinMode(railcom_rx_pin, INPUT_PULLUP);
 }
 
 void Hardware::setPower(bool on) {
@@ -126,12 +125,10 @@ void Hardware::checkCurrent() {
 	}
 }
 
-// TODO: fix the sercom enable and disable so it is easier to change pins
+
 void Hardware::enableRailcomSerial(bool on) {
-#if defined(ARDUINO_ARCH_SAMD)
-    if(on) 
-        pinPeripheral(5, PIO_INPUT);
-    else    
-        pinPeripheral(5, PIO_SERCOM);
-#endif
+    if(on) {
+        railcom_serial->end();
+        railcom_serial->begin(250000);  
+    }
 }

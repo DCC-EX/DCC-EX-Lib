@@ -33,22 +33,18 @@ struct setThrottleResponse {
 };
 
 struct setFunctionResponse {
-    // Fill later. Possibly an integral part of railcom?
     uint32_t transactionID;
 };
 
 struct setAccessoryResponse {
-    // Fill later
     uint32_t transactionID;
 };
 
 struct writeCVByteMainResponse {
-    // Fill later. Important part of railcom.
     uint32_t transactionID;
 };
 
 struct writeCVBitMainResponse {
-    // Fill later. Important part of railcom.
     uint32_t transactionID;
 };
 
@@ -105,11 +101,9 @@ public:
     void loop() {
         updateSpeed();
         hdw.checkCurrent();
-    #if defined(ARDUINO_ARCH_SAMD)
         if(hdw.enable_railcom) {
             readRailcomData();
         }
-    #endif
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);
@@ -173,9 +167,9 @@ private:
     uint8_t state;
 
     // Railcom cutout stuff
-    bool generateRailcomCutout;
-    bool inRailcomCutout;
-    bool railcomData;
+    volatile bool generateRailcomCutout;
+    volatile bool inRailcomCutout;
+    volatile bool railcomData;
     
     // Interrupt segments, called in interrupt_handler
     bool interrupt1();
