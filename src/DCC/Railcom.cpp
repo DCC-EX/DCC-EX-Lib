@@ -1,3 +1,5 @@
+// Using tables and definitions copied from OpenMRN project.
+
 #include "DCC.h"
 #include "Railcom.h"
 #include "../CommInterface/CommManager.h"
@@ -48,7 +50,11 @@ void DCC::readRailcomData() {
     if(!railcomData) return;
     for (size_t i = 0; i < bytes; i++)
     {
-        //data[i] = railcom_decode[data[i]];
+        data[i] = railcom_decode[data[i]];
+        if(data[i] == 0xFF) {
+            CommManager::printf("<F ERR>\n\r");
+            return;
+        }
     }    
 
     CommManager::printf("<F %d %X %X %X %X %X %X %X %X>\n\r", lastID, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]); 

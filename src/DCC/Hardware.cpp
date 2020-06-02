@@ -44,17 +44,18 @@ void Hardware::init() {
         // Set the output voltage
         DAC->CTRLB.bit.LEFTADJ = 0;
         while(DAC->STATUS.bit.SYNCBUSY==1);
-        DAC->DATA.reg = 0x9;    // ~10mV reference voltage
+        DAC->DATA.reg = 0x7;    // ~10mV reference voltage
         while(DAC->STATUS.bit.SYNCBUSY==1);
 
         if(railcom_serial == nullptr) {
             railcom_serial = new Uart(railcom_sercom, railcom_rx_pin, railcom_tx_pin, railcom_rx_pad, railcom_tx_pad);
         }
     #endif
+        railcom_serial->begin(railcom_baud);
     }
 
     tripped = false;
-    pinMode(railcom_rx_pin, INPUT_PULLUP);
+    
 }
 
 void Hardware::setPower(bool on) {
@@ -125,10 +126,16 @@ void Hardware::checkCurrent() {
 	}
 }
 
-
+// Todo: fix for AVR
 void Hardware::enableRailcomSerial(bool on) {
     if(on) {
-        railcom_serial->end();
-        railcom_serial->begin(250000);  
+    #if defined(ARDUINO_ARCH_SAMD)
+        pinPeripheral(railcom_rx_pin, railcom_rx_mux);
+    #endif    
+    }
+    else {
+    #if defined(ARDUINO_ARCH_SAMD)
+        pinPeripheral(railcom_rx_pin, PIO_INPUT);
+    #endif
     }
 }

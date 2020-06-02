@@ -30,6 +30,7 @@ struct Hardware {
 
     uint8_t railcom_rx_pin;
     uint8_t railcom_tx_pin;     // Doesn't do anything, but valid pin must be specified to instantiate railcom_serial on some architectures
+    long railcom_baud;
 #if defined(ARDUINO_ARCH_SAMD) 
     Uart* railcom_serial;
     SERCOM* railcom_sercom;

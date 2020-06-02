@@ -104,6 +104,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     hdw.railcom_serial = NULL;  // Will be initialized in Hardware::init();
     hdw.railcom_rx_pin = 5;
     hdw.railcom_tx_pin = 2;     // Doesn't do anything, but valid pin must be specified to instantiate railcom_serial on some architectures
+    hdw.railcom_baud = 250000;
 #if defined(ARDUINO_ARCH_SAMD) 
     hdw.railcom_sercom = &sercom4;
     hdw.railcom_rx_mux = PIO_SERCOM_ALT;

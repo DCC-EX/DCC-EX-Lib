@@ -1,3 +1,5 @@
+// Using tables and definitions copied from OpenMRN project.
+
 #ifndef Railcom_h
 #define Railcom_h
 

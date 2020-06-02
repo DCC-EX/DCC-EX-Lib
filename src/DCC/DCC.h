@@ -14,6 +14,8 @@ extern Uart mainRailcomUART;
 
 #define DCC_PACKET_MAX_SIZE 6 
 
+
+
 // Todo: re-add noise cancelling on ACK
 // Define constants used for reading CVs from the Programming Track
 const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current

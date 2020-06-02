@@ -17,13 +17,17 @@ bool DCC::interrupt1() {
         hdw.setSignal(HIGH);    
         state = 1;
         return true; // must call interrupt2 to set currentBit
-    // Case 1 falls to default case, we simply increment the state
-    case 2: // 58us after case 0
-        if(currentBit) {
-            hdw.setSignal(LOW);  
-        }
+    case 1:
         if(generateRailcomCutout) {
+            hdw.setBrake(true);    // Start the cutout
+            inRailcomCutout = true;
             hdw.enableRailcomSerial(true);  // Start this a little early so it has time to start up
+        }
+        state = 2;
+        break;
+    case 2: // 58us after case 0
+        if(currentBit && !generateRailcomCutout) {
+            hdw.setSignal(LOW);  
         }
         state = 3;
         break; 
@@ -32,10 +36,6 @@ bool DCC::interrupt1() {
             state = 0;
         }
         else state = 4;
-        if(generateRailcomCutout) {
-            hdw.setBrake(true);    // Start the cutout
-            inRailcomCutout = true;
-        }
         break;
     case 4:  // 116us after case 0
         if(!generateRailcomCutout) {
@@ -50,8 +50,8 @@ bool DCC::interrupt1() {
         }
         else state = 8;
         break;
-    // Cases 8-17 are for railcom timing, we increment the state
-    case 18:
+    // Cases 8-15 are for railcom timing, we increment the state
+    case 16:
         hdw.setBrake(false);
         hdw.setSignal(LOW);
         hdw.enableRailcomSerial(false);
@@ -99,18 +99,14 @@ void DCC::interrupt2() {
             bytes_sent = 0;
             remainingPreambles=hdw.preambleBits;
 
-            noInterrupts();
             int pendingCount = packetQueue.count();
-            interrupts();
 
             if (transmitRepeats > 0) {
                 transmitRepeats--;
             }
             else if (pendingCount > 0) {
                 // Copy pending packet to transmit packet
-                noInterrupts();
                 Packet pendingPacket = packetQueue.pop();   // PlatformIO marks this as an error, but we can just ignore it. It compiles.
-                interrupts();
 
                 for (int b=0;b<pendingPacket.length;b++) transmitPacket[b] = pendingPacket.payload[b];
                 transmitLength=pendingPacket.length;

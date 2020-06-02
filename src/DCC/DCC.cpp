@@ -18,6 +18,8 @@ DCC::DCC(int numDev, Hardware settings) {
     inRailcomCutout = false;
 
     lastID = counterID;
+
+    packetQueue.clear();
     
     // Allocate memory for the speed table
     speedTable = (Speed *)calloc(numDev+1, sizeof(Speed));
@@ -51,9 +53,7 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repe
 }
 
 void DCC::updateSpeed() {
-    noInterrupts();
     int pendingCount = packetQueue.count();
-    interrupts();
     if (pendingCount > 5) return;  // Don't let this fill the packetQueue with nonsense
 
     for (; nextDev < numDev; nextDev++) {
