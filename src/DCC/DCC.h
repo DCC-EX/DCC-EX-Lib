@@ -138,10 +138,10 @@ private:
         uint8_t payload[DCC_PACKET_MAX_SIZE];
         uint8_t length;
         uint8_t repeats;
-        uint64_t transmitID;
+        uint32_t transmitID;
     };
 
-    Queue<Packet> packetQueue = Queue<Packet>(20);
+    Queue<Packet> packetQueue = Queue<Packet>(10);
 
     // Data for the currently transmitted packet
     uint8_t bits_sent;
