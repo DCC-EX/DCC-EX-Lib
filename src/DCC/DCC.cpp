@@ -53,8 +53,7 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repe
 }
 
 void DCC::updateSpeed() {
-    int pendingCount = packetQueue.count();
-    if (pendingCount > 5) return;  // Don't let this fill the packetQueue with nonsense
+    if (packetQueue.count() > 0) return;  // Don't let this fill the packetQueue with nonsense
 
     for (; nextDev < numDev; nextDev++) {
         if (speedTable[nextDev].cab > 0) {
