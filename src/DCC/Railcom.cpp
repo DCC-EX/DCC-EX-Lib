@@ -4,8 +4,6 @@
 #include "Railcom.h"
 #include "../CommInterface/CommManager.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
-
 const uint8_t railcom_decode[256] =
 {      INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
        INV,    INV,    INV,    INV,    INV,    INV,    INV,   NACK,
@@ -61,5 +59,3 @@ void DCC::readRailcomData() {
 
     railcomData = false;
 }
-
-#endif
