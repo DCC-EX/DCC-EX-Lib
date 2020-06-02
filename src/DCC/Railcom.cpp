@@ -43,10 +43,10 @@ const uint8_t railcom_decode[256] =
 
 void DCC::readRailcomData() {
     if(inRailcomCutout) return;
-    int bytes = hdw.railcom_serial->available();
+    uint8_t bytes = hdw.railcomSerial()->available();
     if(bytes > 8) bytes = 8;
     uint8_t data[8];
-    hdw.railcom_serial->readBytes(data, bytes);
+    hdw.railcomSerial()->readBytes(data, bytes);
     if(!railcomData) return;
     for (size_t i = 0; i < bytes; i++)
     {

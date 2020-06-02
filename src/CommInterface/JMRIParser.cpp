@@ -264,7 +264,7 @@ void JMRIParser::parse(const char *com) {
 
         // Todo: figure out the scale that JMRI is actually using and scale accordingly
         int currRead;
-        currRead = mainTrack->hdw.getMilliamps();
+        currRead = mainTrack->hdw.getLastRead();
         CommManager::printf("<a %d>", currRead);
         break;
 

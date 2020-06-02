@@ -3,21 +3,24 @@
 DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
     Hardware hdw;
 
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
+    hdw.config_setChannelName("MAIN");
 
-    hdw.is_prog_track = false;
-    hdw.enable_railcom = false;
+    hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
 
-    hdw.signal_a_pin = 12;
-    hdw.signal_b_pin = 9;
+    hdw.config_setProgTrack(false);
 
-    hdw.enable_pin = 4;
+    hdw.config_setPinSignalA(12);
+    hdw.config_setPinSignalB(9);
+    hdw.config_setPinEnable(4);
+    hdw.config_setPinCurrentSense(A0);
+    
+    hdw.config_setTriggerValue(1500);
+    hdw.config_setMaxValue(2000);
+    hdw.config_setAmpsPerVolt(0.606061);
 
-    hdw.current_sense_pin = A0;
-    hdw.trigger_value = 1500; // Trips at 1500mA
-    hdw.amps_per_volt = 0.606061;
+    hdw.config_setPreambleBits(16);
 
-    hdw.preambleBits = 16;
+    hdw.config_setRailcom(false);
 
     return new DCC(numDev, hdw);
 }
@@ -25,21 +28,24 @@ DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
 DCC* DCC::Create_Arduino_L298Shield_Prog(int numDev) {
     Hardware hdw;
     
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
+    hdw.config_setChannelName("PROG");
 
-    hdw.is_prog_track = true;
-    hdw.enable_railcom = false;
+    hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
 
-    hdw.signal_a_pin = 13;  
-    hdw.signal_b_pin = 8;  
+    hdw.config_setProgTrack(true);
 
-    hdw.enable_pin = 11;     // Arduino pin
+    hdw.config_setPinSignalA(13);  
+    hdw.config_setPinSignalB(8);  
+    hdw.config_setPinEnable(11);    
+    hdw.config_setPinCurrentSense(A1); 
+    
+    hdw.config_setTriggerValue(250); 
+    hdw.config_setMaxValue(2000);
+    hdw.config_setAmpsPerVolt(0.606061);
 
-    hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;  // Trips at 250mA
-    hdw.amps_per_volt = 0.606061;
+    hdw.config_setPreambleBits(22);
 
-    hdw.preambleBits = 22;
+    hdw.config_setRailcom(false);
 
     return new DCC(numDev, hdw);
 }
@@ -49,21 +55,24 @@ DCC* DCC::Create_Arduino_L298Shield_Prog(int numDev) {
 DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
     Hardware hdw;
 
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
+    hdw.config_setChannelName("MAIN");
 
-    hdw.is_prog_track = false;
-    hdw.enable_railcom = false;
+    hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
 
-    hdw.signal_a_pin = 7;
-    hdw.signal_b_pin = 9;
+    hdw.config_setProgTrack(false);
+    
+    hdw.config_setPinSignalA(7);  
+    hdw.config_setPinSignalB(9);  
+    hdw.config_setPinEnable(4);    
+    hdw.config_setPinCurrentSense(A0); 
+    
+    hdw.config_setTriggerValue(2500); 
+    hdw.config_setMaxValue(3000);
+    hdw.config_setAmpsPerVolt(1.904762);
 
-    hdw.enable_pin = 4;
+    hdw.config_setPreambleBits(16);
 
-    hdw.current_sense_pin = A0;
-    hdw.trigger_value = 3000; // Trips at 3000mA
-    hdw.amps_per_volt = 1.904762;
-
-    hdw.preambleBits = 16;
+    hdw.config_setRailcom(false);
 
     return new DCC(numDev, hdw);
 }
@@ -71,57 +80,61 @@ DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
 DCC* DCC::Create_Pololu_MC33926Shield_Prog(int numDev) {
     Hardware hdw;
     
-    hdw.control_scheme = DIRECTION_BRAKE_ENABLE;
+    hdw.config_setChannelName("PROG");
 
-    hdw.is_prog_track = true;
-    hdw.enable_railcom = false;
+    hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
 
-    hdw.signal_a_pin = 8;  
-    hdw.signal_b_pin = 10;  
+    hdw.config_setProgTrack(true);
+    
+    hdw.config_setPinSignalA(8);  
+    hdw.config_setPinSignalB(10);  
+    hdw.config_setPinEnable(4);    
+    hdw.config_setPinCurrentSense(A1); 
 
-    hdw.enable_pin = 5;     // Enables are tied together by default. Cut the !D2 jumper and connect the PROG channel !D2 to this pin.
+    hdw.config_setTriggerValue(250); 
+    hdw.config_setMaxValue(3000);
+    hdw.config_setAmpsPerVolt(1.904762);
 
-    hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;  // Trips at 250mA
-    hdw.amps_per_volt = 1.904762;
+    hdw.config_setPreambleBits(22);
 
-    hdw.preambleBits = 22;
+    hdw.config_setRailcom(false);
 
     return new DCC(numDev, hdw);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 
+#if defined(ARDUINO_ARCH_SAMD)
 // TI DRV8874 on custom board
 DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
     Hardware hdw;
 
-    hdw.control_scheme = DUAL_DIRECTION_INVERTED;
+    hdw.config_setChannelName("MAIN");
 
-    hdw.is_prog_track = false;
-    hdw.enable_railcom = true;
+    hdw.config_setControlScheme(DUAL_DIRECTION_INVERTED);
 
-    hdw.railcom_serial = NULL;  // Will be initialized in Hardware::init();
-    hdw.railcom_rx_pin = 5;
-    hdw.railcom_tx_pin = 2;     // Doesn't do anything, but valid pin must be specified to instantiate railcom_serial on some architectures
-    hdw.railcom_baud = 250000;
-#if defined(ARDUINO_ARCH_SAMD) 
-    hdw.railcom_sercom = &sercom4;
-    hdw.railcom_rx_mux = PIO_SERCOM_ALT;
-    hdw.railcom_rx_pad = SERCOM_RX_PAD_3;
-    hdw.railcom_tx_pad = UART_TX_PAD_2;
-#endif
+    hdw.config_setProgTrack(false);
 
-    hdw.signal_a_pin = 6;
-    hdw.signal_b_pin = 7;
+    hdw.config_setPinSignalA(6);  
+    hdw.config_setPinSignalB(7);  
+    hdw.config_setPinEnable(3);    
+    hdw.config_setPinCurrentSense(A5); 
 
-    hdw.enable_pin = 3;
+    hdw.config_setTriggerValue(5500); 
+    hdw.config_setMaxValue(6000);
+    hdw.config_setAmpsPerVolt(1.998004);
 
-    hdw.current_sense_pin = A5;
-    hdw.trigger_value = 5500; // Trips at 5500mA
-    hdw.amps_per_volt = 1.998004;
+    hdw.config_setPreambleBits(16);
 
-    hdw.preambleBits = 16;
+    hdw.config_setRailcom(true);
+    hdw.config_setRailcomRxPin(5);
+    hdw.config_setRailcomTxPin(2);     // Doesn't do anything, but valid pin must be specified to instantiate railcom_serial on some architectures
+    hdw.config_setRailcomBaud(250000);
+    hdw.config_setRailcomSerial(nullptr);  // Will be initialized in Hardware::init();
+    hdw.config_setRailcomSercom(&sercom4);
+    hdw.config_setRailcomRxMux(PIO_SERCOM_ALT);
+    hdw.config_setRailcomRxPad(SERCOM_RX_PAD_3);
+    hdw.config_setRailcomTxPad(UART_TX_PAD_2);
 
     return new DCC(numDev, hdw);
 }
@@ -130,21 +143,26 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
 DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     Hardware hdw;
     
-    hdw.control_scheme = DUAL_DIRECTION_INVERTED;
+    hdw.config_setChannelName("PROG");
 
-    hdw.is_prog_track = true;
-    hdw.enable_railcom = false;
+    hdw.config_setControlScheme(DUAL_DIRECTION_INVERTED);
 
-    hdw.signal_a_pin = 8;  
-    hdw.signal_b_pin = 9;  
+    hdw.config_setProgTrack(true);
 
-    hdw.enable_pin = 4;     // Arduino pin
+    hdw.config_setPinSignalA(8);  
+    hdw.config_setPinSignalB(9);  
+    hdw.config_setPinEnable(4);    
+    hdw.config_setPinCurrentSense(A1);
 
-    hdw.current_sense_pin = A1; // Arduino pin
-    hdw.trigger_value = 250;  // Trips at 250mA
-    hdw.amps_per_volt = 0.909089;
+    hdw.config_setTriggerValue(250); 
+    hdw.config_setMaxValue(3500);
+    hdw.config_setAmpsPerVolt(0.909089);
 
-    hdw.preambleBits = 22;
+    hdw.config_setPreambleBits(22);
+
+    hdw.config_setRailcom(false);
 
     return new DCC(numDev, hdw);
 }
+
+#endif // ARCH_ARDUINO_SAMD

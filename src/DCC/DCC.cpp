@@ -224,7 +224,7 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     base=0;
 
     for(int j=0;j<ACK_BASE_COUNT;j++)
-        base+=analogRead(hdw.current_sense_pin);
+        base+=hdw.readCurrent();
     base/=ACK_BASE_COUNT;
     
     bWrite[0]=0x74+(highByte(cv)&0x03);   // set-up to re-verify entire byte
@@ -234,7 +234,7 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     schedulePacket(bWrite, 3, 6, 0);               // NMRA recommends 6 write or reset packets for decoder recovery time
     
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=analogRead(hdw.current_sense_pin)-base;
+        c=hdw.readCurrent()-base;
         if(c>ACK_SAMPLE_THRESHOLD)
         d=1;
     }
@@ -273,7 +273,7 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     base=0;
 
     for(int j=0;j<ACK_BASE_COUNT;j++)
-        base+=analogRead(hdw.current_sense_pin);
+        base+=hdw.readCurrent();
     base/=ACK_BASE_COUNT;
     
     bitClear(bWrite[2],4);              // change instruction code from Write Bit to Verify Bit
@@ -282,7 +282,7 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     schedulePacket(bWrite, 3, 6, 0);               // NMRA recommends 6 write or reset packets for decoder recovery time
         
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=analogRead(hdw.current_sense_pin)-base;
+        c=hdw.readCurrent()-base;
         if(c>ACK_SAMPLE_THRESHOLD)
             d=1;
     }
@@ -319,7 +319,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
         d=0;
         base=0;
         for(int j=0;j<ACK_BASE_COUNT;j++) {
-            base+=analogRead(hdw.current_sense_pin);
+            base+=hdw.readCurrent();
         }
     base/=ACK_BASE_COUNT;
 
@@ -330,7 +330,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     schedulePacket(idlePacket, 2, 6, 0);           // NMRA recommends 6 idle or reset packets for decoder recovery time
 
         for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-            c=analogRead(hdw.current_sense_pin)-base;
+            c=hdw.readCurrent()-base;
             if(c>ACK_SAMPLE_THRESHOLD) {
                 d=1;
             }
@@ -343,7 +343,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     base=0;
 
     for(int j=0;j<ACK_BASE_COUNT;j++) {
-        base+=analogRead(hdw.current_sense_pin);
+        base+=hdw.readCurrent();
     }
     base/=ACK_BASE_COUNT;
 
@@ -355,7 +355,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
     schedulePacket(idlePacket, 2, 6, 0);           // NMRA recommends 6 idle or reset packets for decoder recovery time
     
     for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(analogRead(hdw.current_sense_pin)-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
+        c=(hdw.readCurrent()-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
         if(c>ACK_SAMPLE_THRESHOLD)
             d=1;
     }

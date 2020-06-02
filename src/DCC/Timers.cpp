@@ -74,7 +74,7 @@ void DCC::interrupt2() {
   
     if (remainingPreambles > 0 ) {
         currentBit=true;
-        if((hdw.preambleBits - remainingPreambles == 1) && hdw.enable_railcom) {
+        if((hdw.getPreambles() - remainingPreambles == 1) && hdw.getRailcomEnable()) {
             generateRailcomCutout = true;
             remainingPreambles -= 4;
             return;
@@ -97,7 +97,7 @@ void DCC::interrupt2() {
         if (bytes_sent >= transmitLength) { 
             // end of transmission buffer... repeat or switch to next message
             bytes_sent = 0;
-            remainingPreambles=hdw.preambleBits;
+            remainingPreambles=hdw.getPreambles();
 
             int pendingCount = packetQueue.count();
 
@@ -115,7 +115,7 @@ void DCC::interrupt2() {
             }
             else {
                 // Fortunately reset and idle packets are the same length
-                memcpy( transmitPacket, hdw.is_prog_track?resetPacket:idlePacket, sizeof(idlePacket));
+                memcpy( transmitPacket, hdw.getIsProgTrack()?resetPacket:idlePacket, sizeof(idlePacket));
                 transmitLength=sizeof(idlePacket);
                 transmitRepeats=0;
             }

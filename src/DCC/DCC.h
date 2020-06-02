@@ -14,8 +14,6 @@ extern Uart mainRailcomUART;
 
 #define DCC_PACKET_MAX_SIZE 6 
 
-
-
 // Todo: re-add noise cancelling on ACK
 // Define constants used for reading CVs from the Programming Track
 const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current
@@ -96,14 +94,14 @@ public:
 
     DCC(int numDev, Hardware settings);
 
-    // Call this function every 58us from the main code
+    // Call this function every 29us from the main code
     void interruptHandler();
 
     // Call this function every loop
     void loop() {
         updateSpeed();
         hdw.checkCurrent();
-        if(hdw.enable_railcom) {
+        if(hdw.getRailcomEnable()) {
             readRailcomData();
         }
     }

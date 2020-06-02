@@ -1,12 +1,7 @@
 #include "Hardware.h"
 #include "wiring_private.h"
 
-Hardware::Hardware() : control_scheme(DIRECTION_ENABLE), 
-                        is_prog_track(false),
-                        enable_railcom(false),
-                        preambleBits(16) {}
-
-void Hardware::init() {
+void Hardware::setup() {
     // Set up the output pins for this track
     pinMode(signal_a_pin, OUTPUT);
     digitalWrite(signal_a_pin, LOW);
@@ -25,28 +20,7 @@ void Hardware::init() {
 
     if(enable_railcom) {
     #if defined(ARDUINO_ARCH_SAMD)
-        PORT->Group[0].PINCFG[2].bit.INEN = 0;
-        PORT->Group[0].PINCFG[2].bit.PULLEN = 0;
-        PORT->Group[0].DIRCLR.reg = 1 << 2;
-        PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;        // A0, PA02
-        PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE_B; 
-
-        // Enable and configure the DAC
-        // // Select the voltage reference using CTRLB.REFSEL
-        DAC->CTRLB.bit.REFSEL = 0x0;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        // // Enable the DAC using CTRLA.ENABLE
-        DAC->CTRLA.bit.ENABLE = 1;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        // // Enable the DAC as an external output
-        DAC->CTRLB.bit.EOEN = 1;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        // Set the output voltage
-        DAC->CTRLB.bit.LEFTADJ = 0;
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-        DAC->DATA.reg = 0x7;    // ~10mV reference voltage
-        while(DAC->STATUS.bit.SYNCBUSY==1);
-
+        enableRailcomDAC();
         if(railcom_serial == nullptr) {
             railcom_serial = new Uart(railcom_sercom, railcom_rx_pin, railcom_tx_pin, railcom_rx_pad, railcom_tx_pad);
         }
@@ -55,7 +29,6 @@ void Hardware::init() {
     }
 
     tripped = false;
-    
 }
 
 void Hardware::setPower(bool on) {
@@ -108,22 +81,26 @@ void Hardware::checkCurrent() {
     // if we have exceeded the CURRENT_SAMPLE_TIME we need to check if we are over/under current.
 	if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) { // TODO can we integrate this with the readBaseCurrent and ackDetect routines?
 		lastCheckTime = millis();
-		reading = analogRead(current_sense_pin) * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
+		reading = readCurrent() * CURRENT_SAMPLE_SMOOTHING + reading * (1.0 - CURRENT_SAMPLE_SMOOTHING);
 
         current = getMilliamps(reading);
 
 		if(current > trigger_value && digitalRead(enable_pin)) {
-			setPower(false);
+			setPower(false);    // Todo: add announce feature back in so JMRI knows when the power goes out.
 			tripped=true;
 			lastTripTime=millis();
 		} 
-        else if(current < trigger_value && tripped) { // TODO need to put a delay in here so it only tries after X seconds
-			if (millis() - lastTripTime > RETRY_MILLIS) {  // TODO make this a global constant
+        else if(current < trigger_value && tripped) {
+			if (millis() - lastTripTime > RETRY_MILLIS) {
 			    setPower(true);
 			    tripped=false;
 			}
 		}
 	}
+}
+
+uint16_t Hardware::readCurrent() {
+    return analogRead(current_sense_pin);
 }
 
 // Todo: fix for AVR
@@ -139,3 +116,29 @@ void Hardware::enableRailcomSerial(bool on) {
     #endif
     }
 }
+
+#if defined(ARDUINO_ARCH_SAMD)
+// Sets up the DAC on pin A0
+void Hardware::enableRailcomDAC() {
+    PORT->Group[0].PINCFG[2].bit.INEN = 0;      // Disable input on DAC pin
+    PORT->Group[0].PINCFG[2].bit.PULLEN = 0;    // Disable pullups
+    PORT->Group[0].DIRCLR.reg = 1 << 2;         // Disable digital outputs on DAC pin
+    PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;    // Enables pinmuxing
+    PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE_B;   // Sets pin to analog mux
+
+    // // Select the voltage reference to the internal 1V reference
+    DAC->CTRLB.bit.REFSEL = 0x0;
+    while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+    // // Enable the DAC
+    DAC->CTRLA.bit.ENABLE = 1;
+    while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+    // // Enable the DAC as an external output
+    DAC->CTRLB.bit.EOEN = 1;
+    while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+    // Set the output voltage   
+    DAC->CTRLB.bit.LEFTADJ = 0;
+    while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+    DAC->DATA.reg = railcom_dac_value;    // ~10mV reference voltage
+    while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+}
+#endif
