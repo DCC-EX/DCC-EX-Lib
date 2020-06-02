@@ -32,6 +32,8 @@ public:
     void setup();
 
     bool getIsProgTrack() { return is_prog_track; }
+    uint8_t getPreambles() { return preambleBits; }
+
 
     void setPower(bool on);
     void setSignal(bool high);
@@ -44,8 +46,6 @@ public:
     float getMilliamps(float reading);
     void checkCurrent();
     
-    uint8_t getPreambles() { return preambleBits; }
-
     // Railcom stuff
 #if defined(ARDUINO_ARCH_SAMD) 
     void enableRailcomDAC();

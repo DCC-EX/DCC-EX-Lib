@@ -33,7 +33,7 @@ void CommManager::showConfiguration() {
 void CommManager::showInitInfo() {
 	for(int i = 0; i < nextInterface; i++) {
 		if(interfaces[i] != NULL) {
-			interfaces[i]->showInitInfo();
+			interfaces[i]->showInitInfo();	
 		}
 	}
 }
