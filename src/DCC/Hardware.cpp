@@ -7,7 +7,7 @@ void Hardware::setup() {
     digitalWrite(signal_a_pin, LOW);
     if(control_scheme == DUAL_DIRECTION_INVERTED || control_scheme == DIRECTION_BRAKE_ENABLE) {
         pinMode(signal_b_pin, OUTPUT);
-        digitalWrite(signal_b_pin, HIGH);
+        digitalWrite(signal_b_pin, signal_b_default);
     }
     pinMode(enable_pin, OUTPUT);
     digitalWrite(enable_pin, LOW);
@@ -54,7 +54,7 @@ void Hardware::setBrake(bool on) {
         digitalWrite2(signal_b_pin, on);
     }
     else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
-        digitalWrite2(signal_b_pin, on);
+        digitalWrite2(signal_b_pin, signal_b_default?on:!on);
     }
     #else
     if(control_scheme == DUAL_DIRECTION_INVERTED) {
@@ -62,7 +62,7 @@ void Hardware::setBrake(bool on) {
         digitalWrite(signal_b_pin, on);
     }
     else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
-        digitalWrite(signal_b_pin, on);
+        digitalWrite(signal_b_pin, signal_b_default?on:!on);
     }
     #endif
 }

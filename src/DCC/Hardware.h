@@ -63,6 +63,7 @@ public:
     void config_setProgTrack(bool isProgTrack) { is_prog_track = isProgTrack; }
     void config_setPinSignalA(uint8_t pin) { signal_a_pin = pin; }
     void config_setPinSignalB(uint8_t pin) { signal_b_pin = pin; }
+    void config_setDefaultSignalB(bool default_state) { signal_b_default = default_state; }
     void config_setPinEnable(uint8_t pin) { enable_pin = pin; }
     void config_setPinCurrentSense(uint8_t pin) { current_sense_pin = pin; }
     void config_setTriggerValue(int triggerValue) { trigger_value = triggerValue; }
@@ -92,6 +93,7 @@ private:
 
     uint8_t signal_a_pin;
     uint8_t signal_b_pin;       // Inverted output if DUAL_DIRECTION_ENABLED, brake pin if DIRECTION_BRAKE_ENABLE, else not enabled
+    bool signal_b_default;      // Default state of signal B pin. If true, the signal B pin is HIGH by default. Else low.
     uint8_t enable_pin;
     uint8_t current_sense_pin;
 

@@ -11,7 +11,8 @@ DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
 
     hdw.config_setPinSignalA(12);
     hdw.config_setPinSignalB(9);
-    hdw.config_setPinEnable(4);
+    hdw.config_setDefaultSignalB(LOW);
+    hdw.config_setPinEnable(3);
     hdw.config_setPinCurrentSense(A0);
     
     hdw.config_setTriggerValue(1500);
@@ -36,6 +37,7 @@ DCC* DCC::Create_Arduino_L298Shield_Prog(int numDev) {
 
     hdw.config_setPinSignalA(13);  
     hdw.config_setPinSignalB(8);  
+    hdw.config_setDefaultSignalB(LOW);
     hdw.config_setPinEnable(11);    
     hdw.config_setPinCurrentSense(A1); 
     
@@ -63,6 +65,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
     
     hdw.config_setPinSignalA(7);  
     hdw.config_setPinSignalB(9);  
+    hdw.config_setDefaultSignalB(HIGH);
     hdw.config_setPinEnable(4);    
     hdw.config_setPinCurrentSense(A0); 
     
@@ -88,6 +91,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Prog(int numDev) {
     
     hdw.config_setPinSignalA(8);  
     hdw.config_setPinSignalB(10);  
+    hdw.config_setDefaultSignalB(HIGH);
     hdw.config_setPinEnable(4);    
     hdw.config_setPinCurrentSense(A1); 
 
