@@ -34,11 +34,11 @@ public:
     bool getIsProgTrack() { return is_prog_track; }
     uint8_t getPreambles() { return preambleBits; }
 
-
     void setPower(bool on);
     void setSignal(bool high);
     void setBrake(bool on);
-    
+    bool getStatus();
+
     // Current reading stuff
     uint16_t readCurrent();
     float getLastRead() { return reading; }

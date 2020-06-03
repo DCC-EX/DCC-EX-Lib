@@ -67,6 +67,10 @@ void Hardware::setBrake(bool on) {
     #endif
 }
 
+bool Hardware::getStatus() {
+	return digitalRead(enable_pin);
+}
+
 float Hardware::getMilliamps(float reading) {
     #if defined(ARDUINO_ARCH_AVR)   // Todo: Using this as a 3.3V/5V and precision detector, but need more robust way to do this.
         return (reading / 1023 * 5 * 1000 * amps_per_volt);

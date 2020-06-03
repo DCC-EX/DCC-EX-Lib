@@ -271,7 +271,8 @@ void JMRIParser::parse(const char *com) {
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
     case 's':      // <s>
-        //mainTrack->showStatus(); Todo:re-add this
+        CommManager::printf("<p%d MAIN>", mainTrack->hdw.getStatus());
+        CommManager::printf("<p%d PROG>", progTrack->hdw.getStatus());
         for(int i=1;i<=mainTrack->numDev;i++){
             if(mainTrack->speedTable[i].speed==0)
             continue;
