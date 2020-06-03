@@ -2,6 +2,9 @@
 #include "EEStore.h"
 #include "../CommInterface/CommManager.h"
 #include "../DCC/DCC.h"
+#if !defined(ARDUINO_ARCH_SAMD)
+#include <EEPROM.h>
+#endif
 
 void Output::activate(int s){
     data.oStatus=(s>0);                                               // if s>0, set status to active, else inactive

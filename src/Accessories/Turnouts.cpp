@@ -1,6 +1,9 @@
 #include "Turnouts.h"
 #include "EEStore.h"
 #include "../CommInterface/CommManager.h"
+#if !defined(ARDUINO_ARCH_SAMD)
+#include <EEPROM.h>
+#endif
 
 void Turnout::activate(int s, DCC* track){
     data.tStatus=(s>0);                                    // if s>0 set turnout=ON, else if zero or negative set turnout=OFF

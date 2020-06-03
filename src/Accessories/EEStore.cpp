@@ -4,7 +4,10 @@
 #include "Outputs.h"
 
 #if defined(ARDUINO_ARCH_SAMD)
+#include <SparkFun_External_EEPROM.h>
 ExternalEEPROM EEPROM;
+#else
+#include <EEPROM.h>
 #endif
 
 void EEStore::init(){
