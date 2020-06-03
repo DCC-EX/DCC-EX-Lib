@@ -5,7 +5,7 @@
 
 #if defined(ARDUINO_ARCH_SAMD)
 #include <SparkFun_External_EEPROM.h>
-ExternalEEPROM EEPROM;
+extern ExternalEEPROM EEPROM;
 #endif
 
 #define EESTORE_ID "DCC++"
