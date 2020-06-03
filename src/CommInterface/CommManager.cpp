@@ -50,3 +50,35 @@ void CommManager::printf(const char *fmt, ...) {
 		}
 	}
 }
+
+void CommManager::printf(const __FlashStringHelper *fmt, ...) {
+	for(int i = 0; i < nextInterface; i++) {
+		if(interfaces[i] != NULL) {
+			Stream* mStream = interfaces[i]->getStream();
+			va_list args;
+			va_start(args, fmt);
+
+			char* flash = (char*)fmt;
+			for(int i=0; ; ++i) {
+				char c=pgm_read_byte_near(flash+i);
+				if (c=='\0') return;
+				if(c!='%') { 
+					mStream->print(c);
+					continue; 
+				}
+				i++;
+				c=pgm_read_byte_near(flash+i);
+				switch(c) {
+					case '%': mStream->print('%'); break;
+					case 's': mStream->print(va_arg(args, char*)); break;
+					case 'd': mStream->print(va_arg(args, int), DEC); break;
+					case 'b': mStream->print(va_arg(args, int), BIN); break;
+					case 'o': mStream->print(va_arg(args, int), OCT); break;
+					case 'x': mStream->print(va_arg(args, int), HEX); break;
+					case 'f': mStream->print(va_arg(args, double), 2); break;
+				}	
+			}
+			va_end(args);
+		}
+	}
+}

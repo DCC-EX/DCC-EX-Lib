@@ -11,6 +11,7 @@ public:
 	static void showConfiguration();
 	static void showInitInfo();
 	static void printf(const char *fmt, ...);
+	static void printf(const __FlashStringHelper* fmt, ...);
 private:
 	static CommInterface *interfaces[5];
 	static int nextInterface;

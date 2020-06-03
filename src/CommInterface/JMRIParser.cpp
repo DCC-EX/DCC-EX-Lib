@@ -70,7 +70,7 @@ void JMRIParser::parse(const char *com) {
 
         mainTrack->setThrottle(p[0], p[1], p[2], p[3], throttleResponse);
 
-        CommManager::printf("<T %d %d %d>", throttleResponse.device, throttleResponse.speed, throttleResponse.direction);
+        CommManager::printf(F("<T %d %d %d>"), throttleResponse.device, throttleResponse.speed, throttleResponse.direction);
         
         break;
     
@@ -83,6 +83,8 @@ void JMRIParser::parse(const char *com) {
             mainTrack->setFunction(p[0], p[1], functionResponse);
         else 
             mainTrack->setFunction(p[0], p[1], p[2], functionResponse);
+        
+        // TODO use response?
         
         break;
 
@@ -107,7 +109,7 @@ void JMRIParser::parse(const char *com) {
             if(t!=NULL)
                 t->activate(p[1], (DCC*) mainTrack);
             else
-                CommManager::printf("<X>");
+                CommManager::printf(F("<X>"));
             break;
 
         case 3:                     // argument is string with id number of turnout followed by an address and subAddress
@@ -137,7 +139,7 @@ void JMRIParser::parse(const char *com) {
             if(o!=NULL)
                 o->activate(p[1]);
             else
-                CommManager::printf("<X>");
+                CommManager::printf(F("<X>"));
             break;
 
         case 3:                     // argument is string with id number of output followed by a pin number and invert flag
@@ -173,7 +175,7 @@ void JMRIParser::parse(const char *com) {
             break;
 
         case 2:                     // invalid number of arguments
-            CommManager::printf("<X>");
+            CommManager::printf(F("<X>"));
             break;
         }
     
@@ -215,7 +217,7 @@ void JMRIParser::parse(const char *com) {
 
         progTrack->writeCVByte(p[0], p[1], p[2], p[3], wcvresponse);
 
-        CommManager::printf("<r%d|%d|%d %d>", wcvresponse.callback, wcvresponse.callbackSub, wcvresponse.cv, wcvresponse.bValue);
+        CommManager::printf(F("<r%d|%d|%d %d>"), wcvresponse.callback, wcvresponse.callbackSub, wcvresponse.cv, wcvresponse.bValue);
 
         break;
 
@@ -227,7 +229,7 @@ void JMRIParser::parse(const char *com) {
 
         progTrack->writeCVBit(p[0], p[1], p[2], p[3], p[4], Bresponse);
 
-        CommManager::printf("<r%d|%d|%d %d %d>", Bresponse.callback, Bresponse.callbackSub, Bresponse.cv, Bresponse.bNum, Bresponse.bValue);
+        CommManager::printf(F("<r%d|%d|%d %d %d>"), Bresponse.callback, Bresponse.callbackSub, Bresponse.cv, Bresponse.bNum, Bresponse.bValue);
         
         break;
 
@@ -238,7 +240,7 @@ void JMRIParser::parse(const char *com) {
         
         progTrack->readCV(p[0], p[1], p[2], rcvresponse);
 
-        CommManager::printf("<r%d|%d|%d %d>", rcvresponse.callback, rcvresponse.callbackSub, rcvresponse.cv, rcvresponse.bValue);
+        CommManager::printf(F("<r%d|%d|%d %d>"), rcvresponse.callback, rcvresponse.callbackSub, rcvresponse.cv, rcvresponse.bValue);
     
         break;
 
@@ -247,7 +249,7 @@ void JMRIParser::parse(const char *com) {
     case '1':      // <1>
         mainTrack->hdw.setPower(true);
         progTrack->hdw.setPower(true);
-        CommManager::printf("<p1>");
+        CommManager::printf(F("<p1>"));
         break;
 
 /***** TURN OFF POWER FROM MOTOR SHIELD TO TRACKS  ****/
@@ -255,7 +257,7 @@ void JMRIParser::parse(const char *com) {
     case '0':     // <0>
         mainTrack->hdw.setPower(false);
         progTrack->hdw.setPower(false);
-        CommManager::printf("<p0>");
+        CommManager::printf(F("<p0>"));
         break;
 
 /***** READ MAIN OPERATIONS TRACK CURRENT  ****/
@@ -265,20 +267,20 @@ void JMRIParser::parse(const char *com) {
         // Todo: figure out the scale that JMRI is actually using and scale accordingly
         int currRead;
         currRead = mainTrack->hdw.getLastRead();
-        CommManager::printf("<a %d>", currRead);
+        CommManager::printf(F("<a %d>"), currRead);
         break;
 
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
     case 's':      // <s>
-        CommManager::printf("<p%d MAIN>", mainTrack->hdw.getStatus());
-        CommManager::printf("<p%d PROG>", progTrack->hdw.getStatus());
+        CommManager::printf(F("<p%d MAIN>"), mainTrack->hdw.getStatus());
+        CommManager::printf(F("<p%d PROG>"), progTrack->hdw.getStatus());
         for(int i=1;i<=mainTrack->numDev;i++){
             if(mainTrack->speedTable[i].speed==0)
             continue;
             CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i].speed, mainTrack->speedTable[i].forward);
         }
-        CommManager::printf("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
+        CommManager::printf(F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
         CommManager::showInitInfo();
         Turnout::show();
         Output::show();
@@ -289,7 +291,7 @@ void JMRIParser::parse(const char *com) {
 
     case 'E':     // <E>
         EEStore::store();
-        CommManager::printf("<e %d %d %d>", EEStore::eeStore->data.nTurnouts, EEStore::eeStore->data.nSensors, EEStore::eeStore->data.nOutputs);
+        CommManager::printf(F("<e %d %d %d>"), EEStore::eeStore->data.nTurnouts, EEStore::eeStore->data.nSensors, EEStore::eeStore->data.nOutputs);
         break;
 
 /***** CLEAR SETTINGS IN EEPROM  ****/
@@ -297,13 +299,13 @@ void JMRIParser::parse(const char *com) {
     case 'e':     // <e>
 
         EEStore::clear();
-        CommManager::printf("<O>");
+        CommManager::printf(F("<O>"));
         break;
 
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/
 
     case ' ':     // < >
-        CommManager::printf("\n");
+        CommManager::printf(F("\n"));
         break;
     }
 }

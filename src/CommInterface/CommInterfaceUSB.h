@@ -11,6 +11,7 @@ public:
 	void showConfiguration();
 	void showInitInfo();
 	void send(const char *buf);
+	Stream* getStream() { return &serialStream; }
 protected:
 	Serial_ &serialStream;
 	long baud;
