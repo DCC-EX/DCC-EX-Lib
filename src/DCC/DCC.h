@@ -104,6 +104,9 @@ public:
         if(hdw.getRailcomEnable()) {
             readRailcomData();
         }
+        if(hdw.getIsProgTrack()) {
+            hdw.checkAck();
+        }
     }
 
     int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, setThrottleResponse& response);

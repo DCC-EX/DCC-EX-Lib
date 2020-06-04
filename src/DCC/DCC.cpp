@@ -320,13 +320,13 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResp
         for(int j=0;j<ACK_BASE_COUNT;j++) {
             base+=hdw.readCurrent();
         }
-    base/=ACK_BASE_COUNT;
+        base/=ACK_BASE_COUNT;
 
-    bRead[2]=0xE8+i;
+        bRead[2]=0xE8+i;
 
-    schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-    schedulePacket(bRead, 3, 5, 0);                // NMRA recommends 5 verify packets
-    schedulePacket(idlePacket, 2, 6, 0);           // NMRA recommends 6 idle or reset packets for decoder recovery time
+        schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
+        schedulePacket(bRead, 3, 5, 0);                // NMRA recommends 5 verify packets
+        schedulePacket(idlePacket, 2, 6, 0);           // NMRA recommends 6 idle or reset packets for decoder recovery time
 
         for(int j=0;j<ACK_SAMPLE_COUNT;j++){
             c=hdw.readCurrent()-base;

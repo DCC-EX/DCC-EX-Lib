@@ -1,4 +1,4 @@
-#include "JMRIParser.h"
+#include "DCCEXParser.h"
 #include "CommManager.h"
 #include "../Accessories/Turnouts.h"
 #include "../Accessories/Sensors.h"
@@ -7,17 +7,17 @@
 #include "../CommandStation.h"
 #include <inttypes.h>
 
-DCC* JMRIParser::mainTrack;
-DCC* JMRIParser::progTrack;
+DCC* DCCEXParser::mainTrack;
+DCC* DCCEXParser::progTrack;
 
-int JMRIParser::p[MAX_PARAMS];
+int DCCEXParser::p[MAX_PARAMS];
 
-void JMRIParser::init(DCC* mainTrack_, DCC* progTrack_) {
+void DCCEXParser::init(DCC* mainTrack_, DCC* progTrack_) {
     mainTrack = mainTrack_;
     progTrack = progTrack_;
 } 
 
-int JMRIParser::stringParser(const char *com, int result[]) {
+int DCCEXParser::stringParser(const char *com, int result[]) {
     byte state=1;
     byte parameterCount=0;
     int runningValue=0;
@@ -58,7 +58,7 @@ int JMRIParser::stringParser(const char *com, int result[]) {
 }
 
 // See documentation on DCC class for info on this section
-void JMRIParser::parse(const char *com) {
+void DCCEXParser::parse(const char *com) {
     int numArgs = stringParser(com+1, p);
     
     switch(com[0]) {

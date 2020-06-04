@@ -103,6 +103,16 @@ void Hardware::checkCurrent() {
 	}
 }
 
+void Hardware::setBaseCurrent() {
+    
+}
+
+void Hardware::checkAck() {
+    // Todo: add current smoothing
+
+
+}
+
 uint16_t Hardware::readCurrent() {
     return analogRead(current_sense_pin);
 }

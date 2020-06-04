@@ -45,6 +45,8 @@ public:
     float getLastMilliamps() { return current; }
     float getMilliamps(float reading);
     void checkCurrent();
+    void checkAck();
+    void setBaseCurrent();
     
     // Railcom stuff
 #if defined(ARDUINO_ARCH_SAMD) 

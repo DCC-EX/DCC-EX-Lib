@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "../DCC/DCC.h"
 
-struct JMRIParser
+struct DCCEXParser
 {
     static DCC *mainTrack, *progTrack;
     static void init(DCC* mainTrack_, DCC* progTrack_);
