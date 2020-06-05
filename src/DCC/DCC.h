@@ -11,6 +11,7 @@ extern Uart mainRailcomUART;
 
 #define ERR_OK 0
 #define ERR_OUT_OF_RANGE -1
+#define ERR_BUSY -2
 
 #define DCC_PACKET_MAX_SIZE 6 
 
@@ -29,23 +30,23 @@ struct setThrottleResponse {
     int device;
     int speed;
     int direction;
-    uint32_t transactionID;
+    uint16_t transactionID;
 };
 
 struct setFunctionResponse {
-    uint32_t transactionID;
+    uint16_t transactionID;
 };
 
 struct setAccessoryResponse {
-    uint32_t transactionID;
+    uint16_t transactionID;
 };
 
 struct writeCVByteMainResponse {
-    uint32_t transactionID;
+    uint16_t transactionID;
 };
 
 struct writeCVBitMainResponse {
-    uint32_t transactionID;
+    uint16_t transactionID;
 };
 
 struct readCVMainResponse {
@@ -53,32 +54,13 @@ struct readCVMainResponse {
     int callbackSub;
     int cv;
     int bValue;
-    uint32_t transactionID;
+    uint16_t transactionID;
 };
 
-struct writeCVByteResponse {
-    int callback;
-    int callbackSub;
-    int cv;
-    int bValue;
-    // Doesn't need a transaction ID because this is for programming track
-};
-
-struct writeCVBitResponse {
-    int callback;
-    int callbackSub;
-    int cv;
-    int bNum;
-    int bValue;
-    // Doesn't need a transaction ID because this is for programming track
-};
-
-struct readCVResponse {
-    int callback;
-    int callbackSub;
-    int cv;
-    int bValue;
-    // Doesn't need a transaction ID because this is for programming track
+enum cv_edit_type {
+    READCV,
+    WRITECV,
+    WRITECVBIT,
 };
 
 class DCC {
@@ -105,7 +87,7 @@ public:
             readRailcomData();
         }
         if(hdw.getIsProgTrack()) {
-            hdw.checkAck();
+            checkAck();
         }
     }
 
@@ -115,9 +97,9 @@ public:
     int setAccessory(uint16_t address, uint8_t number, bool activate, setAccessoryResponse& response);
     int writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, writeCVByteMainResponse& response);
     int writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue, writeCVBitMainResponse& response);
-    int writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVByteResponse& response);
-    int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVBitResponse& response);
-    int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResponse& response);
+    int writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub);
+    int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub);
+    int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub);
 
     int numDev;
 
@@ -134,6 +116,7 @@ public:
 private:
     void updateSpeed();
     void readRailcomData();
+    void checkAck();
 
     int nextDev;
 
@@ -141,10 +124,10 @@ private:
         uint8_t payload[DCC_PACKET_MAX_SIZE];
         uint8_t length;
         uint8_t repeats;
-        uint32_t transmitID;
+        uint16_t transmitID;
     };
 
-    Queue<Packet> packetQueue = Queue<Packet>(10);
+    Queue<Packet> packetQueue = Queue<Packet>(25);
 
     // Data for the currently transmitted packet
     uint8_t bits_sent;
@@ -155,12 +138,12 @@ private:
     bool generateStartBit;  
     uint8_t transmitPacket[DCC_PACKET_MAX_SIZE];
     uint8_t transmitLength;
-    uint32_t transmitID;
+    uint16_t transmitID;
 
     // The ID of the last DCC packet to get processed (for railcom)
-    uint32_t lastID;
+    uint16_t lastID;
 
-    static uint32_t counterID;
+    static uint16_t counterID;
     static void incrementCounterID() { 
         counterID++;
         if(counterID == 0) counterID = 1;
@@ -180,7 +163,23 @@ private:
     void signal(bool pinA, bool pinB);
 
     // Loads buffer into the pending packet slot once it is empty.
-    void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats, uint32_t identifier);
+    void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats, uint16_t identifier);
+
+    // ACK detection stuff
+    cv_edit_type modeCV;
+    uint16_t cvBeingWorked;
+    uint8_t cvBitNum;
+    uint8_t cvValue;
+    uint16_t cvCallback;
+    uint16_t cvCallbackSub;
+    uint8_t numAcksNeeded;      // How many acks are needed (total, not still) in this set.    
+    uint8_t ackBuffer;          // Keeps track of what the ack values are. 1 = ack 0 = nack
+    uint8_t ackNeeded;          // Individual bits denote where we still need an ack.
+    uint16_t ackPacketID[8];    // What packet IDs correspond to the ACKs
+    uint8_t verifyPayload[4];   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
+                                // the caller function, [2] is modified in the checkAck function
+    float baseMilliamps;        // Base read of the track current
+    bool inVerify;              // Are we verifying something previously read/written?
 };
 
 #endif

@@ -165,6 +165,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
     hdw.config_setPreambleBits(22);
 
     hdw.config_setRailcom(false);
+    hdw.config_setRailcomRxPin(13);
 
     return new DCC(numDev, hdw);
 }

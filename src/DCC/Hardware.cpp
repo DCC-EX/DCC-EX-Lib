@@ -15,8 +15,7 @@ void Hardware::setup() {
     // Set up the current sense pin
     pinMode(current_sense_pin, INPUT);
 
-    // Set up the railcom comparator DAC and serial (SAMD21 only)
-    // TODO: Move this into a separate function or library
+    pinMode(railcom_rx_pin, INPUT);
 
     if(enable_railcom) {
     #if defined(ARDUINO_ARCH_SAMD)
@@ -71,11 +70,11 @@ bool Hardware::getStatus() {
 	return digitalRead(enable_pin);
 }
 
-float Hardware::getMilliamps(float reading) {
+float Hardware::getMilliamps(uint32_t reading) {
     #if defined(ARDUINO_ARCH_AVR)   // Todo: Using this as a 3.3V/5V and precision detector, but need more robust way to do this.
-        return (reading / 1023 * 5 * 1000 * amps_per_volt);
+        return ((float)reading / 1023.0 * 5 * 1000 * amps_per_volt);
     #elif defined(ARDUINO_ARCH_SAMD)
-        return (reading / 4095 * 3.3 * 1000 * amps_per_volt);
+        return ((float)reading / 4095.0 * 3.3 * 1000 * amps_per_volt);
     #else
         #error "Cannot compile - invalid architecture for current sensing"
     #endif
@@ -104,16 +103,12 @@ void Hardware::checkCurrent() {
 }
 
 void Hardware::setBaseCurrent() {
-    
+    baseMilliamps = getMilliamps(readCurrent());
 }
 
-void Hardware::checkAck() {
-    // Todo: add current smoothing
 
 
-}
-
-uint16_t Hardware::readCurrent() {
+uint32_t Hardware::readCurrent() {
     return analogRead(current_sense_pin);
 }
 

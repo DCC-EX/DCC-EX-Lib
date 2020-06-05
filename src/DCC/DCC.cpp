@@ -1,6 +1,7 @@
 #include "DCC.h"
+#include "../CommInterface/CommManager.h"
 
-uint32_t DCC::counterID = 0;
+uint16_t DCC::counterID = 0;
 
 DCC::DCC(int numDev, Hardware settings) {
     this->hdw = settings;            
@@ -16,6 +17,7 @@ DCC::DCC(int numDev, Hardware settings) {
     railcomData = false;
     generateRailcomCutout = false;
     inRailcomCutout = false;
+    ackNeeded = 0;
 
     lastID = counterID;
 
@@ -31,7 +33,7 @@ DCC::DCC(int numDev, Hardware settings) {
     }
 }
 
-void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats, uint32_t identifier) {
+void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats, uint16_t identifier) {
     if (byteCount>=DCC_PACKET_MAX_SIZE) return; // allow for chksum
     
     Packet newPacket;
@@ -203,9 +205,10 @@ int DCC::writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue,
     return ERR_OK;
 }
 
-int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVByteResponse& response) {
+int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub) {
+    if(ackNeeded != 0) return ERR_BUSY;
+    
     uint8_t bWrite[4];
-    int c,d,base;
 
     cv--;                                  // actual CV addresses are cv-1 (0-1023)
 
@@ -213,48 +216,35 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     bWrite[1]=lowByte(cv);
     bWrite[2]=bValue;
 
+    hdw.setBaseCurrent();
     
-    schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-    schedulePacket(bWrite, 3, 5, 0);               // NMRA recommends 5 verify packets
-    schedulePacket(bWrite, 3, 6, 0);               // NMRA recommends 6 write or reset packets for decoder recovery time
-        
-    c=0;
-    d=0;
-    base=0;
-
-    for(int j=0;j<ACK_BASE_COUNT;j++)
-        base+=hdw.readCurrent();
-    base/=ACK_BASE_COUNT;
+    incrementCounterID();
+    schedulePacket(resetPacket, 2, 3, counterID);          // NMRA recommends starting with 3 reset packets
+    schedulePacket(bWrite, 3, 5, counterID);               // NMRA recommends 5 verify packets
+    schedulePacket(bWrite, 3, 6, counterID);               // NMRA recommends 6 write or reset packets for decoder recovery time
     
+    incrementCounterID();
     bWrite[0]=0x74+(highByte(cv)&0x03);   // set-up to re-verify entire byte
-
-    schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-    schedulePacket(bWrite, 3, 5, 0);               // NMRA recommends 5 verify packets
-    schedulePacket(bWrite, 3, 6, 0);               // NMRA recommends 6 write or reset packets for decoder recovery time
+    schedulePacket(resetPacket, 2, 3, counterID);          // NMRA recommends starting with 3 reset packets
+    schedulePacket(bWrite, 3, 5, counterID);               // NMRA recommends 5 verify packets
+    schedulePacket(bWrite, 3, 6, counterID);               // NMRA recommends 6 write or reset packets for decoder recovery time
+    ackPacketID[0] = counterID;
+    cvCallback = callback;
+    cvCallbackSub = callbackSub;
+    cvBeingWorked = cv+1;
+    cvValue = bValue;
     
-    for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=hdw.readCurrent()-base;
-        if(c>ACK_SAMPLE_THRESHOLD)
-        d=1;
-    }
-    
-    schedulePacket(resetPacket, 2, 1, 0);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
-    
-    if(d==0)    // verify unsuccessful
-        bValue=-1;
-
-    response.callback = callback;
-    response.callbackSub = callbackSub;
-    response.cv = cv+1;
-    response.bValue = bValue;
+    incrementCounterID();
+    schedulePacket(resetPacket, 2, 1, counterID);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
 
     return ERR_OK;
 }
 
 
-int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub, writeCVBitResponse& response) {
+int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub) {
+    if(ackNeeded != 0) return ERR_BUSY;
+    
     byte bWrite[4];
-    int c,d,base;
 
     cv--;                                 // actual CV addresses are cv-1 (0-1023)
     bValue=bValue%2;
@@ -263,111 +253,143 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     bWrite[0]=0x78+(highByte(cv)&0x03);   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
     bWrite[1]=lowByte(cv);
     bWrite[2]=0xF0+bValue*8+bNum;
-    schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-    schedulePacket(bWrite, 3, 5, 0);               // NMRA recommends 5 verify packets
-    schedulePacket(bWrite, 3, 6, 0);               // NMRA recommends 6 write or reset packets for decoder recovery time
-        
-    c=0;
-    d=0;
-    base=0;
 
-    for(int j=0;j<ACK_BASE_COUNT;j++)
-        base+=hdw.readCurrent();
-    base/=ACK_BASE_COUNT;
-    
-    bitClear(bWrite[2],4);              // change instruction code from Write Bit to Verify Bit
-    schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-    schedulePacket(bWrite, 3, 5, 0);               // NMRA recommends 5 verify packets
-    schedulePacket(bWrite, 3, 6, 0);               // NMRA recommends 6 write or reset packets for decoder recovery time
-        
-    for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=hdw.readCurrent()-base;
-        if(c>ACK_SAMPLE_THRESHOLD)
-            d=1;
-    }
-    
-    schedulePacket(resetPacket, 2, 1, 0);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
+    hdw.setBaseCurrent();
 
-    if(d==0)    // verify unsuccessful
-        bValue=-1;
+    incrementCounterID();
+    schedulePacket(resetPacket, 2, 3, counterID);           // NMRA recommends starting with 3 reset packets
+    schedulePacket(bWrite, 3, 5, counterID);                // NMRA recommends 5 verify packets
+    schedulePacket(bWrite, 3, 6, counterID);                // NMRA recommends 6 write or reset packets for decoder recovery time
     
-    response.callback = callback;
-    response.callbackSub = callbackSub;
-    response.bNum = bNum;
-    response.bValue = bValue;
-    response.cv = cv+1;
+    incrementCounterID();
+    bitClear(bWrite[2],4);                          // change instruction code from Write Bit to Verify Bit
+    schedulePacket(resetPacket, 2, 3, counterID);           // NMRA recommends starting with 3 reset packets
+    schedulePacket(bWrite, 3, 5, counterID);                // NMRA recommends 5 verify packets
+    schedulePacket(bWrite, 3, 6, counterID);                // NMRA recommends 6 write or reset packets for decoder recovery time
+    ackPacketID[0] = counterID;
+    cvCallback = callback;
+    cvCallbackSub = callbackSub;
+    cvBeingWorked = cv+1;
+    cvBitNum = bNum;
+    cvValue = bValue;
+
+    incrementCounterID();
+    schedulePacket(resetPacket, 2, 1, counterID);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
 
     return ERR_OK;
 }
 
 
-int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, readCVResponse& response) {
-    byte bRead[4];
-    int bValue;
-    int c,d,base;
+int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub) {
+    if(ackNeeded != 0) return ERR_BUSY;
+    
+    uint8_t bRead[4];
 
     cv--;                                    // actual CV addresses are cv-1 (0-1023)
 
     bRead[0]=0x78+(highByte(cv)&0x03);       // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
     bRead[1]=lowByte(cv);
 
-    bValue=0;
+    hdw.setBaseCurrent();
 
-    for(int i=0;i<8;i++) {
-        c=0;
-        d=0;
-        base=0;
-        for(int j=0;j<ACK_BASE_COUNT;j++) {
-            base+=hdw.readCurrent();
-        }
-        base/=ACK_BASE_COUNT;
+    modeCV = READCV;
+    numAcksNeeded = 8;
+    ackNeeded = 0b11111111;
 
+    for(int i=0;i<8;i++) {                      // Queue up all 24 unique packets required for the CV read. Each repeats several times.
         bRead[2]=0xE8+i;
 
-        schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-        schedulePacket(bRead, 3, 5, 0);                // NMRA recommends 5 verify packets
-        schedulePacket(idlePacket, 2, 6, 0);           // NMRA recommends 6 idle or reset packets for decoder recovery time
+        incrementCounterID();
 
-        for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-            c=hdw.readCurrent()-base;
-            if(c>ACK_SAMPLE_THRESHOLD) {
-                d=1;
-            }
-        }
-        bitWrite(bValue,i,d);
-    }
+        schedulePacket(resetPacket, 2, 3, counterID);          // NMRA recommends starting with 3 reset packets
+        schedulePacket(bRead, 3, 5, counterID);                // NMRA recommends 5 verify packets
+        schedulePacket(idlePacket, 2, 6, counterID);           // NMRA recommends 6 idle or reset packets for decoder recovery time
 
-    c=0;
-    d=0;
-    base=0;
-
-    for(int j=0;j<ACK_BASE_COUNT;j++) {
-        base+=hdw.readCurrent();
-    }
-    base/=ACK_BASE_COUNT;
-
-    bRead[0]=0x74+(highByte(cv)&0x03);     // set-up to re-verify entire byte
-    bRead[2]=bValue;
-
-    schedulePacket(resetPacket, 2, 3, 0);          // NMRA recommends starting with 3 reset packets
-    schedulePacket(bRead, 3, 5, 0);                // NMRA recommends 5 verify packets
-    schedulePacket(idlePacket, 2, 6, 0);           // NMRA recommends 6 idle or reset packets for decoder recovery time
-    
-    for(int j=0;j<ACK_SAMPLE_COUNT;j++){
-        c=(hdw.readCurrent()-base)*ACK_SAMPLE_SMOOTHING+c*(1.0-ACK_SAMPLE_SMOOTHING);
-        if(c>ACK_SAMPLE_THRESHOLD)
-            d=1;
+        ackPacketID[i] = counterID;
     }
     
-    schedulePacket(resetPacket, 2, 1, 0);        // Final reset packet completed (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
-    
-    if(d==0)    // verify unsuccessful
-        bValue=-1;
+    cvCallback = callback;
+    cvCallbackSub = callbackSub;
+    cvBeingWorked = cv+1;
 
-    response.cv = cv+1;
-    response.callback = callback;
-    response.callbackSub = callbackSub;
-    response.bValue = bValue;
+    verifyPayload[0]=0x74+(highByte(cv)&0x03);     // set-up to re-verify entire byte
+    verifyPayload[1]=lowByte(cv);
+    verifyPayload[2]=0;
+    verifyPayload[3]=0;
 
     return ERR_OK;
+}
+
+void DCC::checkAck() {
+    float currentMilliamps = hdw.getMilliamps(hdw.readCurrent());
+    if(!inVerify && (ackNeeded == 0)) return;
+
+    if(!inVerify) {
+        uint16_t currentAckID;
+        for (uint8_t i = 0; i < numAcksNeeded; i++)
+        {
+            if(!bitRead(ackNeeded, i)) continue;    // We don't need an ack on this bit, we already got one
+
+            currentAckID = ackPacketID[i];
+            if(currentAckID == transmitID) {
+                if((currentMilliamps - hdw.baseMilliamps) > ACK_SAMPLE_THRESHOLD) {
+                    bitSet(ackBuffer, i);       // We got an ack on this bit
+                    bitClear(ackNeeded, i);     // We no longer need an ack on this bit
+                }
+            }
+            else if(transmitID > currentAckID) {    // Todo: check for wraparound
+                bitClear(ackBuffer, i);       // We didn't get an ack on this bit (timeout)
+                bitClear(ackNeeded, i);     // We no longer need an ack on this bit
+            }
+            else {
+                ackBuffer = ackBuffer;
+            }
+
+            if(ackNeeded == 0) {        // If we've now gotten all the ACKs we need
+                switch (modeCV)
+                {
+                case READCV:
+                    verifyPayload[2] = ackBuffer;
+                    inVerify = true;
+                    incrementCounterID();
+                    schedulePacket(resetPacket, 2, 3, counterID);
+                    schedulePacket(verifyPayload, 3, 5, counterID);
+                    schedulePacket(idlePacket, 2, 6, counterID);
+                    ackPacketID[0] = counterID;
+                    break;
+                case WRITECV:
+                    inVerify = false;
+                    if(bitRead(ackBuffer, 0)) {
+                        CommManager::printf(F("<r%d|%d|%d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, cvValue);
+                    }
+                    else {
+                        CommManager::printf(F("<r%d|%d|%d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, -1);
+                    }
+                    break;
+                case WRITECVBIT:
+                    inVerify = false;
+                    if(bitRead(ackBuffer, 0)) {
+                        CommManager::printf(F("<r%d|%d|%d %d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, cvBitNum, cvValue);
+                    }
+                    else {
+                        CommManager::printf(F("<r%d|%d|%d %d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, cvBitNum, -1);
+                    }
+                    break;
+                }
+                break;
+            }
+        }    
+    }
+    else {
+        if(ackPacketID[0] == transmitID) {
+            if((currentMilliamps - hdw.baseMilliamps) > ACK_SAMPLE_THRESHOLD) {
+                inVerify = false;
+                CommManager::printf(F("<r%d|%d|%d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, ackBuffer);
+            }
+        }
+        else if(transmitID > ackPacketID[0]) {    // Todo: check for wraparound
+            inVerify = false;
+            CommManager::printf(F("<r%d|%d|%d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, -1);
+        }
+    }
 }

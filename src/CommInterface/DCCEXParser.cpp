@@ -213,11 +213,7 @@ void DCCEXParser::parse(const char *com) {
 
     case 'W':      // <W CV VALUE CALLBACKNUM CALLBACKSUB>
 
-        writeCVByteResponse wcvresponse;
-
-        progTrack->writeCVByte(p[0], p[1], p[2], p[3], wcvresponse);
-
-        CommManager::printf(F("<r%d|%d|%d %d>"), wcvresponse.callback, wcvresponse.callbackSub, wcvresponse.cv, wcvresponse.bValue);
+        progTrack->writeCVByte(p[0], p[1], p[2], p[3]);
 
         break;
 
@@ -225,22 +221,15 @@ void DCCEXParser::parse(const char *com) {
 
     case 'B':      // <B CV BIT VALUE CALLBACKNUM CALLBACKSUB>
         
-        writeCVBitResponse Bresponse;
-
-        progTrack->writeCVBit(p[0], p[1], p[2], p[3], p[4], Bresponse);
-
-        CommManager::printf(F("<r%d|%d|%d %d %d>"), Bresponse.callback, Bresponse.callbackSub, Bresponse.cv, Bresponse.bNum, Bresponse.bValue);
+        progTrack->writeCVBit(p[0], p[1], p[2], p[3], p[4]);
         
         break;
 
 /***** READ CONFIGURATION VARIABLE BYTE FROM ENGINE DECODER ON PROGRAMMING TRACK  ****/
 
     case 'R':     // <R CV CALLBACKNUM CALLBACKSUB>        
-        readCVResponse rcvresponse;
         
-        progTrack->readCV(p[0], p[1], p[2], rcvresponse);
-
-        CommManager::printf(F("<r%d|%d|%d %d>"), rcvresponse.callback, rcvresponse.callbackSub, rcvresponse.cv, rcvresponse.bValue);
+        progTrack->readCV(p[0], p[1], p[2]);
     
         break;
 

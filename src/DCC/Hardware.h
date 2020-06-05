@@ -40,10 +40,10 @@ public:
     bool getStatus();
 
     // Current reading stuff
-    uint16_t readCurrent();
+    uint32_t readCurrent();
     float getLastRead() { return reading; }
     float getLastMilliamps() { return current; }
-    float getMilliamps(float reading);
+    float getMilliamps(uint32_t reading);
     void checkCurrent();
     void checkAck();
     void setBaseCurrent();
@@ -87,6 +87,10 @@ public:
     void config_setRailcomSerial(HardwareSerial* serial) { railcom_serial = serial; }
 #endif
 
+
+    // ACK detection stuff
+    float baseMilliamps;
+
 private:
     const char *channel_name;
     control_type_t control_scheme;
@@ -125,6 +129,8 @@ private:
 	bool tripped;
 	long int lastCheckTime;
     long int lastTripTime;
+
+    
 };
 
 #endif
