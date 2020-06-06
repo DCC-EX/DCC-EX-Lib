@@ -174,12 +174,7 @@ private:
     void schedulePacket(const uint8_t buffer[], uint8_t byteCount, uint8_t repeats, uint16_t identifier);
 
     // ACK detection stuff
-    cv_edit_type modeCV;
-    uint16_t cvBeingWorked;
-    uint8_t cvBitNum;
-    uint8_t cvValue;
-    uint16_t cvCallback;
-    uint16_t cvCallbackSub;
+    serviceModeResponse cvState;
     uint8_t ackBuffer;          // Keeps track of what the ack values are. 1 = ack 0 = nack
     uint8_t ackNeeded;          // Individual bits denote where we still need an ack.
     uint16_t ackPacketID[8];    // What packet IDs correspond to the ACKs
@@ -188,7 +183,6 @@ private:
     bool inVerify;              // Are we verifying something previously read/written?
     bool backToIdle;            // Have we gone back to idle packets after setting a CV instruction?
     void (*cvResponse)(serviceModeResponse);    // Callback function that returns response to comms API. Registered in CV functions.
-
 };
 
 #endif

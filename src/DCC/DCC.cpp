@@ -17,14 +17,7 @@ DCC::DCC(int numDev, Hardware settings) {
     railcomData = false;
     generateRailcomCutout = false;
     inRailcomCutout = false;
-    ackNeeded = 0;
-    modeCV = READCV;
-    cvBeingWorked = 0;
-    cvBitNum = 0;
-    cvValue = 0;
-    cvCallbackSub = 0;
-    cvCallback = 0;
-    ackBuffer = 0;
+
     ackNeeded = 0;
     inVerify = false;
 
@@ -243,13 +236,13 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     incrementCounterID();
     schedulePacket(resetPacket, 2, 1, counterID);       // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
 
-    modeCV = WRITECV;
     inVerify = true;
 
-    cvCallback = callback;
-    cvCallbackSub = callbackSub;
-    cvBeingWorked = cv+1;
-    cvValue = bValue;
+    cvState.type = WRITECV;
+    cvState.callback = callback;
+    cvState.callbackSub = callbackSub;
+    cvState.cv = cv+1;
+    cvState.cvValue = bValue;
 
     backToIdle = false;
 
@@ -291,14 +284,14 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     incrementCounterID();
     schedulePacket(resetPacket, 2, 1, counterID);           // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
 
-    modeCV = WRITECVBIT;
     inVerify = true;
 
-    cvCallback = callback;
-    cvCallbackSub = callbackSub;
-    cvBeingWorked = cv+1;
-    cvBitNum = bNum;
-    cvValue = bValue;
+    cvState.type = WRITECVBIT;
+    cvState.callback = callback;
+    cvState.callbackSub = callbackSub;
+    cvState.cv = cv+1;
+    cvState.cvBitNum = bNum;
+    cvState.cvValue = bValue;
 
     backToIdle = false;
 
@@ -335,12 +328,12 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, void(*call
     incrementCounterID();
     schedulePacket(resetPacket, 2, 0, counterID);           // We need one additional packet with incremented counter so ACK completes and doesn't hang in checkAck()
 
-    modeCV = READCV;
     ackNeeded = 0b11111111;
     
-    cvCallback = callback;
-    cvCallbackSub = callbackSub;
-    cvBeingWorked = cv+1;
+    cvState.type = READCV;
+    cvState.callback = callback;
+    cvState.callbackSub = callbackSub;
+    cvState.cv = cv+1;
 
     verifyPayload[0]=0x74+(highByte(cv)&0x03);     // set-up to re-verify entire byte
     verifyPayload[1]=lowByte(cv);
@@ -377,7 +370,7 @@ void DCC::checkAck() {
             }
 
             if(ackNeeded == 0) {        // If we've now gotten all the ACKs we need 
-                if(modeCV == READCV) {
+                if(cvState.type == READCV) {
                     verifyPayload[2] = ackBuffer;       // Set up the verifyPayload for verify
                 
                     incrementCounterID();               
@@ -403,38 +396,16 @@ void DCC::checkAck() {
             float currentMilliamps = hdw.getMilliamps(hdw.readCurrent());
             if((currentMilliamps - hdw.baseMilliamps) > ACK_SAMPLE_THRESHOLD) {
                 inVerify = false;
-                serviceModeResponse response;
-                response.type = modeCV;
-                response.callback = cvCallback;
-                response.callbackSub = cvCallbackSub;
-                response.cv = cvBeingWorked;
-                response.cvBitNum = cvBitNum;
-                switch (modeCV)
-                {
-                case READCV:
-                    response.cvValue = ackBuffer;
-                    break;
-                default:
-                    response.cvValue = cvValue;
-                    break;
-                }
-                
-                
-                cvResponse(response);
+                if(cvState.type == READCV)
+                    cvState.cvValue = ackBuffer;
+                cvResponse(cvState);
             }
         }
         else if(compareID > ackPacketID[0] || backToIdle) {    // Todo: check for wraparound
             inVerify = false;
             
-            serviceModeResponse response;
-            response.type = modeCV;
-            response.callback = cvCallback;
-            response.callbackSub = cvCallbackSub;
-            response.cv = cvBeingWorked;
-            response.cvBitNum = cvBitNum;
-            response.cvValue = -1;
-
-            cvResponse(response);
+            cvState.cvValue = -1;
+            cvResponse(cvState);
         }
     }
 }
