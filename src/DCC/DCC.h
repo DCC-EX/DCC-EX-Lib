@@ -127,7 +127,7 @@ private:
         uint16_t transmitID;
     };
 
-    Queue<Packet> packetQueue = Queue<Packet>(25);
+    Queue<Packet> packetQueue = Queue<Packet>(100);
 
     // Data for the currently transmitted packet
     uint8_t bits_sent;

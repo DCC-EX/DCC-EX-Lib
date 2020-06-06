@@ -228,9 +228,10 @@ void DCCEXParser::parse(const char *com) {
 /***** READ CONFIGURATION VARIABLE BYTE FROM ENGINE DECODER ON PROGRAMMING TRACK  ****/
 
     case 'R':     // <R CV CALLBACKNUM CALLBACKSUB>        
-        
-        progTrack->readCV(p[0], p[1], p[2]);
-    
+        if(progTrack->readCV(p[0], p[1], p[2]) == ERR_BUSY) {
+            CommManager::printf(F("<r%d|%d|%d %d>"), p[1], p[2], p[0], -1);
+        }
+
         break;
 
 /***** TURN ON POWER FROM MOTOR SHIELD TO TRACKS  ****/

@@ -253,6 +253,8 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     incrementCounterID();
     schedulePacket(resetPacket, 2, 1, counterID);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
 
+    backToIdle = false;
+
     return ERR_OK;
 }
 
@@ -298,12 +300,14 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     incrementCounterID();
     schedulePacket(resetPacket, 2, 1, counterID);          // Final reset packet (and decoder begins to respond) todo: is this supposed to be one packet or one repeat?
 
+    backToIdle = false;
+
     return ERR_OK;
 }
 
 
 int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub) {
-    if(ackNeeded != 0) return ERR_BUSY;
+    if(ackNeeded != 0 || inVerify || packetQueue.count() > 75) return ERR_BUSY;
     
     uint8_t bRead[4];
 
