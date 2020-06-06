@@ -15,16 +15,14 @@ extern Uart mainRailcomUART;
 
 #define DCC_PACKET_MAX_SIZE 6 
 
-// Todo: re-add noise cancelling on ACK
 // Define constants used for reading CVs from the Programming Track
-const int ACK_BASE_COUNT = 100;      // number of analogRead samples to take before each CV verify to establish a baseline current
-const int ACK_SAMPLE_COUNT = 500;      // number of analogRead samples to take when monitoring current after a CV verify (bit or byte) has been sent 
-const float ACK_SAMPLE_SMOOTHING = 0.2;      // exponential smoothing to use in processing the analogRead samples after a CV verify (bit or byte) has been sent
-const int ACK_SAMPLE_THRESHOLD = 30;      // the threshold that the exponentially-smoothed analogRead samples (after subtracting the baseline current) must cross to establish ACKNOWLEDGEMENT
+const int ACK_SAMPLE_THRESHOLD = 30;    // the threshold (in mA) that the analogRead samples (after subtracting the baseline current) must cross to ACK
 
-const byte idlePacket[] = {0xFF, 0x00, 0xFF};
-const byte resetPacket[] = {0x00, 0x00, 0x00};
-const byte bitMask[] = {0x00,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+const uint8_t queueSize = 50;           // Optimal size is 50 for the programming track, 30 may be workable.
+
+const uint8_t idlePacket[] = {0xFF, 0x00, 0xFF};
+const uint8_t resetPacket[] = {0x00, 0x00, 0x00};
+const uint8_t bitMask[] = {0x00,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
 
 struct setThrottleResponse {
     int device;
@@ -63,6 +61,15 @@ enum cv_edit_type {
     WRITECVBIT,
 };
 
+struct serviceModeResponse {
+    cv_edit_type type;
+    int callback;
+    int callbackSub;
+    int cv;
+    int cvBitNum;
+    int cvValue;
+};
+
 class DCC {
 public:
     static DCC* Create_Arduino_L298Shield_Main(int numDev);
@@ -97,9 +104,9 @@ public:
     int setAccessory(uint16_t address, uint8_t number, bool activate, setAccessoryResponse& response);
     int writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, writeCVByteMainResponse& response);
     int writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue, writeCVBitMainResponse& response);
-    int writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub);
-    int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub);
-    int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub);
+    int writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
+    int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
+    int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
 
     int numDev;
 
@@ -127,7 +134,8 @@ private:
         uint16_t transmitID;
     };
 
-    Queue<Packet> packetQueue = Queue<Packet>(100);
+    
+    Queue<Packet> packetQueue = Queue<Packet>(queueSize);
 
     // Data for the currently transmitted packet
     uint8_t bits_sent;
@@ -172,14 +180,15 @@ private:
     uint8_t cvValue;
     uint16_t cvCallback;
     uint16_t cvCallbackSub;
-    uint8_t numAcksNeeded;      // How many acks are needed (total, not still) in this set.    
     uint8_t ackBuffer;          // Keeps track of what the ack values are. 1 = ack 0 = nack
     uint8_t ackNeeded;          // Individual bits denote where we still need an ack.
-    uint16_t ackPacketID[8] = {0, 0, 0, 0, 0, 0, 0, 0};    // What packet IDs correspond to the ACKs
-    uint8_t verifyPayload[4] = {0, 0, 0, 0};   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
+    uint16_t ackPacketID[8];    // What packet IDs correspond to the ACKs
+    uint8_t verifyPayload[4];   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
                                 // the caller function, [2] is modified in the checkAck function
     bool inVerify;              // Are we verifying something previously read/written?
     bool backToIdle;            // Have we gone back to idle packets after setting a CV instruction?
+    void (*cvResponse)(serviceModeResponse);    // Callback function that returns response to comms API. Registered in CV functions.
+
 };
 
 #endif
