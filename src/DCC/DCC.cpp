@@ -18,6 +18,16 @@ DCC::DCC(int numDev, Hardware settings) {
     generateRailcomCutout = false;
     inRailcomCutout = false;
     ackNeeded = 0;
+    modeCV = READCV;
+    cvBeingWorked = 0;
+    cvBitNum = 0;
+    cvValue = 0;
+    cvCallbackSub = 0;
+    cvCallback = 0;
+    numAcksNeeded = 0;
+    ackBuffer = 0;
+    ackNeeded = 0;
+    inVerify = false;
 
     lastID = counterID;
 
@@ -217,6 +227,12 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, uint16_t ca
     bWrite[2]=bValue;
 
     hdw.setBaseCurrent();
+
+    modeCV = WRITECV;
+    numAcksNeeded = 1;
+    ackNeeded = 0b00000001;
+    ackBuffer = 0b00000000;
+    inVerify = false;
     
     incrementCounterID();
     schedulePacket(resetPacket, 2, 3, counterID);          // NMRA recommends starting with 3 reset packets
@@ -255,6 +271,12 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback
     bWrite[2]=0xF0+bValue*8+bNum;
 
     hdw.setBaseCurrent();
+
+    modeCV = WRITECVBIT;
+    numAcksNeeded = 1;
+    ackNeeded = 0b00000001;
+    ackBuffer = 0b00000000;
+    inVerify = false;
 
     incrementCounterID();
     schedulePacket(resetPacket, 2, 3, counterID);           // NMRA recommends starting with 3 reset packets
@@ -295,6 +317,9 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub) {
     modeCV = READCV;
     numAcksNeeded = 8;
     ackNeeded = 0b11111111;
+    ackBuffer = 0b00000000;
+    inVerify = false;
+
 
     for(int i=0;i<8;i++) {                      // Queue up all 24 unique packets required for the CV read. Each repeats several times.
         bRead[2]=0xE8+i;

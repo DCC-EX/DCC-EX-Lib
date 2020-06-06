@@ -175,10 +175,9 @@ private:
     uint8_t numAcksNeeded;      // How many acks are needed (total, not still) in this set.    
     uint8_t ackBuffer;          // Keeps track of what the ack values are. 1 = ack 0 = nack
     uint8_t ackNeeded;          // Individual bits denote where we still need an ack.
-    uint16_t ackPacketID[8];    // What packet IDs correspond to the ACKs
-    uint8_t verifyPayload[4];   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
+    uint16_t ackPacketID[8] = {0, 0, 0, 0, 0, 0, 0, 0};    // What packet IDs correspond to the ACKs
+    uint8_t verifyPayload[4] = {0, 0, 0, 0};   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
                                 // the caller function, [2] is modified in the checkAck function
-    float baseMilliamps;        // Base read of the track current
     bool inVerify;              // Are we verifying something previously read/written?
 };
 
