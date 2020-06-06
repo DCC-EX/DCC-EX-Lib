@@ -179,6 +179,7 @@ private:
     uint8_t verifyPayload[4] = {0, 0, 0, 0};   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
                                 // the caller function, [2] is modified in the checkAck function
     bool inVerify;              // Are we verifying something previously read/written?
+    bool backToIdle;            // Have we gone back to idle packets after setting a CV instruction?
 };
 
 #endif

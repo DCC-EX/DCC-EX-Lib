@@ -313,6 +313,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub) {
     bRead[1]=lowByte(cv);
 
     hdw.setBaseCurrent();
+    incrementCounterID();
 
     modeCV = READCV;
     numAcksNeeded = 8;
@@ -328,10 +329,13 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub) {
 
         schedulePacket(resetPacket, 2, 3, counterID);          // NMRA recommends starting with 3 reset packets
         schedulePacket(bRead, 3, 5, counterID);                // NMRA recommends 5 verify packets
-        schedulePacket(idlePacket, 2, 6, counterID);           // NMRA recommends 6 idle or reset packets for decoder recovery time
+        schedulePacket(resetPacket, 2, 0, counterID);           // NMRA recommends 6 idle or reset packets for decoder recovery time
 
         ackPacketID[i] = counterID;
     }
+
+    incrementCounterID();
+    schedulePacket(resetPacket, 2, 0, counterID);
     
     cvCallback = callback;
     cvCallbackSub = callbackSub;
@@ -342,11 +346,13 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub) {
     verifyPayload[2]=0;
     verifyPayload[3]=0;
 
+    backToIdle = false;
+
     return ERR_OK;
 }
 
 void DCC::checkAck() {
-    float currentMilliamps = hdw.getMilliamps(hdw.readCurrent());
+    
     if(!inVerify && (ackNeeded == 0)) return;
 
     if(!inVerify) {
@@ -356,18 +362,17 @@ void DCC::checkAck() {
             if(!bitRead(ackNeeded, i)) continue;    // We don't need an ack on this bit, we already got one
 
             currentAckID = ackPacketID[i];
-            if(currentAckID == transmitID) {
+            uint16_t compareID = transmitID;
+            if(currentAckID == compareID) {
+                float currentMilliamps = hdw.getMilliamps(hdw.readCurrent());
                 if((currentMilliamps - hdw.baseMilliamps) > ACK_SAMPLE_THRESHOLD) {
                     bitSet(ackBuffer, i);       // We got an ack on this bit
                     bitClear(ackNeeded, i);     // We no longer need an ack on this bit
                 }
             }
-            else if(transmitID > currentAckID) {    // Todo: check for wraparound
+            else if(compareID > currentAckID || backToIdle) {    // Todo: check for wraparound
                 bitClear(ackBuffer, i);       // We didn't get an ack on this bit (timeout)
                 bitClear(ackNeeded, i);     // We no longer need an ack on this bit
-            }
-            else {
-                ackBuffer = ackBuffer;
             }
 
             if(ackNeeded == 0) {        // If we've now gotten all the ACKs we need
@@ -379,8 +384,15 @@ void DCC::checkAck() {
                     incrementCounterID();
                     schedulePacket(resetPacket, 2, 3, counterID);
                     schedulePacket(verifyPayload, 3, 5, counterID);
-                    schedulePacket(idlePacket, 2, 6, counterID);
+                    schedulePacket(resetPacket, 2, 0, counterID);
+
                     ackPacketID[0] = counterID;
+
+                    incrementCounterID();
+                    schedulePacket(resetPacket, 2, 0, counterID);
+
+                    backToIdle = false;
+                    
                     break;
                 case WRITECV:
                     inVerify = false;
@@ -406,13 +418,15 @@ void DCC::checkAck() {
         }    
     }
     else {
-        if(ackPacketID[0] == transmitID) {
+        uint16_t compareID = transmitID;
+        if(ackPacketID[0] == compareID) {
+            float currentMilliamps = hdw.getMilliamps(hdw.readCurrent());
             if((currentMilliamps - hdw.baseMilliamps) > ACK_SAMPLE_THRESHOLD) {
                 inVerify = false;
                 CommManager::printf(F("<r%d|%d|%d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, ackBuffer);
             }
         }
-        else if(transmitID > ackPacketID[0]) {    // Todo: check for wraparound
+        else if(compareID > ackPacketID[0] || backToIdle) {    // Todo: check for wraparound
             inVerify = false;
             CommManager::printf(F("<r%d|%d|%d %d>"), cvCallback, cvCallbackSub, cvBeingWorked, -1);
         }

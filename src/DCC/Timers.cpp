@@ -118,7 +118,7 @@ void DCC::interrupt2() {
                 memcpy( transmitPacket, hdw.getIsProgTrack()?resetPacket:idlePacket, sizeof(idlePacket));
                 transmitLength=sizeof(idlePacket);
                 transmitRepeats=0;
-                transmitID = 0;
+                backToIdle = true;
             }
         }
     }
