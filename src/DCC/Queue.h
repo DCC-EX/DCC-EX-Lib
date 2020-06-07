@@ -3,22 +3,21 @@
 
 #include <Arduino.h>
 
-template<class T>
+template<class T, int S>
 class Queue {
 private:
     int _front, _back, _count;
-    T *_data;
+    T _data[S+1];
     int _maxitems;
 public:
-    Queue(int maxitems = 256) { 
+    Queue() { 
         _front = 0;
         _back = 0;
         _count = 0;
-        _maxitems = maxitems;
-        _data = new T[maxitems + 1];   
+        _maxitems = S;   
     }
     ~Queue() {
-        delete[] _data;  
+        // delete[] _data;  
     }
     inline int count();
     inline int front();
@@ -29,26 +28,26 @@ public:
     void clear();
 };
 
-template<class T>
-inline int Queue<T>::count() 
+template<class T, int S>
+inline int Queue<T, S>::count() 
 {
     return _count;
 }
 
-template<class T>
-inline int Queue<T>::front() 
+template<class T, int S>
+inline int Queue<T, S>::front() 
 {
     return _front;
 }
 
-template<class T>
-inline int Queue<T>::back() 
+template<class T, int S>
+inline int Queue<T, S>::back() 
 {   
     return _back;
 }
 
-template<class T>
-void Queue<T>::push(const T &item)
+template<class T, int S>
+void Queue<T, S>::push(const T &item)
 {
     noInterrupts();
     if(_count < _maxitems) { // Drops out when full
@@ -61,8 +60,8 @@ void Queue<T>::push(const T &item)
     interrupts();
 }
 
-template<class T>
-T Queue<T>::pop() {
+template<class T, int S>
+T Queue<T, S>::pop() {
     if(_count <= 0) return T(); // Returns empty
     else {
         T result = _data[_front];
@@ -75,14 +74,14 @@ T Queue<T>::pop() {
     }
 }
 
-template<class T>
-T Queue<T>::peek() {
+template<class T, int S>
+T Queue<T, S>::peek() {
     if(_count <= 0) return T(); // Returns empty
     else return _data[_front];
 }
 
-template<class T>
-void Queue<T>::clear() 
+template<class T, int S>
+void Queue<T, S>::clear() 
 {
     _front = _back;
     _count = 0;

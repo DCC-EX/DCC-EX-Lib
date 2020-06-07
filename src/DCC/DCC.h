@@ -36,8 +36,8 @@ const uint8_t kPacketMaxSize = 6;
 // Threshold (mA) that a sample must cross to ACK
 const uint8_t kACKThreshold = 30; 
 
-// TODO(davidcutting42@gmail.com): separate between programming and main track
-const uint8_t kQueueSize = 50; 
+// Number of elements in the transmission queue
+const uint8_t kQueueSize = 35; 
 
 const uint8_t kIdlePacket[] = {0xFF,0x00,0xFF};
 const uint8_t kResetPacket[] = {0x00,0x00,0x00};
@@ -78,7 +78,7 @@ struct serviceModeResponse {
   uint16_t callbackSub;
   uint16_t cv;
   uint8_t cvBitNum;
-  uint8_t cvValue;
+  int cvValue;  // Might be -1, so int works
 };
 
 // Represents a DCC channel. 
@@ -164,7 +164,7 @@ private:
     uint16_t transmitID;  // Identifier for railcom, CV programming, etc.
   };
   // Queue of packets, FIFO, that controls what gets sent out next
-  Queue<Packet> packetQueue = Queue<Packet>(kQueueSize);
+  Queue<Packet, kQueueSize> packetQueue;
   // Data that controls the packet currently being sent out.
   uint8_t bits_sent;  // Bits sent from byte
   uint8_t bytes_sent; // Bytes sent from packet
