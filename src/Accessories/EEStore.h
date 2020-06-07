@@ -5,6 +5,9 @@
 
 #if defined(ARDUINO_ARCH_SAMD)
 #include <SparkFun_External_EEPROM.h>
+#endif
+
+#if defined(ARDUINO_ARCH_SAMD)
 extern ExternalEEPROM EEPROM;
 #endif
 

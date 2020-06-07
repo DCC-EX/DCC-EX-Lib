@@ -1,9 +1,9 @@
-// Using tables and definitions copied from OpenMRN project.
-
-#include "DCC.h"
 #include "Railcom.h"
-#include "../CommInterface/CommManager.h"
+
 #include <avr/pgmspace.h>
+
+#include "../CommInterface/CommManager.h"
+#include "DCC.h"
 
 const uint8_t railcom_decode[256] PROGMEM =
 {      INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,

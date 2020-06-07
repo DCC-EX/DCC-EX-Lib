@@ -1,7 +1,9 @@
 #include "Outputs.h"
-#include "EEStore.h"
+
 #include "../CommInterface/CommManager.h"
 #include "../DCC/DCC.h"
+#include "EEStore.h"
+
 #if !defined(ARDUINO_ARCH_SAMD)
 #include <EEPROM.h>
 #endif

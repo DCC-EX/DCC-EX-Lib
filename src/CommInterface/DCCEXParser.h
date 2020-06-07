@@ -1,8 +1,9 @@
 #ifndef COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_
 #define COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_
 
-#include <Arduino.h>
 #include "../DCC/DCC.h"
+
+#include <Arduino.h>
 
 struct DCCEXParser
 {

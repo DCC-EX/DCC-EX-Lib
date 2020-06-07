@@ -2,6 +2,7 @@
 #define COMMANDSTATION_COMMINTERFACE_COMMINTERFACESERIAL_H_
 
 #include "CommInterface.h"
+
 #include <Arduino.h>
 #include <HardwareSerial.h>
 

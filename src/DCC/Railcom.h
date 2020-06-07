@@ -1,5 +1,3 @@
-// Using tables and definitions copied from OpenMRN project.
-
 #ifndef COMMANDSTATION_DCC_RAILCOM_H_
 #define COMMANDSTATION_DCC_RAILCOM_H_
 

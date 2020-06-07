@@ -1,8 +1,10 @@
-#include <Arduino.h>
 #include "CommInterfaceSerial.h"
-#include "DCCEXParser.h"
+
+#include <Arduino.h>
+
 #include "CommManager.h"
 #include "../DCC/DCC.h"
+#include "DCCEXParser.h"
 
 SerialInterface::SerialInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {
 	serialStream.begin(baud);

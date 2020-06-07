@@ -2,6 +2,7 @@
 #define COMMANDSTATION_COMMINTERFACE_COMMINTERFACEUSB_H_
 
 #include "CommInterface.h"
+
 #include <Arduino.h>
 
 class USBInterface : public CommInterface {

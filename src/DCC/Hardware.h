@@ -2,7 +2,7 @@
 #define COMMANDSTATION_DCC_HARDWARE_H_
 
 #include <Arduino.h>
-#include <ArduinoTimers.h>  
+#include <ArduinoTimers.h>
 
 // Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot faster than AVR digitalWrite.
 #if defined(ARDUINO_ARCH_AVR)

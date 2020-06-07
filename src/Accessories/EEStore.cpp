@@ -1,13 +1,17 @@
 #include "EEStore.h"
-#include "Turnouts.h"
-#include "Sensors.h"
+
 #include "Outputs.h"
+#include "Sensors.h"
+#include "Turnouts.h"
 
 #if defined(ARDUINO_ARCH_SAMD)
 #include <SparkFun_External_EEPROM.h>
-ExternalEEPROM EEPROM;
 #else
 #include <EEPROM.h>
+#endif
+
+#if defined(ARDUINO_ARCH_SAMD)
+ExternalEEPROM EEPROM;
 #endif
 
 void EEStore::init(){

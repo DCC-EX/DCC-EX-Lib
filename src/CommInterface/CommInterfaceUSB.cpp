@@ -1,10 +1,12 @@
 #if defined(ARDUINO_ARCH_SAMD)
 
-#include <Arduino.h>
 #include "CommInterfaceUSB.h"
-#include "DCCEXParser.h"
+
+#include <Arduino.h>
+
 #include "CommManager.h"
 #include "../DCC/DCC.h"
+#include "DCCEXParser.h"
 
 USBInterface::USBInterface(Serial_ &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {
 	serialStream.begin(baud);

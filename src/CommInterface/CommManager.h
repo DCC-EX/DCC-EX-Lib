@@ -1,8 +1,8 @@
 #ifndef COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_
 #define COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_
 
-#include "../DCC/DCC.h"
 #include "CommInterface.h"
+#include "../DCC/DCC.h"
 
 class CommManager {
 public:

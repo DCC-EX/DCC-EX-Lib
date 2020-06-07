@@ -1,11 +1,13 @@
 #include "DCCEXParser.h"
-#include "CommManager.h"
-#include "../Accessories/Turnouts.h"
-#include "../Accessories/Sensors.h"
-#include "../Accessories/Outputs.h"
-#include "../Accessories/EEStore.h"
-#include "../CommandStation.h"
+
 #include <inttypes.h>
+
+#include "../Accessories/EEStore.h"
+#include "../Accessories/Outputs.h"
+#include "../Accessories/Sensors.h"
+#include "../Accessories/Turnouts.h"
+#include "../CommandStation.h"
+#include "CommManager.h"
 
 DCC* DCCEXParser::mainTrack;
 DCC* DCCEXParser::progTrack;

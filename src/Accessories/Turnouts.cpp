@@ -1,6 +1,8 @@
 #include "Turnouts.h"
-#include "EEStore.h"
+
 #include "../CommInterface/CommManager.h"
+#include "EEStore.h"
+
 #if !defined(ARDUINO_ARCH_SAMD)
 #include <EEPROM.h>
 #endif

@@ -1,13 +1,3 @@
-/*
- * Queue.h
- * 
- * By Steven de Salas
- * 
- * Defines a templated (generic) class for a queue of things.
- * Used for Arduino projects, just #include "Queue.h" and add this file via the IDE.
- * 
- */
-
 #ifndef COMMANDSTATION_DCC_QUEUE_H_
 #define COMMANDSTATION_DCC_QUEUE_H_
 

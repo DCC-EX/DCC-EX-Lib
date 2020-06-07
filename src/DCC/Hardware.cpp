@@ -1,5 +1,8 @@
 #include "Hardware.h"
+
+#if defined(ARDUINO_ARCH_SAMD)
 #include "wiring_private.h"
+#endif
 
 void Hardware::setup() {
     // Set up the output pins for this track
