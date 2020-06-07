@@ -3,8 +3,9 @@
 #include "DCC.h"
 #include "Railcom.h"
 #include "../CommInterface/CommManager.h"
+#include <avr/pgmspace.h>
 
-const uint8_t railcom_decode[256] =
+const uint8_t railcom_decode[256] PROGMEM =
 {      INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
        INV,    INV,    INV,    INV,    INV,    INV,    INV,   NACK,
        INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x33,
@@ -48,7 +49,7 @@ void DCC::readRailcomData() {
     if(!railcomData) return;
     for (size_t i = 0; i < bytes; i++)
     {
-        data[i] = railcom_decode[data[i]];
+        data[i] = pgm_read_byte_near(railcom_decode[data[i]]);
         if(data[i] == 0xFF) {
             //CommManager::printf("<F ERR>\n\r");
             return;
