@@ -1,3 +1,22 @@
+/*
+ *  Railcom.h
+ * 
+ *  This file is part of CommandStation.
+ *
+ *  CommandStation is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CommandStation is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #ifndef COMMANDSTATION_DCC_RAILCOM_H_
 #define COMMANDSTATION_DCC_RAILCOM_H_
 
@@ -25,21 +44,21 @@ static const uint8_t RESVD3 = 0xF8;
 
 struct Railcom
 {
-    enum
-    {
-        GARBAGE,
-        ACK,
-        NACK,
-        BUSY,
-        MOB_POM,
-        MOB_ADRHIGH,
-        MOB_ADRLOW,
-        MOB_EXT,
-        MOB_DYN,
-        MOB_SUBID
-    };
+  enum
+  {
+    GARBAGE,
+    ACK,
+    NACK,
+    BUSY,
+    MOB_POM,
+    MOB_ADRHIGH,
+    MOB_ADRLOW,
+    MOB_EXT,
+    MOB_DYN,
+    MOB_SUBID
+  };
 
-    // static void parseData(const uint8_t data[8]);
+  // static void parseData(const uint8_t data[8]);
 };
 
 #endif  // COMMANDSTATION_DCC_RAILCOM_H_

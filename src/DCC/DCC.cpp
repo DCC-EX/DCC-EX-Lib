@@ -382,7 +382,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub,
   bRead[0]=0x78+(highByte(cv)&0x03);            
   bRead[1]=lowByte(cv);
   
-  // Queue up 24 unique packets required for the CV read. 
+  // Queue up all unique packets required for the CV read. 
   for(int i=0;i<8;i++) {                                  
     bRead[2]=0xE8+i;
 

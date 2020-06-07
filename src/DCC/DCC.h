@@ -140,8 +140,10 @@ public:
   uint8_t numDevices;
 
   // Holds info about a device's speed and direction. 
+  // TODO(davidcutting42@gmail.com): Make this private
   struct Speed {
     uint16_t cab;
+    // TODO(davidcutting42@gmail.com): Merge these 2 variables into 1 uint8_t
     uint8_t speed;
     uint8_t forward;
   };
@@ -179,8 +181,9 @@ private:
   // Interrupt segments, called in interrupt_handler
   bool interrupt1();
   void interrupt2();
+  // TODO(davidcutting42@gmail.com) move this to hdw class
   void signal(bool pinA, bool pinB);
-  uint8_t state = 0;  // Waveform generator state
+  uint8_t interruptState = 0;  // Waveform generator state
 
   // Loads buffer into queue for transmission
   void schedulePacket(const uint8_t buffer[], uint8_t byteCount, 

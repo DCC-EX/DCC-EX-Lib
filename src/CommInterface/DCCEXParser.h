@@ -1,3 +1,22 @@
+/*
+ *  DCCEXParser.h
+ * 
+ *  This file is part of CommandStation.
+ *
+ *  CommandStation is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CommandStation is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #ifndef COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_
 #define COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_
 
@@ -7,14 +26,14 @@
 
 struct DCCEXParser
 {
-    static DCC *mainTrack, *progTrack;
-    static void init(DCC* mainTrack_, DCC* progTrack_);
-    static void parse(const char *);
-    static void cvResponse(serviceModeResponse response);
+  static DCC *mainTrack, *progTrack;
+  static void init(DCC* mainTrack_, DCC* progTrack_);
+  static void parse(const char *);
+  static void cvResponse(serviceModeResponse response);
 private:
-    static int stringParser(const char * com, int result[]);
-    static const int MAX_PARAMS=10; 
-    static int p[MAX_PARAMS];
+  static int stringParser(const char * com, int result[]);
+  static const int MAX_PARAMS=10; 
+  static int p[MAX_PARAMS];
 };
 
 #endif  // COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_

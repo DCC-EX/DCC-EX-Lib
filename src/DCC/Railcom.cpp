@@ -1,3 +1,22 @@
+/*
+ *  Railcom.cpp
+ * 
+ *  This file is part of CommandStation.
+ *
+ *  CommandStation is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CommandStation is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "Railcom.h"
 
 #include <avr/pgmspace.h>
@@ -6,57 +25,58 @@
 #include "DCC.h"
 
 const uint8_t railcom_decode[256] PROGMEM =
-{      INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
-       INV,    INV,    INV,    INV,    INV,    INV,    INV,   NACK,
-       INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x33,
-       INV,    INV,    INV,   0x34,    INV,   0x35,   0x36,    INV,
-       INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x3A,
-       INV,    INV,    INV,   0x3B,    INV,   0x3C,   0x37,    INV,
-       INV,    INV,    INV,   0x3F,    INV,   0x3D,   0x38,    INV,
-       INV,   0x3E,   0x39,    INV, RESVD3,    INV,    INV,    INV,
-       INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x24,
-       INV,    INV,    INV,   0x23,    INV,   0x22,   0x21,    INV,
-       INV,    INV,    INV,   0x1F,    INV,   0x1E,   0x20,    INV,
-       INV,   0x1D,   0x1C,    INV,   0x1B,    INV,    INV,    INV,
-       INV,    INV,    INV,   0x19,    INV,   0x18,   0x1A,    INV,
-       INV,   0x17,   0x16,    INV,   0x15,    INV,    INV,    INV,
-       INV,   0x25,   0x14,    INV,   0x13,    INV,    INV,    INV,
-      0x32,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
-       INV,    INV,    INV,    INV,    INV,    INV,    INV, RESVD2,
-       INV,    INV,    INV,   0x0E,    INV,   0x0D,   0x0C,    INV,
-       INV,    INV,    INV,   0x0A,    INV,   0x09,   0x0B,    INV,
-       INV,   0x08,   0x07,    INV,   0x06,    INV,    INV,    INV,
-       INV,    INV,    INV,   0x04,    INV,   0x03,   0x05,    INV,
-       INV,   0x02,   0x01,    INV,   0x00,    INV,    INV,    INV,
-       INV,   0x0F,   0x10,    INV,   0x11,    INV,    INV,    INV,
-      0x12,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
-       INV,    INV,    INV, RESVD1,    INV,   0x2B,   0x30,    INV,
-       INV,   0x2A,   0x2F,    INV,   0x31,    INV,    INV,    INV,
-       INV,   0x29,   0x2E,    INV,   0x2D,    INV,    INV,    INV,
-      0x2C,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
-       INV,   BUSY,   0x28,    INV,   0x27,    INV,    INV,    INV,
-      0x26,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
-       ACK,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
-       INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+{    INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+     INV,    INV,    INV,    INV,    INV,    INV,    INV,   NACK,
+     INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x33,
+     INV,    INV,    INV,   0x34,    INV,   0x35,   0x36,    INV,
+     INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x3A,
+     INV,    INV,    INV,   0x3B,    INV,   0x3C,   0x37,    INV,
+     INV,    INV,    INV,   0x3F,    INV,   0x3D,   0x38,    INV,
+     INV,   0x3E,   0x39,    INV, RESVD3,    INV,    INV,    INV,
+     INV,    INV,    INV,    INV,    INV,    INV,    INV,   0x24,
+     INV,    INV,    INV,   0x23,    INV,   0x22,   0x21,    INV,
+     INV,    INV,    INV,   0x1F,    INV,   0x1E,   0x20,    INV,
+     INV,   0x1D,   0x1C,    INV,   0x1B,    INV,    INV,    INV,
+     INV,    INV,    INV,   0x19,    INV,   0x18,   0x1A,    INV,
+     INV,   0x17,   0x16,    INV,   0x15,    INV,    INV,    INV,
+     INV,   0x25,   0x14,    INV,   0x13,    INV,    INV,    INV,
+    0x32,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+     INV,    INV,    INV,    INV,    INV,    INV,    INV, RESVD2,
+     INV,    INV,    INV,   0x0E,    INV,   0x0D,   0x0C,    INV,
+     INV,    INV,    INV,   0x0A,    INV,   0x09,   0x0B,    INV,
+     INV,   0x08,   0x07,    INV,   0x06,    INV,    INV,    INV,
+     INV,    INV,    INV,   0x04,    INV,   0x03,   0x05,    INV,
+     INV,   0x02,   0x01,    INV,   0x00,    INV,    INV,    INV,
+     INV,   0x0F,   0x10,    INV,   0x11,    INV,    INV,    INV,
+    0x12,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+     INV,    INV,    INV, RESVD1,    INV,   0x2B,   0x30,    INV,
+     INV,   0x2A,   0x2F,    INV,   0x31,    INV,    INV,    INV,
+     INV,   0x29,   0x2E,    INV,   0x2D,    INV,    INV,    INV,
+    0x2C,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+     INV,   BUSY,   0x28,    INV,   0x27,    INV,    INV,    INV,
+    0x26,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+     ACK,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
+     INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
 };
 
 void DCC::readRailcomData() {
-    if(inRailcomCutout) return;
-    uint8_t bytes = hdw.railcomSerial()->available();
-    if(bytes > 8) bytes = 8;
-    uint8_t data[8];
-    hdw.railcomSerial()->readBytes(data, bytes);
-    if(!railcomData) return;
-    for (size_t i = 0; i < bytes; i++)
-    {
-        data[i] = pgm_read_byte_near(railcom_decode[data[i]]);
-        if(data[i] == 0xFF) {
-            //CommManager::printf("<F ERR>\n\r");
-            return;
-        }
-    }    
+  if(inRailcomCutout) return;
+  uint8_t bytes = hdw.railcomSerial()->available();
+  if(bytes > 8) bytes = 8;
+  uint8_t data[8];
+  hdw.railcomSerial()->readBytes(data, bytes);
+  if(!railcomData) return;
+  for (size_t i = 0; i < bytes; i++)
+  {
+    data[i] = pgm_read_byte_near(railcom_decode[data[i]]);
+    if(data[i] == 0xFF) {
+      //CommManager::printf("<F ERR>\n\r");
+      return;
+    }
+  }    
 
-    //CommManager::printf("<F %d %X %X %X %X %X %X %X %X>\n\r", lastID, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]); 
+  //CommManager::printf("<F %d %X %X %X %X %X %X %X %X>\n\r", lastID, data[0], 
+  //  data[1], data[2], data[3], data[4], data[5], data[6], data[7]); 
 
-    railcomData = false;
+  railcomData = false;
 }
