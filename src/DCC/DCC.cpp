@@ -2,27 +2,9 @@
 
 #include "../CommInterface/CommManager.h"
 
-uint16_t DCC::counterID = 0;
-
 DCC::DCC(int numDev, Hardware settings) {
     this->hdw = settings;            
     this->numDev = numDev;      
-
-    // Set up the state of the waveform generator
-    state = 0;
-    currentBit = 0;
-    transmitRepeats = 0;
-    remainingPreambles = 0;
-    generateStartBit = false;
-    nextDev = 0;
-    railcomData = false;
-    generateRailcomCutout = false;
-    inRailcomCutout = false;
-
-    ackNeeded = 0;
-    inVerify = false;
-
-    lastID = counterID;
 
     packetQueue.clear();
     

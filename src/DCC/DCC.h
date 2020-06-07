@@ -126,7 +126,7 @@ private:
     void readRailcomData();
     void checkAck();
 
-    int nextDev;
+    int nextDev = 0;
 
     struct Packet {
         uint8_t payload[DCC_PACKET_MAX_SIZE];
@@ -141,30 +141,28 @@ private:
     // Data for the currently transmitted packet
     uint8_t bits_sent;
     uint8_t bytes_sent;
-    bool currentBit;
-    uint8_t transmitRepeats;
-    uint8_t remainingPreambles;
-    bool generateStartBit;  
+    bool currentBit = false;
+    uint8_t transmitRepeats = 0;
+    uint8_t remainingPreambles = 0;
+    bool generateStartBit = false;  
     uint8_t transmitPacket[DCC_PACKET_MAX_SIZE];
     uint8_t transmitLength;
     uint16_t transmitID;
 
-    // The ID of the last DCC packet to get processed (for railcom)
-    uint16_t lastID;
-
-    static uint16_t counterID;
-    static void incrementCounterID() { 
+    uint16_t counterID = 1;
+    uint16_t lastID = 1; // The ID of the last DCC packet to get processed (for railcom)
+    void incrementCounterID() { 
         counterID++;
         if(counterID == 0) counterID = 1;
     }
 
     // Waveform generator state
-    uint8_t state;
+    uint8_t state = 0;
 
     // Railcom cutout stuff
-    volatile bool generateRailcomCutout;
-    volatile bool inRailcomCutout;
-    volatile bool railcomData;
+    volatile bool generateRailcomCutout = false;
+    volatile bool inRailcomCutout = false;
+    volatile bool railcomData = false;
     
     // Interrupt segments, called in interrupt_handler
     bool interrupt1();
@@ -177,11 +175,11 @@ private:
     // ACK detection stuff
     serviceModeResponse cvState;
     uint8_t ackBuffer;          // Keeps track of what the ack values are. 1 = ack 0 = nack
-    uint8_t ackNeeded;          // Individual bits denote where we still need an ack.
+    uint8_t ackNeeded = 0;          // Individual bits denote where we still need an ack.
     uint16_t ackPacketID[8];    // What packet IDs correspond to the ACKs
     uint8_t verifyPayload[4];   // Packet sent after acks are done to confirm CV read/write. [0-1] are set in 
                                 // the caller function, [2] is modified in the checkAck function
-    bool inVerify;              // Are we verifying something previously read/written?
+    bool inVerify = false;              // Are we verifying something previously read/written?
     bool backToIdle;            // Have we gone back to idle packets after setting a CV instruction?
     void (*cvResponse)(serviceModeResponse);    // Callback function that returns response to comms API. Registered in CV functions.
 };

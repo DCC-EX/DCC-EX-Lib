@@ -1,6 +1,8 @@
 #ifndef COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_
 #define COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_
 
+#include <Stream.h>
+
 class CommInterface {
 public:
 	virtual void process() = 0;
