@@ -118,17 +118,21 @@ void Hardware::checkCurrent() {
   }
 }
 
-// TODO(davidcutting42@gmail.com): fix for AVR
+// TODO(davidcutting42@gmail.com): test on AVR
 void Hardware::enableRailcomSerial(bool on) {
   if(on) {
   #if defined(ARDUINO_ARCH_SAMD)
     pinPeripheral(railcom_rx_pin, railcom_rx_mux);
+  #else
+    railcom_serial->begin(railcom_baud);
   #endif    
   }
   else {
   #if defined(ARDUINO_ARCH_SAMD)
     pinPeripheral(railcom_rx_pin, PIO_INPUT);
-  #endif
+  #else
+    railcom_serial->end();
+  #endif    
   }
 }
 
