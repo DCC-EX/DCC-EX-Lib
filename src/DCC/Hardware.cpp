@@ -21,19 +21,25 @@
 
 #if defined(ARDUINO_ARCH_SAMD)
 #include "wiring_private.h"
+#define writePin digitalWrite
+#elif defined(ARDUINO_ARCH_AVR)
+// Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot 
+// faster than AVR digitalWrite.
+#include <DIO2.h>
+#define writePin digitalWrite2
 #endif
 
 void Hardware::setup() {
   // Set up the output pins for this track
   pinMode(signal_a_pin, OUTPUT);
-  digitalWrite(signal_a_pin, LOW);
+  writePin(signal_a_pin, LOW);
   if(control_scheme == DUAL_DIRECTION_INVERTED 
     || control_scheme == DIRECTION_BRAKE_ENABLE) {
     pinMode(signal_b_pin, OUTPUT);
-    digitalWrite(signal_b_pin, signal_b_default);
+    writePin(signal_b_pin, signal_b_default);
   }
   pinMode(enable_pin, OUTPUT);
-  digitalWrite(enable_pin, LOW);
+  writePin(enable_pin, LOW);
 
   // Set up the current sense pin
   pinMode(current_sense_pin, INPUT);
@@ -55,43 +61,23 @@ void Hardware::setup() {
 }
 
 void Hardware::setPower(bool on) {
-  digitalWrite(enable_pin, on);
+  writePin(enable_pin, on);
 }
 
 void Hardware::setSignal(bool high) {
-  #if defined(ARDUINO_ARCH_AVR)
-  digitalWrite2(signal_a_pin, high);
+  writePin(signal_a_pin, high);
   if(control_scheme == DUAL_DIRECTION_INVERTED)
-    digitalWrite2(signal_b_pin, !high);
-  #else
-  digitalWrite(signal_a_pin, high);
-  if(control_scheme == DUAL_DIRECTION_INVERTED)
-    digitalWrite(signal_b_pin, !high);
-  #endif
+    writePin(signal_b_pin, !high);
 }
 
 void Hardware::setBrake(bool on) {
-  #if defined(ARDUINO_ARCH_AVR)
   if(control_scheme == DUAL_DIRECTION_INVERTED) {
-    digitalWrite2(signal_a_pin, on);
-    digitalWrite2(signal_b_pin, on);
+    writePin(signal_a_pin, on);
+    writePin(signal_b_pin, on);
   }
   else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
-    digitalWrite2(signal_b_pin, signal_b_default?on:!on);
+    writePin(signal_b_pin, signal_b_default?on:!on);
   }
-  #else
-  if(control_scheme == DUAL_DIRECTION_INVERTED) {
-    digitalWrite(signal_a_pin, on);
-    digitalWrite(signal_b_pin, on);
-  }
-  else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
-    digitalWrite(signal_b_pin, signal_b_default?on:!on);
-  }
-  #endif
-}
-
-bool Hardware::getStatus() {
-  return digitalRead(enable_pin);
 }
 
 float Hardware::getMilliamps(uint32_t reading) {
@@ -109,10 +95,10 @@ float Hardware::getMilliamps(uint32_t reading) {
 void Hardware::checkCurrent() {
   // if we have exceeded the CURRENT_SAMPLE_TIME we need to check if we are 
   // over/under current.
-  if(millis() - lastCheckTime > CURRENT_SAMPLE_TIME) {
+  if(millis() - lastCheckTime > kCurrentSampleTime) {
     lastCheckTime = millis();
-    reading = readCurrent() * CURRENT_SAMPLE_SMOOTHING + reading * 
-      (1.0 - CURRENT_SAMPLE_SMOOTHING);
+    reading = readCurrent() * kCurrentSampleSmoothing + reading * 
+      (1.0 - kCurrentSampleSmoothing);
 
     current = getMilliamps(reading);
 
@@ -124,20 +110,12 @@ void Hardware::checkCurrent() {
       lastTripTime=millis();
     } 
     else if(current < trigger_value && tripped) {
-      if (millis() - lastTripTime > RETRY_MILLIS) {
+      if (millis() - lastTripTime > kRetryTime) {
         setPower(true);
         tripped=false;
       }
     }
   }
-}
-
-void Hardware::setBaseCurrent() {
-  baseMilliamps = getMilliamps(readCurrent());
-}
-
-uint32_t Hardware::readCurrent() {
-  return analogRead(current_sense_pin);
 }
 
 // TODO(davidcutting42@gmail.com): fix for AVR

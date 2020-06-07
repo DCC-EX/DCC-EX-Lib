@@ -424,7 +424,7 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub,
 }
 
 void DCC::checkAck() {
-  float currentMilliamps = hdw.getMilliamps(hdw.readCurrent());
+  float currentMilliamps = hdw.getMilliamps();
   if(!inVerify && (ackNeeded == 0)) return;
 
   if(!inVerify) {
@@ -436,7 +436,7 @@ void DCC::checkAck() {
       currentAckID = ackPacketID[i];
       uint16_t compareID = transmitID;
       if(currentAckID == compareID) {
-        if((currentMilliamps - hdw.baseMilliamps) > kACKThreshold) {
+        if((currentMilliamps - hdw.getBaseCurrent()) > kACKThreshold) {
           bitSet(ackBuffer, i);       // We got an ack on this bit
           bitClear(ackNeeded, i);     // We no longer need an ack on this bit
 
@@ -484,7 +484,7 @@ void DCC::checkAck() {
   else {
     uint16_t compareID = transmitID;
     if(ackPacketID[0] == compareID) {
-      if((currentMilliamps - hdw.baseMilliamps) > kACKThreshold) {
+      if((currentMilliamps - hdw.getBaseCurrent()) > kACKThreshold) {
         inVerify = false;
         if(cvState.type == READCV)
           cvState.cvValue = ackBuffer;
