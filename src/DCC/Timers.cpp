@@ -85,7 +85,7 @@ void DCC::interrupt2() {
     }
   
     // beware OF 9-BIT MASK  generating a zero to start each byte   
-    currentBit=transmitPacket[bytes_sent] & bitMask[bits_sent];
+    currentBit=transmitPacket[bytes_sent] & kBitMask[bits_sent];
     bits_sent++;
 
     // If this is the last bit of a byte, prepare for the next byte 
@@ -116,8 +116,8 @@ void DCC::interrupt2() {
             }
             else {
                 // Fortunately reset and idle packets are the same length
-                memcpy( transmitPacket, hdw.getIsProgTrack()?resetPacket:idlePacket, sizeof(idlePacket));
-                transmitLength=sizeof(idlePacket);
+                memcpy( transmitPacket, hdw.getIsProgTrack()?kResetPacket:kIdlePacket, sizeof(kIdlePacket));
+                transmitLength=sizeof(kIdlePacket);
                 transmitRepeats=0;
                 backToIdle = true;
             }

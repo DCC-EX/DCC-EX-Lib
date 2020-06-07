@@ -4,12 +4,14 @@
 #include <Arduino.h>
 #include <ArduinoTimers.h>
 
-// Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot faster than AVR digitalWrite.
+// Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot 
+// faster than AVR digitalWrite.
 #if defined(ARDUINO_ARCH_AVR)
 #include <DIO2.h>
 #endif
 
-// Todo: determine if we really need to slow down the arduino Uno's current sampling
+// TODO(davidcutting42@gmail.com): determine if we really need to slow down the 
+// Arduino Uno's current sampling
 #if defined(ARDUINO_AVR_UNO)
 const int CURRENT_SAMPLE_TIME = 10;
 #else

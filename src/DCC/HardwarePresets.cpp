@@ -1,6 +1,6 @@
 #include "DCC.h"
 
-DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
+DCC* DCC::Create_Arduino_L298Shield_Main(uint8_t numDev) {
     Hardware hdw;
 
     hdw.config_setChannelName("MAIN");
@@ -26,7 +26,7 @@ DCC* DCC::Create_Arduino_L298Shield_Main(int numDev) {
     return new DCC(numDev, hdw);
 }
 
-DCC* DCC::Create_Arduino_L298Shield_Prog(int numDev) {
+DCC* DCC::Create_Arduino_L298Shield_Prog(uint8_t numDev) {
     Hardware hdw;
     
     hdw.config_setChannelName("PROG");
@@ -54,7 +54,7 @@ DCC* DCC::Create_Arduino_L298Shield_Prog(int numDev) {
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
+DCC* DCC::Create_Pololu_MC33926Shield_Main(uint8_t numDev) {
     Hardware hdw;
 
     hdw.config_setChannelName("MAIN");
@@ -80,7 +80,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Main(int numDev) {
     return new DCC(numDev, hdw);
 }
 
-DCC* DCC::Create_Pololu_MC33926Shield_Prog(int numDev) {
+DCC* DCC::Create_Pololu_MC33926Shield_Prog(uint8_t numDev) {
     Hardware hdw;
     
     hdw.config_setChannelName("PROG");
@@ -110,7 +110,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Prog(int numDev) {
 
 #if defined(ARDUINO_ARCH_SAMD)
 // TI DRV8874 on custom board
-DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
+DCC* DCC::Create_WSM_SAMCommandStation_Main(uint8_t numDev) {
     Hardware hdw;
 
     hdw.config_setChannelName("MAIN");
@@ -144,7 +144,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(int numDev) {
 }
 
 // TI DRV8876 on custom board
-DCC* DCC::Create_WSM_SAMCommandStation_Prog(int numDev) {
+DCC* DCC::Create_WSM_SAMCommandStation_Prog(uint8_t numDev) {
     Hardware hdw;
     
     hdw.config_setChannelName("PROG");
