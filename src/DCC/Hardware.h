@@ -1,5 +1,5 @@
-#ifndef Hardware_h
-#define Hardware_h
+#ifndef COMMANDSTATION_DCC_HARDWARE_H_
+#define COMMANDSTATION_DCC_HARDWARE_H_
 
 #include <Arduino.h>
 #include <ArduinoTimers.h>  
@@ -133,4 +133,4 @@ private:
     
 };
 
-#endif
+#endif  // COMMANDSTATION_DCC_HARDWARE_H_

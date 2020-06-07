@@ -1,5 +1,5 @@
-#ifndef Turnouts_h
-#define Turnouts_h
+#ifndef COMMANDSTATION_ACCESSORIES_TURNOUTS_H_
+#define COMMANDSTATION_ACCESSORIES_TURNOUTS_H_
 
 #include <Arduino.h>
 #include "../DCC/DCC.h"
@@ -25,4 +25,4 @@ struct Turnout{
     static void show(int=0);
 };
   
-#endif
+#endif  // COMMANDSTATION_ACCESSORIES_TURNOUTS_H_

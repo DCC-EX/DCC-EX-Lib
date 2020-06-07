@@ -1,5 +1,5 @@
-#ifndef CommInterfaceUSB_h
-#define CommInterfaceUSB_h
+#ifndef COMMANDSTATION_COMMINTERFACE_COMMINTERFACEUSB_H_
+#define COMMANDSTATION_COMMINTERFACE_COMMINTERFACEUSB_H_
 
 #include "CommInterface.h"
 #include <Arduino.h>
@@ -19,4 +19,4 @@ protected:
 	bool inCommandPayload;
 };
 
-#endif
+#endif	// COMMANDSTATION_COMMINTERFACE_COMMINTERFACEUSB_H_

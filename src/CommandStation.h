@@ -1,5 +1,5 @@
-#ifndef OpenMRRControl_h
-#define OpenMRRControl_h
+#ifndef COMMANDSTATION_COMMANDSTATION_H_
+#define COMMANDSTATION_COMMANDSTATION_H_
 
 #define VERSION "1.0.0"
 #define BOARD_NAME "DCC++ CommandStation"
@@ -15,4 +15,4 @@
 #include "CommInterface/DCCEXParser.h"
 #include "Accessories/EEStore.h"
 
-#endif
+#endif  // COMMANDSTATION_COMMANDSTATION_H_

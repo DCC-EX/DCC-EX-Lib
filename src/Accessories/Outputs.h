@@ -1,5 +1,5 @@
-#ifndef Outputs_h
-#define Outputs_h
+#ifndef COMMANDSTATION_ACCESSORIES_OUTPUTS_H_
+#define COMMANDSTATION_ACCESSORIES_OUTPUTS_H_
 
 #include <Arduino.h>
 
@@ -25,4 +25,4 @@ struct Output {
     static void show(int=0);
 };
   
-#endif
+#endif  // COMMANDSTATION_ACCESSORIES_OUTPUTS_H_

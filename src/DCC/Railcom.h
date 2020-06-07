@@ -1,7 +1,7 @@
 // Using tables and definitions copied from OpenMRN project.
 
-#ifndef Railcom_h
-#define Railcom_h
+#ifndef COMMANDSTATION_DCC_RAILCOM_H_
+#define COMMANDSTATION_DCC_RAILCOM_H_
 
 #include <Arduino.h>
 
@@ -44,4 +44,4 @@ struct Railcom
     // static void parseData(const uint8_t data[8]);
 };
 
-#endif
+#endif  // COMMANDSTATION_DCC_RAILCOM_H_

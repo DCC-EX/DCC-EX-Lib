@@ -1,5 +1,5 @@
-#ifndef CommInterfaceSerial_h
-#define CommInterfaceSerial_h
+#ifndef COMMANDSTATION_COMMINTERFACE_COMMINTERFACESERIAL_H_
+#define COMMANDSTATION_COMMINTERFACE_COMMINTERFACESERIAL_H_
 
 #include "CommInterface.h"
 #include <Arduino.h>
@@ -20,4 +20,4 @@ protected:
 	bool inCommandPayload;
 };
 
-#endif
+#endif	// COMMANDSTATION_COMMINTERFACE_COMMINTERFACESERIAL_H_

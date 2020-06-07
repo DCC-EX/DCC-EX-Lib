@@ -1,5 +1,5 @@
-#ifndef JMRIParser_h
-#define JMRIParser_h
+#ifndef COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_
+#define COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_
 
 #include <Arduino.h>
 #include "../DCC/DCC.h"
@@ -16,4 +16,4 @@ private:
     static int p[MAX_PARAMS];
 };
 
-#endif
+#endif  // COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_

@@ -1,5 +1,5 @@
-#ifndef DCC_h
-#define DCC_h
+#ifndef COMMANDSTATION_DCC_DCC_H_
+#define COMMANDSTATION_DCC_DCC_H_
 
 #include <Arduino.h>
 #include "Hardware.h"
@@ -185,4 +185,4 @@ private:
     void (*cvResponse)(serviceModeResponse);    // Callback function that returns response to comms API. Registered in CV functions.
 };
 
-#endif
+#endif  // COMMANDSTATION_DCC_DCC_H_

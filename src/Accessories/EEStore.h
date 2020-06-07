@@ -1,5 +1,5 @@
-#ifndef EEStore_h
-#define EEStore_h
+#ifndef COMMANDSTATION_ACCESSORIES_EESTORE_H_
+#define COMMANDSTATION_ACCESSORIES_EESTORE_H_
 
 #include <Arduino.h>
 
@@ -29,4 +29,4 @@ struct EEStore{
     static void clear();
 };
 
-#endif
+#endif  // COMMANDSTATION_ACCESSORIES_EESTORE_H_

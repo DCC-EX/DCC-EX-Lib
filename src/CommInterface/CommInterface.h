@@ -1,5 +1,5 @@
-#ifndef CommInterface_h
-#define CommInterface_h
+#ifndef COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_
+#define COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_
 
 class CommInterface {
 public:
@@ -10,4 +10,4 @@ public:
 	virtual Stream* getStream() = 0;
 };
 
-#endif
+#endif	// COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_

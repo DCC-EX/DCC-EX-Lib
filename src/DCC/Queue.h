@@ -8,8 +8,8 @@
  * 
  */
 
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef COMMANDSTATION_DCC_QUEUE_H_
+#define COMMANDSTATION_DCC_QUEUE_H_
 
 #include <Arduino.h>
 
@@ -98,4 +98,4 @@ void Queue<T>::clear()
     _count = 0;
 }
 
-#endif
+#endif  // COMMANDSTATION_DCC_QUEUE_H_

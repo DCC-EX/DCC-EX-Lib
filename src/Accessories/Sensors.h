@@ -1,5 +1,5 @@
-#ifndef Sensor_h
-#define Sensor_h
+#ifndef COMMANDSTATION_ACCESSORIES_SENSORS_H_
+#define COMMANDSTATION_ACCESSORIES_SENSORS_H_
 
 #include "Arduino.h"
 
@@ -28,5 +28,5 @@ struct Sensor{
     static void check();   
 };
 
-#endif
+#endif  // COMMANDSTATION_ACCESSORIES_SENSORS_H_
 

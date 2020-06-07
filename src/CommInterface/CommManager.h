@@ -1,5 +1,5 @@
-#ifndef CommManager_h
-#define CommManager_h
+#ifndef COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_
+#define COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_
 
 #include "../DCC/DCC.h"
 #include "CommInterface.h"
@@ -17,4 +17,4 @@ private:
 	static int nextInterface;
 };
 
-#endif
+#endif	// COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_
