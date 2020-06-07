@@ -31,7 +31,8 @@ void Sensor::check(){
   Sensor *tt;
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    tt->signal=tt->signal*(1.0-SENSOR_DECAY)+digitalRead(tt->data.pin)*SENSOR_DECAY;
+    tt->signal = tt->signal * (1.0 - SENSOR_DECAY) + digitalRead(tt->data.pin) 
+      * SENSOR_DECAY;
 
     if(!tt->active && tt->signal<0.5){
     tt->active=true;
@@ -70,7 +71,9 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   tt->active=false;
   tt->signal=1;
   pinMode(pin,INPUT);         // set mode to input
-  digitalWrite(pin,pullUp);   // don't use Arduino's internal pull-up resistors for external infrared sensors --- each sensor must have its own 1K external pull-up resistor
+  // Don't use Arduino's internal pull-up resistors for external infrared 
+  // sensors --- each sensor must have its own 1K external pull-up resistor
+  digitalWrite(pin,pullUp);   
 
   if(v==1)
     CommManager::printf("<O>");

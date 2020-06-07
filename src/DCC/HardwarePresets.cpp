@@ -71,7 +71,7 @@ DCC* DCC::Create_Arduino_L298Shield_Prog(uint8_t numDev) {
   return new DCC(numDev, hdw);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 DCC* DCC::Create_Pololu_MC33926Shield_Main(uint8_t numDev) {
   Hardware hdw;
@@ -125,7 +125,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Prog(uint8_t numDev) {
   return new DCC(numDev, hdw);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 #if defined(ARDUINO_ARCH_SAMD)
 // TI DRV8874 on custom board
@@ -151,9 +151,9 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(uint8_t numDev) {
 
   hdw.config_setRailcom(true);
   hdw.config_setRailcomRxPin(5);
-  hdw.config_setRailcomTxPin(2);     // Doesn't do anything, but valid pin must be specified to instantiate railcom_serial on some architectures
+  hdw.config_setRailcomTxPin(2);   
   hdw.config_setRailcomBaud(250000);
-  hdw.config_setRailcomSerial(nullptr);  // Will be initialized in Hardware::init();
+  hdw.config_setRailcomSerial(nullptr); 
   hdw.config_setRailcomSercom(&sercom4);
   hdw.config_setRailcomRxMux(PIO_SERCOM_ALT);
   hdw.config_setRailcomRxPad(SERCOM_RX_PAD_3);

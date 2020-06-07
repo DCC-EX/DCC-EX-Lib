@@ -27,7 +27,8 @@
 #endif
 
 void Turnout::activate(int s, DCC* track){
-  data.tStatus=(s>0);                                    // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
+  // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
+  data.tStatus=(s>0);   
   setAccessoryResponse response;
   track->setAccessory(data.address, data.subAddress, data.tStatus, response);
   if(num>0)
@@ -73,8 +74,10 @@ void Turnout::show(int n){
 
   for(tt=firstTurnout;tt!=NULL;tt=tt->nextTurnout){
     if(n==1) {
-    CommManager::printf("<H %d %d %d %d>", tt->data.id, tt->data.address, tt->data.subAddress, tt->data.tStatus);
-    } else {
+    CommManager::printf("<H %d %d %d %d>", tt->data.id, tt->data.address, 
+      tt->data.subAddress, tt->data.tStatus);
+    } 
+    else {
     CommManager::printf("<H %d %d>", tt->data.id, tt->data.tStatus);
     }
   }

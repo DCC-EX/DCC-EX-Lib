@@ -91,7 +91,8 @@ void DCCEXParser::parse(const char *com) {
 
     mainTrack->setThrottle(p[0], p[1], p[2], p[3], throttleResponse);
 
-    CommManager::printf(F("<T %d %d %d>"), throttleResponse.device, throttleResponse.speed, throttleResponse.direction);
+    CommManager::printf(F("<T %d %d %d>"), throttleResponse.device, 
+      throttleResponse.speed, throttleResponse.direction);
     
     break;
   
@@ -125,7 +126,9 @@ void DCCEXParser::parse(const char *com) {
 
     switch(numArgs){
 
-    case 2:                     // argument is string with id number of turnout followed by zero (not thrown) or one (thrown)
+    // argument is string with id number of turnout followed by zero (not 
+    // thrown) or one (thrown)
+    case 2:   
       t=Turnout::get(p[0]);
       if(t!=NULL)
         t->activate(p[1], (DCC*) mainTrack);
@@ -133,7 +136,9 @@ void DCCEXParser::parse(const char *com) {
         CommManager::printf(F("<X>"));
       break;
 
-    case 3:                     // argument is string with id number of turnout followed by an address and subAddress
+    // argument is string with id number of turnout followed by an address and 
+    // subAddress
+    case 3:                     
       Turnout::create(p[0],p[1],p[2],1);
       break;
 
@@ -154,8 +159,10 @@ void DCCEXParser::parse(const char *com) {
     Output* o;
 
     switch(numArgs){
-
-    case 2:                     // argument is string with id number of output followed by zero (LOW) or one (HIGH)
+    
+    // argument is string with id number of output followed by zero (LOW) or 
+    // one (HIGH)
+    case 2:                     
       o=Output::get(p[0]);
       if(o!=NULL)
         o->activate(p[1]);
@@ -163,7 +170,9 @@ void DCCEXParser::parse(const char *com) {
         CommManager::printf(F("<X>"));
       break;
 
-    case 3:                     // argument is string with id number of output followed by a pin number and invert flag
+    // argument is string with id number of output followed by a pin number and 
+    // invert flag
+    case 3:                     
       Output::create(p[0],p[1],p[2],1);
       break;
 
@@ -183,7 +192,9 @@ void DCCEXParser::parse(const char *com) {
   case 'S':
     switch(numArgs){
 
-    case 3:                     // argument is string with id number of sensor followed by a pin number and pullUp indicator (0=LOW/1=HIGH)
+    // argument is string with id number of sensor followed by a pin number and 
+    // pullUp indicator (0=LOW/1=HIGH)
+    case 3:                     
       Sensor::create(p[0],p[1],p[2],1);
       break;
 
@@ -205,14 +216,11 @@ void DCCEXParser::parse(const char *com) {
 /***** SHOW STATUS OF ALL SENSORS ****/
 
   case 'Q':         // <Q>
-    /*
-    *    returns: the status of each sensor ID in the form <Q ID> (active) or <q ID> (not active)
-    */
     Sensor::status();
     break;
 
 
-/***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/
+/***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN TRACK  ****/
 
   case 'w':      // <w CAB CV VALUE>
     writeCVByteMainResponse wresponse;
@@ -221,7 +229,7 @@ void DCCEXParser::parse(const char *com) {
     
     break;
 
-/***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON MAIN OPERATIONS TRACK  ****/
+/***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON MAIN TRACK  ****/
 
   case 'b':      // <b CAB CV BIT VALUE>
     writeCVBitMainResponse bresponse;
@@ -230,7 +238,7 @@ void DCCEXParser::parse(const char *com) {
     
     break;
 
-/***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON PROGRAMMING TRACK  ****/
+/***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON PROG TRACK  ****/
 
   case 'W':      // <W CV VALUE CALLBACKNUM CALLBACKSUB>
 
@@ -238,7 +246,7 @@ void DCCEXParser::parse(const char *com) {
 
     break;
 
-/***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON PROGRAMMING TRACK  ****/
+/***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON PROG TRACK  ****/
 
   case 'B':      // <B CV BIT VALUE CALLBACKNUM CALLBACKSUB>
     
@@ -246,7 +254,7 @@ void DCCEXParser::parse(const char *com) {
     
     break;
 
-/***** READ CONFIGURATION VARIABLE BYTE FROM ENGINE DECODER ON PROGRAMMING TRACK  ****/
+/***** READ CONFIGURATION VARIABLE BYTE FROM ENGINE DECODER ON PROG TRACK  ****/
 
   case 'R':     // <R CV CALLBACKNUM CALLBACKSUB>        
     progTrack->readCV(p[0], p[1], p[2], cvResponse);
@@ -273,7 +281,8 @@ void DCCEXParser::parse(const char *com) {
 
   case 'c':     // <c>
 
-    // Todo: figure out the scale that JMRI is actually using and scale accordingly
+    // TODO(davidcutting42@gmail.com): When JMRI moves to milliamp reporting, 
+    // fix this.
     int currRead;
     currRead = mainTrack->hdw.getLastRead();
     CommManager::printf(F("<a %d>"), currRead);
@@ -287,9 +296,12 @@ void DCCEXParser::parse(const char *com) {
     for(int i=1;i<=mainTrack->numDevices;i++){
       if(mainTrack->speedTable[i].speed==0)
       continue;
-      CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i].speed, mainTrack->speedTable[i].forward);
+      CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i].speed, 
+        mainTrack->speedTable[i].forward);
     }
-    CommManager::printf(F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
+    CommManager::printf(
+        F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), 
+        "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
     CommManager::showInitInfo();
     Turnout::show();
     Output::show();
@@ -300,7 +312,8 @@ void DCCEXParser::parse(const char *com) {
 
   case 'E':     // <E>
     EEStore::store();
-    CommManager::printf(F("<e %d %d %d>"), EEStore::eeStore->data.nTurnouts, EEStore::eeStore->data.nSensors, EEStore::eeStore->data.nOutputs);
+    CommManager::printf(F("<e %d %d %d>"), EEStore::eeStore->data.nTurnouts, 
+      EEStore::eeStore->data.nSensors, EEStore::eeStore->data.nOutputs);
     break;
 
 /***** CLEAR SETTINGS IN EEPROM  ****/
@@ -324,10 +337,12 @@ void DCCEXParser::cvResponse(serviceModeResponse response) {
   {
   case READCV:
   case WRITECV:
-    CommManager::printf(F("<r%d|%d|%d %d>"), response.callback, response.callbackSub, response.cv, response.cvValue);
+    CommManager::printf(F("<r%d|%d|%d %d>"), response.callback, 
+      response.callbackSub, response.cv, response.cvValue);
     break;
   case WRITECVBIT:
-    CommManager::printf(F("<r%d|%d|%d %d %d>"), response.callback, response.callbackSub, response.cv, response.cvBitNum, response.cvValue);
+    CommManager::printf(F("<r%d|%d|%d %d %d>"), response.callback, 
+      response.callbackSub, response.cv, response.cvBitNum, response.cvValue);
     break;
   }
 }

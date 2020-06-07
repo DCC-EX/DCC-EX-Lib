@@ -35,15 +35,22 @@ ExternalEEPROM EEPROM;
 
 void EEStore::init(){
 #if defined(ARDUINO_ARCH_SAMD)
-  EEPROM.begin(0x50);     // Address for Microchip 24-series EEPROM with all three address pins grounded (0b1010000 = 0x50)
+  // Address for Microchip 24-series EEPROM with all three address pins grounded 
+  // (0b1010000 = 0x50)
+  EEPROM.begin(0x50);     
 #endif
 
   eeStore=(EEStore *)calloc(1,sizeof(EEStore));
   
-  EEPROM.get(0,eeStore->data);                                       // get eeStore data
+  EEPROM.get(0,eeStore->data);
 
-  if(strncmp(eeStore->data.id,EESTORE_ID,sizeof(EESTORE_ID))!=0){    // check to see that eeStore contains valid DCC++ ID
-    sprintf(eeStore->data.id,EESTORE_ID);                           // if not, create blank eeStore structure (no turnouts, no sensors) and save it back to EEPROM
+  // check to see that eeStore contains valid DCC++ ID
+  if(strncmp(eeStore->data.id,EESTORE_ID,sizeof(EESTORE_ID))!=0){    
+    // if not, create blank eeStore structure (no turnouts, no sensors) and save 
+    // it back to EEPROM
+
+    // TODO(davidcutting42@gmail.com): replace with EEStore::clear();
+    sprintf(eeStore->data.id,EESTORE_ID);                           
     eeStore->data.nTurnouts=0;
     eeStore->data.nSensors=0;
     eeStore->data.nOutputs=0;
@@ -57,7 +64,9 @@ void EEStore::init(){
 }
 
 void EEStore::clear(){
-  sprintf(eeStore->data.id,EESTORE_ID);                           // create blank eeStore structure (no turnouts, no sensors) and save it back to EEPROM
+  // create blank eeStore structure (no turnouts, no sensors) and save it back 
+  // to EEPROM
+  sprintf(eeStore->data.id,EESTORE_ID);                           
   eeStore->data.nTurnouts=0;
   eeStore->data.nSensors=0;
   eeStore->data.nOutputs=0;
