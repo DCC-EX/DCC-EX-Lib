@@ -24,6 +24,10 @@
 #include "../CommInterface/CommManager.h"
 #include "DCC.h"
 
+#if defined(ARDUINO_ARCH_SAMD)
+  #include "wiring_private.h"
+#endif
+
 const uint8_t railcom_decode[256] PROGMEM =
 {    INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
      INV,    INV,    INV,    INV,    INV,    INV,    INV,   NACK,
@@ -59,13 +63,71 @@ const uint8_t railcom_decode[256] PROGMEM =
      INV,    INV,    INV,    INV,    INV,    INV,    INV,    INV,
 };
 
-void DCC::readRailcomData() {
-  if(inRailcomCutout) return;
-  uint8_t bytes = hdw.railcomSerial()->available();
+void Railcom::setup() {
+  if(enable) {
+
+  #if defined(ARDUINO_ARCH_SAMD)
+    setupDAC();
+    if(serial == nullptr) {
+      serial = new Uart(sercom, rx_pin, tx_pin, rx_pad, tx_pad);
+    }
+  #endif
+
+    serial->begin(baud);
+
+  }
+}
+
+#if defined(ARDUINO_ARCH_SAMD)
+// Sets up the DAC on pin A0
+void Railcom::setupDAC() {
+  PORT->Group[0].PINCFG[2].bit.INEN = 0;      // Disable input on DAC pin
+  PORT->Group[0].PINCFG[2].bit.PULLEN = 0;    // Disable pullups
+  PORT->Group[0].DIRCLR.reg = 1 << 2;      // Disable digital outputs on DAC pin
+  PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;    // Enables pinmuxing
+  PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE_B; // Sets pin to analog
+
+  // // Select the voltage reference to the internal 1V reference
+  DAC->CTRLB.bit.REFSEL = 0x0;
+  while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+  // // Enable the DAC
+  DAC->CTRLA.bit.ENABLE = 1;
+  while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+  // // Enable the DAC as an external output
+  DAC->CTRLB.bit.EOEN = 1;
+  while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+  // Set the output voltage   
+  DAC->CTRLB.bit.LEFTADJ = 0;
+  while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+  DAC->DATA.reg = dac_value;    // ~10mV reference voltage
+  while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+}
+#endif
+
+// TODO(davidcutting42@gmail.com): test on AVR
+void Railcom::enableRecieve(uint8_t on) {
+  if(on) {
+  #if defined(ARDUINO_ARCH_SAMD)
+    pinPeripheral(rx_pin, rx_mux);
+  #else
+    railcom_serial->begin(railcom_baud);
+  #endif    
+  }
+  else {
+  #if defined(ARDUINO_ARCH_SAMD)
+    pinPeripheral(rx_pin, PIO_INPUT);
+  #else
+    railcom_serial->end();
+  #endif    
+  }
+}
+
+void Railcom::readData() {
+  uint8_t bytes = serial->available();
   if(bytes > 8) bytes = 8;
   uint8_t data[8];
-  hdw.railcomSerial()->readBytes(data, bytes);
-  if(!railcomData) return;
+  serial->readBytes(data, bytes);
+
   for (size_t i = 0; i < bytes; i++)
   {
     data[i] = pgm_read_byte_near(railcom_decode[data[i]]);
@@ -77,6 +139,4 @@ void DCC::readRailcomData() {
 
   //CommManager::printf("<F %d %X %X %X %X %X %X %X %X>\n\r", lastID, data[0], 
   //  data[1], data[2], data[3], data[4], data[5], data[6], data[7]); 
-
-  railcomData = false;
 }

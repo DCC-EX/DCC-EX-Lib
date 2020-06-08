@@ -39,7 +39,7 @@ bool DCC::interrupt1() {
     if(generateRailcomCutout) {
       hdw.setBrake(true);             // Start the cutout
       inRailcomCutout = true;         
-      hdw.enableRailcomSerial(true);  // Turn on the serial port so we can RX
+      hdw.railcom.enableRecieve(true);  // Turn on the serial port so we can RX
     }
     interruptState = 2;
     break;
@@ -74,7 +74,8 @@ bool DCC::interrupt1() {
   case 16:
     hdw.setBrake(false);      // Stop the cutout
     hdw.setSignal(LOW);     // Send out 29us of signal before case 0 flips it
-    hdw.enableRailcomSerial(false); // Turn off serial so we don't get garbage
+    hdw.railcom.readData();
+    hdw.railcom.enableRecieve(false); // Turn off serial so we don't get garbage
     // TODO(davidcutting42@gmail.com): Pull railcom serial out here and link it
     // to the unique ID so we don't lose track of it later. Could help eliminate
     // need for more local variables like railcomData and lastID.
@@ -97,10 +98,8 @@ void DCC::interrupt2() {
     currentBit=true;                // Send a one bit (preambles are one)
 
     // If we're on the first preamble bit and railcom is enabled, send out a 
-    // railcom cutout. We wait for one preamble bit because we need to send out 
-    // a stop bit to terminate the preceding packet.
-    if((hdw.getPreambles() - remainingPreambles == 1) && 
-      hdw.getRailcomEnable()) {
+    // railcom cutout. 
+    if((hdw.getPreambles() - remainingPreambles == 0) && hdw.railcom.enable) {
       generateRailcomCutout = true; 
       remainingPreambles -= 4;    // We're skipping 4 bits in the cutout
       return;

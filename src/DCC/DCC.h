@@ -107,9 +107,6 @@ public:
   void loop() {
     updateSpeed();
     hdw.checkCurrent();
-    if(hdw.getRailcomEnable()) {
-      readRailcomData();
-    }
     if(hdw.getIsProgTrack()) {
       checkAck();
     }
@@ -135,7 +132,6 @@ public:
 
   Hardware hdw;
 
-
   // TODO(davidcutting42@gmail.com): determine if 255 devices is enough.
   uint8_t numDevices;
 
@@ -149,7 +145,6 @@ public:
   };
   // Speed table holds speed of all devices on the bus that have been set since
   // startup. 
-  // TODO(davidcutting42@gmail.com): turn into compile-time array
   Speed* speedTable;
 
 private:

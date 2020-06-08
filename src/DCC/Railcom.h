@@ -22,6 +22,10 @@
 
 #include <Arduino.h>
 
+#if defined(ARDUINO_ARCH_AVR)
+  #include <HardwareSerial.h>
+#endif
+
 extern const uint8_t railcom_decode[256];
 
 /// invalid value (not conforming to the 4bit weighting requirement)
@@ -42,9 +46,52 @@ static const uint8_t RESVD2 = 0xFA;
 /// Reserved for future expansion.
 static const uint8_t RESVD3 = 0xF8;
 
-struct Railcom
+class Railcom
 {
-  enum
+public:
+  uint8_t enable;
+
+  Railcom() {}
+  void setup();
+
+  void enableRecieve(uint8_t on);
+  void readData();
+
+  // Railcom config modification
+  void config_setEnable(uint8_t isRailcom) { enable = isRailcom; }
+  void config_setRxPin(uint8_t pin) { rx_pin = pin; }
+  void config_setTxPin(uint8_t pin) { tx_pin = pin; }
+#if defined(ARDUINO_ARCH_SAMD) 
+  Uart* getSerial() { return serial; }
+  void config_setSerial(Uart* serial) { this->serial = serial; }
+  void config_setSercom(SERCOM* sercom) { this->sercom = sercom; }
+  void config_setRxMux(EPioType mux) { rx_mux = mux; }
+  void config_setRxPad(SercomRXPad pad) { rx_pad = pad; }
+  void config_setTxPad(SercomUartTXPad pad) { tx_pad = pad; }
+  void config_setDACValue(uint8_t value) { dac_value = value; }
+#else
+  HardwareSerial* getSerial() { return serial; }
+  void config_setSerial(HardwareSerial* serial) { railcom_serial = serial; }
+#endif
+
+private:
+  uint8_t rx_pin;
+  uint8_t tx_pin;     
+  static const long baud = 250000;
+#if defined(ARDUINO_ARCH_SAMD) 
+  Uart* serial = nullptr;
+  SERCOM* sercom;
+  EPioType rx_mux;
+  SercomRXPad rx_pad;
+  SercomUartTXPad tx_pad;
+  uint8_t dac_value;      // Sets the DAC according to the calculation 
+                          // in the datasheet for a 1V reference
+  void setupDAC();       // Enable DAC for LM393 reference
+#else
+  HardwareSerial* serial;
+#endif
+
+  enum : uint8_t
   {
     GARBAGE,
     ACK,
@@ -57,8 +104,6 @@ struct Railcom
     MOB_DYN,
     MOB_SUBID
   };
-
-  // static void parseData(const uint8_t data[8]);
 };
 
 #endif  // COMMANDSTATION_DCC_RAILCOM_H_

@@ -23,6 +23,8 @@
 #include <Arduino.h>
 #include <ArduinoTimers.h>
 
+#include "Railcom.h"
+
 // Time between current samples (millis)
 const int kCurrentSampleTime = 1;
 
@@ -49,6 +51,8 @@ public:
   Hardware() {}
   void setup();
 
+  Railcom railcom;
+
   // General configuration and status getter functions
   inline bool getStatus() { return digitalRead(enable_pin); }
   inline bool getIsProgTrack() { return is_prog_track; }
@@ -70,16 +74,6 @@ public:
   inline void setBaseCurrent() { baseMilliamps = getMilliamps(readCurrent()); }
   inline float getBaseCurrent() { return baseMilliamps; }
   
-  // Railcom functions
-#if defined(ARDUINO_ARCH_SAMD) 
-  void enableRailcomDAC();
-  Uart* railcomSerial() { return railcom_serial; }
-#else
-  HardwareSerial* railcomSerial() { return railcom_serial; }
-#endif
-  void enableRailcomSerial(bool on);
-  void readRailcomData();
-  bool getRailcomEnable() { return enable_railcom; }
 
   // General config modification
   void config_setChannelName(const char *name) { channel_name = name; }
@@ -103,23 +97,6 @@ public:
   void config_setMaxValue(int maxValue) { maximum_value = maxValue; }
   void config_setAmpsPerVolt(float ampsPerVolt) { amps_per_volt = ampsPerVolt; }
 
-  // Railcom config modification
-  void config_setRailcom(bool isRailcom) { enable_railcom = isRailcom; }
-  void config_setRailcomRxPin(uint8_t pin) { railcom_rx_pin = pin; }
-  void config_setRailcomTxPin(uint8_t pin) { railcom_tx_pin = pin; }
-  void config_setRailcomBaud(long baud) { railcom_baud = baud; }
-#if defined(ARDUINO_ARCH_SAMD) 
-  void config_setRailcomSerial(Uart* serial) { railcom_serial = serial; }
-  void config_setRailcomSercom(SERCOM* sercom) { railcom_sercom = sercom; }
-  void config_setRailcomRxMux(EPioType mux) { railcom_rx_mux = mux; }
-  void config_setRailcomRxPad(SercomRXPad pad) { railcom_rx_pad = pad; }
-  void config_setRailcomTxPad(SercomUartTXPad pad) { railcom_tx_pad = pad; }
-  void config_setRailcomDACValue(uint8_t value) { railcom_dac_value = value; }
-#else
-  void config_setRailcomSerial(HardwareSerial* serial) 
-    { railcom_serial = serial; }
-#endif
-
 private:
   float getMilliamps(uint32_t reading);
   inline uint32_t readCurrent() { return analogRead(current_sense_pin); }
@@ -141,25 +118,6 @@ private:
   int trigger_value;          // Trigger value in milliamps
   int maximum_value;          // Maximum current in milliamps
   float amps_per_volt;        
-
-  // Railcom stuff
-  bool enable_railcom;
-  uint8_t railcom_rx_pin;
-  uint8_t railcom_tx_pin;     // Doesn't do anything, but valid pin must be 
-                              // specified to instantiate railcom_serial on some 
-                              // architectures
-  long railcom_baud;
-#if defined(ARDUINO_ARCH_SAMD) 
-  Uart* railcom_serial;
-  SERCOM* railcom_sercom;
-  EPioType railcom_rx_mux;
-  SercomRXPad railcom_rx_pad;
-  SercomUartTXPad railcom_tx_pad;
-  uint8_t railcom_dac_value;      // Sets the DAC according to the calculation 
-                                  // in the datasheet for a 1V reference
-#else
-  HardwareSerial* railcom_serial;
-#endif
 
   // Current reading variables
   float reading;

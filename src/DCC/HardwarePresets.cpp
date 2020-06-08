@@ -40,7 +40,7 @@ DCC* DCC::Create_Arduino_L298Shield_Main(uint8_t numDev) {
 
   hdw.config_setPreambleBits(16);
 
-  hdw.config_setRailcom(false);
+  hdw.railcom.config_setEnable(false);
 
   return new DCC(numDev, hdw);
 }
@@ -66,7 +66,7 @@ DCC* DCC::Create_Arduino_L298Shield_Prog(uint8_t numDev) {
 
   hdw.config_setPreambleBits(22);
 
-  hdw.config_setRailcom(false);
+  hdw.railcom.config_setEnable(false);
 
   return new DCC(numDev, hdw);
 }
@@ -94,7 +94,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Main(uint8_t numDev) {
 
   hdw.config_setPreambleBits(16);
 
-  hdw.config_setRailcom(false);
+  hdw.railcom.config_setEnable(false);
 
   return new DCC(numDev, hdw);
 }
@@ -120,7 +120,7 @@ DCC* DCC::Create_Pololu_MC33926Shield_Prog(uint8_t numDev) {
 
   hdw.config_setPreambleBits(22);
 
-  hdw.config_setRailcom(false);
+  hdw.railcom.config_setEnable(false);
 
   return new DCC(numDev, hdw);
 }
@@ -149,15 +149,15 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(uint8_t numDev) {
 
   hdw.config_setPreambleBits(16);
 
-  hdw.config_setRailcom(true);
-  hdw.config_setRailcomRxPin(5);
-  hdw.config_setRailcomTxPin(2);   
-  hdw.config_setRailcomBaud(250000);
-  hdw.config_setRailcomSerial(nullptr); 
-  hdw.config_setRailcomSercom(&sercom4);
-  hdw.config_setRailcomRxMux(PIO_SERCOM_ALT);
-  hdw.config_setRailcomRxPad(SERCOM_RX_PAD_3);
-  hdw.config_setRailcomTxPad(UART_TX_PAD_2);
+  hdw.railcom.config_setEnable(true);
+  hdw.railcom.config_setRxPin(5);
+  hdw.railcom.config_setTxPin(2);   
+  hdw.railcom.config_setSerial(nullptr); 
+  hdw.railcom.config_setSercom(&sercom4);
+  hdw.railcom.config_setRxMux(PIO_SERCOM_ALT);
+  hdw.railcom.config_setRxPad(SERCOM_RX_PAD_3);
+  hdw.railcom.config_setTxPad(UART_TX_PAD_2);
+  hdw.railcom.config_setDACValue(0x7);
 
   return new DCC(numDev, hdw);
 }
@@ -183,8 +183,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(uint8_t numDev) {
 
   hdw.config_setPreambleBits(22);
 
-  hdw.config_setRailcom(false);
-  hdw.config_setRailcomRxPin(13);
+  hdw.railcom.config_setEnable(false);
 
   return new DCC(numDev, hdw);
 }
