@@ -74,15 +74,10 @@ bool DCC::interrupt1() {
   case 16:
     hdw.setBrake(false);      // Stop the cutout
     hdw.setSignal(LOW);     // Send out 29us of signal before case 0 flips it
-    hdw.railcom.readData();
     hdw.railcom.enableRecieve(false); // Turn off serial so we don't get garbage
-    // TODO(davidcutting42@gmail.com): Pull railcom serial out here and link it
-    // to the unique ID so we don't lose track of it later. Could help eliminate
-    // need for more local variables like railcomData and lastID.
-    railcomData = true;     // There is data available on the serial port
+    hdw.railcom.readData(transmitID); // Read the data out and attribute to ID
     generateRailcomCutout = false;    // Don't generate another railcom cutout
     inRailcomCutout = false;        // We aren't in a railcom pulse
-    lastID = transmitID;          // Store the transmitID for railcom
     interruptState = 0;         // Go back to start of new bit
     break;
   default:

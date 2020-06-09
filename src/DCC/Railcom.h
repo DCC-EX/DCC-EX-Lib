@@ -22,6 +22,8 @@
 
 #include <Arduino.h>
 
+#include "Queue.h"
+
 #if defined(ARDUINO_ARCH_AVR)
   #include <HardwareSerial.h>
 #endif
@@ -29,22 +31,54 @@
 extern const uint8_t railcom_decode[256];
 
 /// invalid value (not conforming to the 4bit weighting requirement)
-static const uint8_t INV = 0xFF;
+const uint8_t INV = 0xFF;
 /// Railcom ACK; the decoder received the message ok. NOTE: some early
 /// software versions may have ACK and NACK exchanged.
-static const uint8_t ACK = 0xFE;
+const uint8_t ACK = 0xFE;
 /// The decoder rejected the packet.
-static const uint8_t NACK = 0xFD;
+const uint8_t NACK = 0xFD;
 /// The decoder is busy; send the packet again. This is typically returned
 /// when a POM CV write is still pending; the caller must re-try sending the
 /// packet later.
-static const uint8_t BUSY = 0xFC;
+const uint8_t BUSY = 0xFC;
 /// Reserved for future expansion.
-static const uint8_t RESVD1 = 0xFB;
+const uint8_t RESVD1 = 0xFB;
 /// Reserved for future expansion.
-static const uint8_t RESVD2 = 0xFA;
+const uint8_t RESVD2 = 0xFA;
 /// Reserved for future expansion.
-static const uint8_t RESVD3 = 0xF8;
+const uint8_t RESVD3 = 0xF8;
+
+
+enum railcom_type : uint8_t {
+  MOB,
+  STAT,
+  NONE
+};
+
+enum railcom_mob_id : uint8_t {
+  MOB_POM = 0,
+  MOB_ADR_HIGH = 1,
+  MOB_ADR_LOW = 2,
+  MOB_EXT = 3,
+  MOB_DYN = 7,
+  MOB_SUBID = 12
+};
+
+enum railcom_stat_id : uint8_t {
+  STAT_POM = 0,
+  STAT_STAT1 = 4,
+  STAT_TIME = 5,
+  STAT_ERROR = 6,
+  STAT_DYN = 7,
+  STAT_STAT2 = 8,
+  STAT_SUBID = 12
+};
+
+struct Datagram {
+  uint8_t type;
+  uint8_t data[6];  // We store six bits per byte for a max of 36 bits
+
+};
 
 class Railcom
 {
@@ -55,7 +89,8 @@ public:
   void setup();
 
   void enableRecieve(uint8_t on);
-  void readData();
+  void readData(uint16_t dataID);
+  void processData();
 
   // Railcom config modification
   void config_setEnable(uint8_t isRailcom) { enable = isRailcom; }
@@ -75,6 +110,14 @@ public:
 #endif
 
 private:
+  struct RailcomFeedback {
+    uint8_t data[8]; 
+    uint16_t dataID; 
+    railcom_type type;   // MOB or STAT or NONE
+  };
+
+  Queue<RailcomFeedback, 3> processBuffer;
+
   uint8_t rx_pin;
   uint8_t tx_pin;     
   static const long baud = 250000;
