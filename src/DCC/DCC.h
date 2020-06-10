@@ -110,6 +110,9 @@ public:
     if(hdw.getIsProgTrack()) {
       checkAck();
     }
+    else {
+      hdw.railcom.processData();
+    }
   }
 
   int setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, bool tDirection, 

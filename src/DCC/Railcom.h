@@ -48,13 +48,6 @@ const uint8_t RESVD2 = 0xFA;
 /// Reserved for future expansion.
 const uint8_t RESVD3 = 0xF8;
 
-
-enum railcom_type : uint8_t {
-  MOB,
-  STAT,
-  NONE
-};
-
 enum railcom_mob_id : uint8_t {
   MOB_POM = 0,
   MOB_ADR_HIGH = 1,
@@ -72,12 +65,6 @@ enum railcom_stat_id : uint8_t {
   STAT_DYN = 7,
   STAT_STAT2 = 8,
   STAT_SUBID = 12
-};
-
-struct Datagram {
-  uint8_t type;
-  uint8_t data[6];  // We store six bits per byte for a max of 36 bits
-
 };
 
 class Railcom
@@ -110,14 +97,11 @@ public:
 #endif
 
 private:
-  struct RailcomFeedback {
-    uint8_t data[8]; 
-    uint16_t dataID; 
-    railcom_type type;   // MOB or STAT or NONE
-  };
+  uint8_t rawData[8];
+  uint16_t uniqueID;
+  bool dataReady = false;
 
-  Queue<RailcomFeedback, 3> processBuffer;
-
+  // Railcom hardware declarations
   uint8_t rx_pin;
   uint8_t tx_pin;     
   static const long baud = 250000;
@@ -133,20 +117,6 @@ private:
 #else
   HardwareSerial* serial;
 #endif
-
-  enum : uint8_t
-  {
-    GARBAGE,
-    ACK,
-    NACK,
-    BUSY,
-    MOB_POM,
-    MOB_ADRHIGH,
-    MOB_ADRLOW,
-    MOB_EXT,
-    MOB_DYN,
-    MOB_SUBID
-  };
 };
 
 #endif  // COMMANDSTATION_DCC_RAILCOM_H_

@@ -108,6 +108,9 @@ void Railcom::setupDAC() {
 void Railcom::enableRecieve(uint8_t on) {
   if(on) {
   #if defined(ARDUINO_ARCH_SAMD)
+    while(serial->available()) {
+      serial->read();   // Flush the buffer so we don't get a bunch of garbage
+    }
     pinPeripheral(rx_pin, rx_mux);
   #else
     serial->begin(baud);
@@ -124,120 +127,41 @@ void Railcom::enableRecieve(uint8_t on) {
 
 // This is called from an interrupt routine, so it's gotta be quick. DON'T try
 // to write to the serial port here. You'll destroy the waveform.
-void Railcom::readData(uint16_t dataID) {
-  RailcomFeedback feedback;
+void Railcom::readData(uint16_t _uniqueID) {
+  if(dataReady) return;
   
   uint8_t bytes = serial->available();
   if(bytes > 8) bytes = 8;
-  serial->readBytes(feedback.data, bytes);
+  serial->readBytes(rawData, bytes);
 
-  feedback.dataID = dataID;
-
-  processBuffer.push(feedback);
+  uniqueID = _uniqueID;
+  
+  if(bytes > 0)
+    dataReady = true;
 }
 
 void Railcom::processData() {
-  if(processBuffer.count() > 0) {
-    noInterrupts();
-    RailcomFeedback feedback = processBuffer.pop();
-    interrupts();
+  if(dataReady) {
+    CommManager::printf(F("Railcom RAW %d = %x %x %x %x %x %x %x %x\n\r"), uniqueID,
+      rawData[0], rawData[1], rawData[2], rawData[3], 
+      rawData[4], rawData[5], rawData[6], rawData[7]
+    );
 
-    // Convert each byte of the recieved data from 4/8 codes to railcom data
-    for(size_t i = 0; i < 8; i++) {
-      feedback.data[i] = pgm_read_byte_near(railcom_decode[feedback.data[i]]);
-      if(feedback.data[i] == INV) return;
-    }
-
-    // Break the data into channel 1 and channel 2
-    // Channel 1
-    // Channel 1 is always a 12-bit datagram
-    uint8_t ch1ID = (feedback.data[0] >> 2) & 0xF;
-
-    // Channel 2
-    // First grab the identifier from the first 4 bits of the datagram
-    // 00IIIIDD >> 2 = 0000IIII, 0000IIII & 0xF = IIII 
-    // where I is ID and D is data. & 0xF isn't explicitly needed, but is safe.
-    uint8_t ch2ID = (feedback.data[2] >> 2) & 0xF;
-    uint32_t data;
-
-    if(feedback.type == MOB) {
-      switch (ch2ID)
-      {
-      case MOB_POM:
-        // There is either a single 12-bit datagram or a single 36-bit datagram
-        // To start, we will just handle the 12-bit case
-        data = 
-          ((feedback.data[2] & 0x3) << 6) | 
-          (feedback.data[3] & 0x3F);
-        // data = 
-        //   ((feedback.data[2] & 0x3) << 30) | 
-        //   ((feedback.data[3] & 0x3F) << 24) |
-        //   ((feedback.data[4] & 0x3F) << 18) | 
-        //   ((feedback.data[5] & 0x3F) << 12) |
-        //   ((feedback.data[6] & 0x3F) << 6)  |
-        //   (feedback.data[7] & 0x3F);
-        break;
-      case MOB_EXT:
-        // There is one 18 bit datagram
-        data = 
-          ((feedback.data[2] & 0x3) << 12) |
-          ((feedback.data[3] & 0x3F) << 6) | 
-          (feedback.data[4] & 0x3F);
-        break;
-      case MOB_DYN:
-        // There are one or two 18-bit datagrams
-        data = 
-          ((feedback.data[2] & 0x3) << 12) |
-          ((feedback.data[3] & 0x3F) << 6) | 
-          (feedback.data[4] & 0x3F) |
-          ((feedback.data[5] & 0x3) << 28) |
-          ((feedback.data[6] & 0x3F) << 22) | 
-          (feedback.data[7] & 0x3F << 16);
-        break;
-      case MOB_ADR_HIGH:  // Not valid because we're in channel 2 now
-      case MOB_ADR_LOW:   // Not valid because we're in channel 2 now
-      case MOB_SUBID:     // Manufacturer specific, not supported at the time
-        return;  
-      }
-    } 
-    else if(feedback.type == STAT) {
-      switch (ch2ID)
-      {
-      case STAT_POM:
-        // There is either a single 12-bit datagram or a single 36-bit datagram
-        // To start, we will just handle the 12-bit case
-        data = 
-          ((feedback.data[2] & 0x3) << 6) | 
-          (feedback.data[3] & 0x3F);
-        // data = 
-        //   ((feedback.data[2] & 0x3) << 30) | 
-        //   ((feedback.data[3] & 0x3F) << 24) |
-        //   ((feedback.data[4] & 0x3F) << 18) | 
-        //   ((feedback.data[5] & 0x3F) << 12) |
-        //   ((feedback.data[6] & 0x3F) << 6)  |
-        //   (feedback.data[7] & 0x3F);
-        break;
-      case STAT_STAT1:
-      case STAT_ERROR:
-      case STAT_DYN:
-      case STAT_STAT2:
-        // There is one 12-bit datagram
-        data = 
-          ((feedback.data[2] & 0x3) << 6) | 
-          (feedback.data[3] & 0x3F);
-        break;
-      case STAT_SUBID:  // Manufacturer specific, not supported at this time
-        return;  
+    for (size_t i = 0; i < 8; i++)
+    {
+      rawData[i] = pgm_read_byte_near(&railcom_decode[rawData[i]]);
+      if(rawData[i] == INV) {
+        dataReady = false;
+        return;
       }
     }
-    else if(feedback.type == NONE) {
-      return;
-    }
-
-
-
-
-
-
+    
+    CommManager::printf(F("Railcom DCD %d = %x %x %x %x %x %x %x %x\n\r"), uniqueID,
+      rawData[0], rawData[1], rawData[2], rawData[3], 
+      rawData[4], rawData[5], rawData[6], rawData[7]
+    );
+    
+    dataReady = false;
+    return;
   }
 }
