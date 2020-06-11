@@ -43,8 +43,6 @@ void Hardware::setup() {
   // Set up the current sense pin
   pinMode(current_sense_pin, INPUT);
 
-  railcom.setup();
-
   tripped = false;
 }
 
@@ -58,13 +56,15 @@ void Hardware::setSignal(bool high) {
     writePin(signal_b_pin, !high);
 }
 
+// setBrake(true) puts the bus into "brake" mode and connects leads
+// setBrake(false) puts the bus into "Hi-Z" mode and disconnects leads
 void Hardware::setBrake(bool on) {
   if(control_scheme == DUAL_DIRECTION_INVERTED) {
     writePin(signal_a_pin, on);
     writePin(signal_b_pin, on);
   }
   else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
-    writePin(signal_b_pin, signal_b_default?on:!on);
+    writePin(signal_b_pin, signal_b_default?!on:on);
   }
 }
 

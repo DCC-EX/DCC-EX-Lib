@@ -21,7 +21,7 @@
 #define COMMANDSTATION_ACCESSORIES_TURNOUTS_H_
 
 #include <Arduino.h>
-#include "../DCC/DCC.h"
+#include "../DCC/DCCMain.h"
 
 struct TurnoutData {
   uint8_t tStatus;
@@ -35,7 +35,7 @@ struct Turnout{
   int num;
   struct TurnoutData data;
   Turnout *nextTurnout;
-  void activate(int s, DCC* track);
+  void activate(int s, DCCMain* track);
   static Turnout* get(int);
   static void remove(int);
   static void load();

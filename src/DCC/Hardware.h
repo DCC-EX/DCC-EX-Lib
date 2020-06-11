@@ -23,8 +23,6 @@
 #include <Arduino.h>
 #include <ArduinoTimers.h>
 
-#include "Railcom.h"
-
 // Time between current samples (millis)
 const int kCurrentSampleTime = 1;
 
@@ -50,8 +48,6 @@ class Hardware {
 public:
   Hardware() {}
   void setup();
-
-  Railcom railcom;
 
   // General configuration and status getter functions
   inline bool getStatus() { return digitalRead(enable_pin); }

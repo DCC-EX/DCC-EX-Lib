@@ -22,7 +22,6 @@
 #include <Arduino.h>
 
 #include "CommManager.h"
-#include "../DCC/DCC.h"
 #include "DCCEXParser.h"
 
 SerialInterface::SerialInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {

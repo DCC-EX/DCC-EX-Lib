@@ -21,7 +21,8 @@
 #define COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_
 
 #include "CommInterface.h"
-#include "../DCC/DCC.h"
+#include "../DCC/DCCMain.h"
+#include "../DCC/DCCService.h"
 
 class CommManager {
 public:
