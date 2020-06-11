@@ -28,12 +28,12 @@
 #include "../CommandStation.h"
 #include "CommManager.h"
 
-DCC* DCCEXParser::mainTrack;
-DCC* DCCEXParser::progTrack;
+DCCMain* DCCEXParser::mainTrack;
+DCCService* DCCEXParser::progTrack;
 
 int DCCEXParser::p[MAX_PARAMS];
 
-void DCCEXParser::init(DCC* mainTrack_, DCC* progTrack_) {
+void DCCEXParser::init(DCCMain* mainTrack_, DCCService* progTrack_) {
   mainTrack = mainTrack_;
   progTrack = progTrack_;
 } 
@@ -131,7 +131,7 @@ void DCCEXParser::parse(const char *com) {
     case 2:   
       t=Turnout::get(p[0]);
       if(t!=NULL)
-        t->activate(p[1], (DCC*) mainTrack);
+        t->activate(p[1], (DCCMain*) mainTrack);
       else
         CommManager::printf(F("<X>"));
       break;

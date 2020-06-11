@@ -17,10 +17,12 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "DCC.h"
+#include "DCCMain.h"
+#include "DCCService.h"
 
-DCC* DCC::Create_Arduino_L298Shield_Main(uint8_t numDev) {
+DCCMain* DCCMain::Create_Arduino_L298Shield_Main(uint8_t numDevices) {
   Hardware hdw;
+  Railcom rcom;
 
   hdw.config_setChannelName("MAIN");
 
@@ -40,12 +42,12 @@ DCC* DCC::Create_Arduino_L298Shield_Main(uint8_t numDev) {
 
   hdw.config_setPreambleBits(16);
 
-  hdw.railcom.config_setEnable(false);
+  rcom.config_setEnable(false);
 
-  return new DCC(numDev, hdw);
+  return new DCCMain(numDevices, hdw, rcom);
 }
 
-DCC* DCC::Create_Arduino_L298Shield_Prog(uint8_t numDev) {
+DCCService* DCCService::Create_Arduino_L298Shield_Prog() {
   Hardware hdw;
   
   hdw.config_setChannelName("PROG");
@@ -66,15 +68,14 @@ DCC* DCC::Create_Arduino_L298Shield_Prog(uint8_t numDev) {
 
   hdw.config_setPreambleBits(22);
 
-  hdw.railcom.config_setEnable(false);
-
-  return new DCC(numDev, hdw);
+  return new DCCService(hdw);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-DCC* DCC::Create_Pololu_MC33926Shield_Main(uint8_t numDev) {
+DCCMain* DCCMain::Create_Pololu_MC33926Shield_Main(uint8_t numDevices) {
   Hardware hdw;
+  Railcom rcom;
 
   hdw.config_setChannelName("MAIN");
 
@@ -94,12 +95,12 @@ DCC* DCC::Create_Pololu_MC33926Shield_Main(uint8_t numDev) {
 
   hdw.config_setPreambleBits(16);
 
-  hdw.railcom.config_setEnable(false);
+  rcom.config_setEnable(false);
 
-  return new DCC(numDev, hdw);
+  return new DCCMain(numDevices, hdw, rcom);
 }
 
-DCC* DCC::Create_Pololu_MC33926Shield_Prog(uint8_t numDev) {
+DCCService* DCCService::Create_Pololu_MC33926Shield_Prog() {
   Hardware hdw;
   
   hdw.config_setChannelName("PROG");
@@ -120,17 +121,16 @@ DCC* DCC::Create_Pololu_MC33926Shield_Prog(uint8_t numDev) {
 
   hdw.config_setPreambleBits(22);
 
-  hdw.railcom.config_setEnable(false);
-
-  return new DCC(numDev, hdw);
+  return new DCCService(hdw);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if defined(ARDUINO_ARCH_SAMD)
 // TI DRV8874 on custom board
-DCC* DCC::Create_WSM_SAMCommandStation_Main(uint8_t numDev) {
+DCCMain* DCCMain::Create_WSM_SAMCommandStation_Main(uint8_t numDevices) {
   Hardware hdw;
+  Railcom rcom;
 
   hdw.config_setChannelName("MAIN");
 
@@ -149,21 +149,21 @@ DCC* DCC::Create_WSM_SAMCommandStation_Main(uint8_t numDev) {
 
   hdw.config_setPreambleBits(16);
 
-  hdw.railcom.config_setEnable(true);
-  hdw.railcom.config_setRxPin(5);
-  hdw.railcom.config_setTxPin(2);   
-  hdw.railcom.config_setSerial(nullptr); 
-  hdw.railcom.config_setSercom(&sercom4);
-  hdw.railcom.config_setRxMux(PIO_SERCOM_ALT);
-  hdw.railcom.config_setRxPad(SERCOM_RX_PAD_3);
-  hdw.railcom.config_setTxPad(UART_TX_PAD_2);
-  hdw.railcom.config_setDACValue(0x7);
+  rcom.config_setEnable(true);
+  rcom.config_setRxPin(5);
+  rcom.config_setTxPin(2);   
+  rcom.config_setSerial(nullptr); 
+  rcom.config_setSercom(&sercom4);
+  rcom.config_setRxMux(PIO_SERCOM_ALT);
+  rcom.config_setRxPad(SERCOM_RX_PAD_3);
+  rcom.config_setTxPad(UART_TX_PAD_2);
+  rcom.config_setDACValue(0x7);
 
-  return new DCC(numDev, hdw);
+  return new DCCMain(numDevices, hdw, rcom);
 }
 
 // TI DRV8876 on custom board
-DCC* DCC::Create_WSM_SAMCommandStation_Prog(uint8_t numDev) {
+DCCService* DCCService::Create_WSM_SAMCommandStation_Prog() {
   Hardware hdw;
   
   hdw.config_setChannelName("PROG");
@@ -183,9 +183,7 @@ DCC* DCC::Create_WSM_SAMCommandStation_Prog(uint8_t numDev) {
 
   hdw.config_setPreambleBits(22);
 
-  hdw.railcom.config_setEnable(false);
-
-  return new DCC(numDev, hdw);
+  return new DCCService(hdw);
 }
 
 #endif // ARCH_ARDUINO_SAMD

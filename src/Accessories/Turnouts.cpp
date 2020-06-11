@@ -26,7 +26,7 @@
 #include <EEPROM.h>
 #endif
 
-void Turnout::activate(int s, DCC* track){
+void Turnout::activate(int s, DCCMain* track){
   // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
   data.tStatus=(s>0);   
   setAccessoryResponse response;

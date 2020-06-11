@@ -24,7 +24,8 @@
 #include "CommInterface/CommManager.h"
 #include "CommInterface/CommInterfaceSerial.h"
 #include "CommInterface/DCCEXParser.h"
-#include "DCC/DCC.h"
+#include "DCC/DCCMain.h"
+#include "DCC/DCCService.h"
 
 #if defined (ARDUINO_ARCH_SAMD)
   #include "CommInterface/CommInterfaceUSB.h"

@@ -43,8 +43,6 @@ void Hardware::setup() {
   // Set up the current sense pin
   pinMode(current_sense_pin, INPUT);
 
-  railcom.setup();
-
   tripped = false;
 }
 

@@ -20,7 +20,6 @@
 #include "Sensors.h"
 
 #include "../CommInterface/CommManager.h"
-#include "../DCC/DCC.h"
 #include "EEStore.h"
 
 #if !defined(ARDUINO_ARCH_SAMD)
