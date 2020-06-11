@@ -123,7 +123,7 @@ public:
   void config_setDACValue(uint8_t value) { dac_value = value; }
 #else
   HardwareSerial* getSerial() { return serial; }
-  void config_setSerial(HardwareSerial* serial) { railcom_serial = serial; }
+  void config_setSerial(HardwareSerial* serial) { this->serial = serial; }
 #endif
   void config_setPOMResponseCallback(void (*_POMResponse)(RailcomPOMResponse)) {
     POMResponse = _POMResponse;
