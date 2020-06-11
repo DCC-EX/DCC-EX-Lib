@@ -75,7 +75,8 @@ bool DCC::interrupt1() {
     hdw.setBrake(false);      // Stop the cutout
     hdw.setSignal(LOW);     // Send out 29us of signal before case 0 flips it
     hdw.railcom.enableRecieve(false); // Turn off serial so we don't get garbage
-    hdw.railcom.readData(transmitID); // Read the data out and attribute to ID
+    // Read the data out and tag it with identifying info
+    hdw.railcom.readData(transmitID, transmitType, transmitAddress); 
     generateRailcomCutout = false;    // Don't generate another railcom cutout
     inRailcomCutout = false;        // We aren't in a railcom pulse
     interruptState = 0;         // Go back to start of new bit
@@ -137,6 +138,8 @@ void DCC::interrupt2() {
         transmitLength=pendingPacket.length;
         transmitRepeats=pendingPacket.repeats;
         transmitID=pendingPacket.transmitID;
+        transmitAddress=pendingPacket.address;
+        transmitType=pendingPacket.type;
       }
       else {
         // Load an idle packet or a reset packet

@@ -123,9 +123,9 @@ public:
   int setAccessory(uint16_t address, uint8_t number, bool activate, 
     setAccessoryResponse& response);
   int writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, 
-    writeCVByteMainResponse& response);
+    writeCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse));
   int writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue, 
-    writeCVBitMainResponse& response);
+    writeCVBitMainResponse& response, void (*POMCallback)(RailcomPOMResponse));
   int writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
     uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
   int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, 
@@ -162,6 +162,8 @@ private:
     uint8_t length;
     uint8_t repeats;
     uint16_t transmitID;  // Identifier for railcom, CV programming, etc.
+    PacketType type;
+    uint16_t address;
   };
   // Queue of packets, FIFO, that controls what gets sent out next
   Queue<Packet, kQueueSize> packetQueue;
@@ -174,7 +176,9 @@ private:
   uint8_t generateStartBit = false;  // Send a start bit for the current byte?
   uint8_t transmitPacket[kPacketMaxSize];
   uint8_t transmitLength;
-  uint16_t transmitID;
+  uint16_t transmitID = 0;
+  PacketType transmitType = kIdleType;
+  uint16_t transmitAddress = 0;
   
   // Interrupt segments, called in interrupt_handler
   bool interrupt1();
@@ -185,7 +189,7 @@ private:
 
   // Loads buffer into queue for transmission
   void schedulePacket(const uint8_t buffer[], uint8_t byteCount, 
-    uint8_t repeats, uint16_t identifier);
+    uint8_t repeats, uint16_t identifier, PacketType type, uint16_t address);
 
   uint16_t counterID = 1; // Maintains the last assigned packet ID
   uint16_t lastID = 1; // ID of the last DCC packet to get processed (railcom)

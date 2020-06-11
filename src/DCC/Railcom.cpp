@@ -22,7 +22,6 @@
 #include <avr/pgmspace.h>
 
 #include "../CommInterface/CommManager.h"
-#include "DCC.h"
 
 #if defined(ARDUINO_ARCH_SAMD)
   #include "wiring_private.h"
@@ -127,7 +126,9 @@ void Railcom::enableRecieve(uint8_t on) {
 
 // This is called from an interrupt routine, so it's gotta be quick. DON'T try
 // to write to the serial port here. You'll destroy the waveform.
-void Railcom::readData(uint16_t _uniqueID) {
+void Railcom::readData(uint16_t _uniqueID, PacketType _packetType, 
+  uint16_t _address) {
+
   if(dataReady) return;
   
   uint8_t bytes = serial->available();
@@ -135,6 +136,8 @@ void Railcom::readData(uint16_t _uniqueID) {
   serial->readBytes(rawData, bytes);
 
   uniqueID = _uniqueID;
+  address = _address;
+  type = _packetType;
   
   if(bytes > 0)
     dataReady = true;
@@ -142,24 +145,129 @@ void Railcom::readData(uint16_t _uniqueID) {
 
 void Railcom::processData() {
   if(dataReady) {
-    CommManager::printf(F("Railcom RAW %d = %x %x %x %x %x %x %x %x\n\r"), uniqueID,
-      rawData[0], rawData[1], rawData[2], rawData[3], 
-      rawData[4], rawData[5], rawData[6], rawData[7]
-    );
+    // CommManager::printf(F("Railcom RAW %d = %x %x %x %x %x %x %x %x\n\r"), 
+    //   uniqueID,
+    //   rawData[0], rawData[1], rawData[2], rawData[3], 
+    //   rawData[4], rawData[5], rawData[6], rawData[7]
+    // );
 
     for (size_t i = 0; i < 8; i++)
     {
       rawData[i] = pgm_read_byte_near(&railcom_decode[rawData[i]]);
-      if(rawData[i] == INV) {
-        dataReady = false;
-        return;
+      // Only throw out the packet if channel 2 is corrupted - channel 1 may be 
+      // corrupted by multiple decoders transmitting at once.
+      if(i > 1) {  
+        if(rawData[i] == INV || rawData[i] == RESVD1 || rawData[i] == RESVD2 
+            || rawData[i] == RESVD3) {  
+          dataReady = false;
+          return;
+        }
       }
     }
     
-    CommManager::printf(F("Railcom DCD %d = %x %x %x %x %x %x %x %x\n\r"), uniqueID,
-      rawData[0], rawData[1], rawData[2], rawData[3], 
-      rawData[4], rawData[5], rawData[6], rawData[7]
-    );
+    // CommManager::printf(F("Railcom DCD %d = %x %x %x %x %x %x %x %x\n\r"), 
+    //   uniqueID,
+    //   rawData[0], rawData[1], rawData[2], rawData[3], 
+    //   rawData[4], rawData[5], rawData[6], rawData[7]
+    // );
+    
+    RailcomDatagram datagrams[4]; // One in ch1 plus up to three in ch2
+
+    // First datagram is always the same format
+    datagrams[0].channel = 1;
+    datagrams[0].identifier = (rawData[0] >> 2) & 0x0F;
+    datagrams[0].payload = (rawData[0] & 0x03) << 6 | (rawData[1] & 0x3F);
+
+    switch (datagrams[0].identifier)
+    {
+    case kMOB_ADR_HIGH:
+      // CommManager::printf(F("ADR HIGH %d (%d)\n\r"), datagrams[0].payload, 
+      //   address);
+      break;
+    case kMOB_ADR_LOW:
+      // CommManager::printf(F("ADR LOW %d (%d)\n\r"), datagrams[0].payload, 
+      //   address);
+      break;
+    }
+
+    // CommManager::printf(F("%d,%d\n\r"), highByte(address), lowByte(address));
+
+    // For now, return if there's a special bit combination in the first byte of
+    // channel two.
+    if(rawData[2] == ACK || rawData[2] == NACK || rawData[2] == BUSY) {
+      dataReady = false;
+      return;
+    }
+
+    RailcomInstructionType instructionType;
+    if(highByte(address) >= 1 && highByte(address) <= 127) {
+      instructionType = kMOBInstruction;
+    }
+    else if(highByte(address) >= 128 && highByte(address) <= 191) {
+      instructionType = kSTATInstruction;
+    }
+    else if(highByte(address) >= 192 && highByte(address) <= 231) {
+      instructionType = kMOBInstruction;
+    }
+    else if(highByte(address) == 255) {
+      instructionType = kNoInstruction;
+    }
+
+    datagrams[1].channel = 2;
+    datagrams[1].identifier = (rawData[2] >> 2) & 0x0F;
+
+    if(instructionType == kMOBInstruction) {
+      switch(datagrams[1].identifier) {
+      case kMOB_POM: {
+        switch(type) {  // Decode based on what packet was just sent
+        case kPOMBitWriteType:
+        case kPOMByteWriteType:
+        case kPOMReadType:
+          datagrams[1].payload = 
+            ((rawData[2] & 0x03) << 6) | 
+            (rawData[3] & 0x3F);
+          break;
+        case kPOMLongReadType:
+          datagrams[1].payload = 
+            ((rawData[2] & 0x03) << 30) | 
+            ((rawData[3] & 0x3F) << 24) |
+            ((rawData[4] & 0x3F) << 18) |
+            ((rawData[5] & 0x3F) << 12) |
+            ((rawData[6] & 0x3F) << 6) |
+            (rawData[7] & 0x3F);
+          break;
+        default:
+          dataReady = false;
+          return;
+        }
+        
+        RailcomPOMResponse response;
+
+        response.data = datagrams[1].payload;
+        response.transactionID = uniqueID;
+
+        POMResponse(response);
+        
+        break;
+        }
+      case kMOB_EXT:
+      case kMOB_DYN:
+      case kMOB_SUBID:
+        break;  // We will handle these cases in a later revision
+      }
+    } 
+    else if(instructionType == kSTATInstruction) {
+      switch(datagrams[1].identifier) {
+      case kSTAT_POM:
+      case kSTAT_STAT1:
+      case kSTAT_TIME:
+      case kSTAT_ERROR:
+      case kSTAT_DYN:
+      case kSTAT_STAT2:
+      case kSTAT_SUBID:
+        break;  // We will handle these cases in a later revision
+      }
+    }   
     
     dataReady = false;
     return;

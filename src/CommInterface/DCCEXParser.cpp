@@ -225,7 +225,7 @@ void DCCEXParser::parse(const char *com) {
   case 'w':      // <w CAB CV VALUE>
     writeCVByteMainResponse wresponse;
 
-    mainTrack->writeCVByteMain(p[0], p[1], p[2], wresponse);
+    mainTrack->writeCVByteMain(p[0], p[1], p[2], wresponse, POMResponse);
     
     break;
 
@@ -234,7 +234,7 @@ void DCCEXParser::parse(const char *com) {
   case 'b':      // <b CAB CV BIT VALUE>
     writeCVBitMainResponse bresponse;
 
-    mainTrack->writeCVBitMain(p[0], p[1], p[2], p[3], bresponse);
+    mainTrack->writeCVBitMain(p[0], p[1], p[2], p[3], bresponse, POMResponse);
     
     break;
 
@@ -345,4 +345,8 @@ void DCCEXParser::cvResponse(serviceModeResponse response) {
       response.callbackSub, response.cv, response.cvBitNum, response.cvValue);
     break;
   }
+}
+
+void DCCEXParser::POMResponse(RailcomPOMResponse response) {
+  CommManager::printf(F("<k %d %x>"), response.transactionID, response.data);
 }

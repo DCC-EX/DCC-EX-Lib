@@ -30,6 +30,7 @@ struct DCCEXParser
   static void init(DCC* mainTrack_, DCC* progTrack_);
   static void parse(const char *);
   static void cvResponse(serviceModeResponse response);
+  static void POMResponse(RailcomPOMResponse response);
 private:
   static int stringParser(const char * com, int result[]);
   static const int MAX_PARAMS=10; 

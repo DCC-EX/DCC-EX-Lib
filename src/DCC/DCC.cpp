@@ -38,7 +38,7 @@ DCC::DCC(uint8_t numDevices, Hardware settings) {
 }
 
 void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount, 
-  uint8_t repeats, uint16_t identifier) {
+  uint8_t repeats, uint16_t identifier, PacketType type, uint16_t address) {
   if(byteCount >= kPacketMaxSize) return; // allow for checksum
   
   Packet newPacket;
@@ -52,6 +52,8 @@ void DCC::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
   newPacket.length = byteCount+1;
   newPacket.repeats = repeats;
   newPacket.transmitID = identifier;
+  newPacket.type = type;
+  newPacket.address = address;
 
   const Packet pushPacket = newPacket;
   noInterrupts();
@@ -82,70 +84,89 @@ void DCC::updateSpeed() {
   }
 }
 
-int DCC::setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, 
-  bool tDirection, setThrottleResponse& response) {
-  uint8_t b[5];                      // save space for checksum byte
-  uint8_t nB=0;
+int DCC::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
+  bool direction, setThrottleResponse& response) {
+  
+  uint8_t b[5];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
 
-  if(nDev<1 || nDev>numDevices)
+  if((slot < 1) || (slot > numDevices))
     return ERR_OUT_OF_RANGE;
 
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;   // convert train number to a 2-byte address
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  } 
 
-  b[nB++]=lowByte(cab);
-  b[nB++]=0x3F;                        // 128-step speed control byte
-  if(tSpeed>=0)
+  b[nB++]=lowByte(addr);
+  railcomAddr |= lowByte(addr);
+  b[nB++]=0x3F;   // 128-step speed control byte
+  if(speed>=0)
     // max speed is 126, but speed codes range from 2-127 
     // (0=stop, 1=emergency stop)
-    b[nB++]=tSpeed+(tSpeed>0)+tDirection*128;   
+    b[nB++]=speed+(speed>0)+direction*128;   
   else{
     b[nB++]=1;
-    tSpeed=0;
+    speed=0;
   }
 
   incrementCounterID();
-  schedulePacket(b, nB, 0, counterID);
+  schedulePacket(b, nB, 0, counterID, kThrottleType, railcomAddr);
 
-  speedTable[nDev].speed = tSpeed;
-  speedTable[nDev].cab = cab;
-  speedTable[nDev].forward = tDirection; 
+  speedTable[slot].speed = speed;
+  speedTable[slot].cab = addr;
+  speedTable[slot].forward = direction; 
 
-  response.device = nDev;
-  response.direction = tDirection;
-  response.speed = tSpeed;
+  response.device = addr;
+  response.direction = direction;
+  response.speed = speed;
   response.transactionID = counterID;
 
   return ERR_OK;
 }
 
-int DCC::setFunction(uint16_t cab, uint8_t byte1, 
+int DCC::setFunction(uint16_t addr, uint8_t byte1, 
   setFunctionResponse& response) {
-  uint8_t b[4];
-  uint8_t nB = 0;
+  
+  uint8_t b[4];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
 
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;   // convert train number to a 2-byte address
-  b[nB++]=lowByte(cab);
-  b[nB++]=(byte1 | 0x80) & 0xBF;
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  }
+
+  b[nB++] = lowByte(addr);
+  railcomAddr |= lowByte(addr);
+
+  b[nB++] = (byte1 | 0x80) & 0xBF;
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
-  schedulePacket(b, nB, 3, counterID);  
+  schedulePacket(b, nB, 3, counterID, kFunctionType, railcomAddr);  
 
   response.transactionID = counterID;
 
-  return ERR_OK;       // Will implement error handling later
+  return ERR_OK;
 }
 
-int DCC::setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2, 
+int DCC::setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, 
   setFunctionResponse& response) {
-  uint8_t b[5];
-  uint8_t nB = 0;
+  
+  uint8_t b[4];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
 
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;   // convert train number to a 2-byte address
-  b[nB++]=lowByte(cab);
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  }
+
+  b[nB++] = lowByte(addr);
+  railcomAddr |= lowByte(addr);
+
   // for safety this guarantees that first byte will either be 0xDE 
   // (for F13-F20) or 0xDF (for F21-F28)
   b[nB++]=(byte1 | 0xDE) & 0xDF;     
@@ -153,79 +174,99 @@ int DCC::setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2,
   
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
-  schedulePacket(b, nB, 3, counterID);  
-
-  response.transactionID = counterID;
-
-  return ERR_OK;       // Will implement error handling later
-}
-
-int DCC::setAccessory(uint16_t address, uint8_t number, bool activate, 
-  setAccessoryResponse& response) {
-  uint8_t b[3];                      // save space for checksum byte
-
-  // first byte is of the form 10AAAAAA, where AAAAAA represent 6 least 
-  // signifcant bits of accessory address
-  b[0]=address%64+128;           
-  // second byte is of the form 1AAACDDD, where C should be 1, and the least 
-  // significant D represent activate/deactivate                                
-  b[1]=((((address/64)%8)<<4) + (number%4<<1) + activate%2) ^ 0xF8;      
-
-  incrementCounterID();
-  // Repeat the packet four times (one plus 3 repeats)
-  schedulePacket(b, 2, 3, counterID); 
-
-  response.transactionID = counterID;
-
-  return ERR_OK;        // Will implement error handling later
-}
-
-int DCC::writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, 
-  writeCVByteMainResponse& response) {
-  uint8_t b[6];                      // save space for checksum byte
-  uint8_t nB=0;
-
-  cv--;   // actual CV addresses are cv-1 (0-1023)
-
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;   // convert train number to a 2-byte address
-
-  b[nB++]=lowByte(cab);
-  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  b[nB++]=0xEC + (highByte(cv) & 0x03);   
-  b[nB++]=lowByte(cv);
-  b[nB++]=bValue;
-
-  incrementCounterID();
-  // Repeat the packet four times (one plus 3 repeats)
-  schedulePacket(b, nB, 3, counterID); 
+  schedulePacket(b, nB, 3, counterID, kFunctionType, railcomAddr);  
 
   response.transactionID = counterID;
 
   return ERR_OK;
 }
 
-int DCC::writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, uint8_t bValue, 
-  writeCVBitMainResponse& response) {
-  uint8_t b[6];                      // save space for checksum byte
-  uint8_t nB=0;
+int DCC::setAccessory(uint16_t addr, uint8_t number, bool activate, 
+  setAccessoryResponse& response) {
+  
+  uint8_t b[3];     // Packet payload. Save space for checksum byte
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
+
+  // first byte is of the form 10AAAAAA, where AAAAAA represent 6 least 
+  // signifcant bits of accessory address
+  b[0] = (addr % 64) + 128;           
+  // second byte is of the form 1AAACDDD, where C should be 1, and the least 
+  // significant D represent activate/deactivate                                
+  b[1] = ((((addr / 64) % 8) << 4) + (number % 4 << 1) + activate % 2) ^ 0xF8;      
+  railcomAddr = (b[0] << 8) | b[1];
+
+  incrementCounterID();
+  // Repeat the packet four times (one plus 3 repeats)
+  schedulePacket(b, 2, 3, counterID, kAccessoryType, railcomAddr); 
+
+  response.transactionID = counterID;
+
+  return ERR_OK;
+}
+
+int DCC::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
+  writeCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  
+  uint8_t b[6];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
 
   cv--;   // actual CV addresses are cv-1 (0-1023)
 
-  bValue=bValue%2;
-  bNum=bNum%8;
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  } 
 
-  if(cab>127)
-    b[nB++]=highByte(cab) | 0xC0;   // convert train number to a 2-byte address
+  b[nB++] = lowByte(addr);
+  railcomAddr |= lowByte(addr);
 
-  b[nB++]=lowByte(cab);
   // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  b[nB++]=0xE8+(highByte(cv)&0x03);   
-  b[nB++]=lowByte(cv);
-  b[nB++]=0xF0+bValue*8+bNum;
+  b[nB++] = 0xEC + (highByte(cv) & 0x03);   
+  b[nB++] = lowByte(cv);
+  b[nB++] = bValue;
+
+  hdw.railcom.config_setPOMResponseCallback(POMCallback);
 
   incrementCounterID();
-  schedulePacket(b, nB, 4, counterID);
+  // Repeat the packet four times (one plus 3 repeats)
+  schedulePacket(b, nB, 3, counterID, kPOMByteWriteType, railcomAddr); 
+
+  response.transactionID = counterID;
+
+  return ERR_OK;
+}
+
+int DCC::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
+  uint8_t bValue, writeCVBitMainResponse& response,
+  void (*POMCallback)(RailcomPOMResponse)) {
+  
+  uint8_t b[6];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
+
+  cv--;   // actual CV addresses are cv-1 (0-1023)
+
+  bValue = bValue % 2;
+  bNum = bNum % 8;
+
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  } 
+
+  b[nB++] = lowByte(addr);
+  railcomAddr |= lowByte(addr);
+
+  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
+  b[nB++] = 0xE8 + (highByte(cv) & 0x03);   
+  b[nB++] = lowByte(cv);
+  b[nB++] = 0xF0 + (bValue * 8) + bNum;
+
+  hdw.railcom.config_setPOMResponseCallback(POMCallback);
+
+  incrementCounterID();
+  schedulePacket(b, nB, 4, counterID, kPOMBitWriteType, railcomAddr);
 
   response.transactionID = counterID;
 
@@ -252,34 +293,34 @@ int DCC::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback,
 
   incrementCounterID();
   // NMRA recommends starting with 3 reset packets (one plus two repeats)
-  schedulePacket(kResetPacket, 2, 2, counterID);           
+  schedulePacket(kResetPacket, 2, 2, counterID, kResetType, 0);           
   // NMRA recommends 5 verify packets (one plue 4 repeats)
-  schedulePacket(bWrite, 3, 4, counterID);          
+  schedulePacket(bWrite, 3, 4, counterID, kSrvcByteWriteType, 0);          
   // NMRA recommends 6 write or reset packets for decoder recovery time 
   // (one plus 5 repeats)      
-  schedulePacket(bWrite, 3, 5, counterID);                
+  schedulePacket(bWrite, 3, 5, counterID, kSrvcByteWriteType, 0);                
   
   incrementCounterID();
    // set-up to re-verify entire byte
   bWrite[0]=0x74+(highByte(cv)&0x03);                
   // NMRA recommends starting with 3 reset packets (one plus two repeats)    
-  schedulePacket(kResetPacket, 2, 2, counterID);        
+  schedulePacket(kResetPacket, 2, 2, counterID, kResetType, 0);        
   // We send 2 packets before looking for an ack (one plus one repeat)   
-  schedulePacket(bWrite, 3, 1, counterID);                
+  schedulePacket(bWrite, 3, 1, counterID, kSrvcByteWriteType, 0);                
 
   incrementCounterID();
   // NMRA recommends 5 verify packets - we sent 2, here are three more 
   // (one plus two repeats)
-  schedulePacket(bWrite, 3, 2, counterID);           
+  schedulePacket(bWrite, 3, 2, counterID, kSrvcByteWriteType, 0);           
   // NMRA recommends 6 write or reset packets for decoder recovery time 
   // (one plus five repeats)     
-  schedulePacket(bWrite, 3, 5, counterID);                
+  schedulePacket(bWrite, 3, 5, counterID, kSrvcByteWriteType, 0);                
   
   ackPacketID[0] = counterID;
   
   incrementCounterID();
   // Final reset packet (and decoder begins to respond) (one plus no repeats)
-  schedulePacket(kResetPacket, 2, 0, counterID);           
+  schedulePacket(kResetPacket, 2, 0, counterID, kResetType, 0);           
 
   inVerify = true;
 
@@ -309,7 +350,7 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue,
 
   hdw.setBaseCurrent();
 
-  cv--;                                 // actual CV addresses are cv-1 (0-1023)
+  cv--;         // actual CV addresses are cv-1 (0-1023)
   bValue=bValue%2;
   bNum=bNum%8;
 
@@ -320,33 +361,33 @@ int DCC::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue,
 
   incrementCounterID();
   // NMRA recommends starting with 3 reset packets (one plus two repeats)
-  schedulePacket(kResetPacket, 2, 2, counterID);          
+  schedulePacket(kResetPacket, 2, 2, counterID, kResetType, 0);          
   // NMRA recommends 5 verify packets (one plue 4 repeats) 
-  schedulePacket(bWrite, 3, 4, counterID);                
+  schedulePacket(bWrite, 3, 4, counterID, kSrvcBitWriteType, 0);                
   // NMRA recommends 6 write or reset packets for decoder recovery time 
   // (one plus 5 repeats)
-  schedulePacket(bWrite, 3, 5, counterID);                
+  schedulePacket(bWrite, 3, 5, counterID, kSrvcBitWriteType, 0);                
   
   incrementCounterID();
   bitClear(bWrite[2],4);  // change instruction code from Write to Verify
   // NMRA recommends starting with 3 reset packets (one plus two repeats)
-  schedulePacket(kResetPacket, 2, 2, counterID); 
+  schedulePacket(kResetPacket, 2, 2, counterID, kResetType, 0); 
   // We send 2 packets before looking for an ack (one plus one repeat)
-  schedulePacket(bWrite, 3, 1, counterID);                
+  schedulePacket(bWrite, 3, 1, counterID, kSrvcBitWriteType, 0);                
 
   incrementCounterID();
   // NMRA recommends 5 verify packets - we already sent 2, here are three more 
   // (one plus two repeats)
-  schedulePacket(bWrite, 3, 2, counterID);              
+  schedulePacket(bWrite, 3, 2, counterID, kSrvcBitWriteType, 0);              
   // NMRA recommends 6 write or reset packets for decoder recovery time 
   // (one plus five repeats)  
-  schedulePacket(bWrite, 3, 5, counterID);                
+  schedulePacket(bWrite, 3, 5, counterID, kSrvcBitWriteType, 0);                
   
   ackPacketID[0] = counterID;
   
   incrementCounterID();
   // Final reset packet (and decoder begins to respond) (one plus no repeats)
-  schedulePacket(kResetPacket, 2, 0, counterID);           
+  schedulePacket(kResetPacket, 2, 0, counterID, kResetType, 0);           
 
   inVerify = true;
 
@@ -388,21 +429,21 @@ int DCC::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub,
 
     incrementCounterID();
     // NMRA recommends starting with 3 reset packets (one plue two repeats)
-    schedulePacket(kResetPacket, 2, 2, counterID);       
+    schedulePacket(kResetPacket, 2, 2, counterID, kResetType, 0);       
     // We send 2 packets before looking for an ack (one plus one repeat)
-    schedulePacket(bRead, 3, 1, counterID);             
+    schedulePacket(bRead, 3, 1, counterID, kSrvcReadType, 0);             
 
     incrementCounterID();
     // NMRA recommends 5 verify packets - we already sent 2, here are three more 
     // (one plus two repeats)
-    schedulePacket(bRead, 3, 2, counterID);             
+    schedulePacket(bRead, 3, 2, counterID, kSrvcReadType, 0);             
 
     ackPacketID[i] = counterID;
 
     incrementCounterID();
     // NMRA recommends 1 reset packet after checking for an ACK 
     // (one and no repeats)
-    schedulePacket(kResetPacket, 2, 0, counterID);       
+    schedulePacket(kResetPacket, 2, 0, counterID, kResetType, 0);       
   }
 
   ackNeeded = 0b11111111;
@@ -461,18 +502,18 @@ void DCC::checkAck() {
         
           incrementCounterID();               
           // Load 3 reset packets
-          schedulePacket(kResetPacket, 2, 2, counterID); 
+          schedulePacket(kResetPacket, 2, 2, counterID, kResetType, 0); 
           // Load 5 verify packets
-          schedulePacket(verifyPayload, 3, 4, counterID);     
+          schedulePacket(verifyPayload, 3, 4, counterID, kSrvcReadType, 0);     
           // Load 1 Reset packet
-          schedulePacket(kResetPacket, 2, 0, counterID);       
+          schedulePacket(kResetPacket, 2, 0, counterID, kResetType, 0);       
 
           ackPacketID[0] = counterID;
 
           incrementCounterID();
           // We need one additional packet with incremented counter so ACK 
           // completes and doesn't hang in checkAck()
-          schedulePacket(kResetPacket, 2, 0, counterID);   
+          schedulePacket(kResetPacket, 2, 0, counterID, kResetType, 0);   
 
           inVerify = true;
           backToIdle = false;

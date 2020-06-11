@@ -30,41 +30,71 @@
 
 extern const uint8_t railcom_decode[256];
 
-/// invalid value (not conforming to the 4bit weighting requirement)
+// invalid value (not conforming to the 4bit weighting requirement)
 const uint8_t INV = 0xFF;
-/// Railcom ACK; the decoder received the message ok. NOTE: some early
-/// software versions may have ACK and NACK exchanged.
+// Railcom ACK; the decoder received the message ok. NOTE: some early
+// software versions may have ACK and NACK exchanged.
 const uint8_t ACK = 0xFE;
-/// The decoder rejected the packet.
+// The decoder rejected the packet.
 const uint8_t NACK = 0xFD;
-/// The decoder is busy; send the packet again. This is typically returned
-/// when a POM CV write is still pending; the caller must re-try sending the
-/// packet later.
+// The decoder is busy; send the packet again. This is typically returned
+// when a POM CV write is still pending; the caller must re-try sending the
+// packet later.
 const uint8_t BUSY = 0xFC;
-/// Reserved for future expansion.
+// Reserved for future expansion.
 const uint8_t RESVD1 = 0xFB;
-/// Reserved for future expansion.
 const uint8_t RESVD2 = 0xFA;
-/// Reserved for future expansion.
 const uint8_t RESVD3 = 0xF8;
 
-enum railcom_mob_id : uint8_t {
-  MOB_POM = 0,
-  MOB_ADR_HIGH = 1,
-  MOB_ADR_LOW = 2,
-  MOB_EXT = 3,
-  MOB_DYN = 7,
-  MOB_SUBID = 12
+enum RailcomInstructionType : uint8_t {
+  kMOBInstruction,
+  kSTATInstruction,
+  kNoInstruction
 };
 
-enum railcom_stat_id : uint8_t {
-  STAT_POM = 0,
-  STAT_STAT1 = 4,
-  STAT_TIME = 5,
-  STAT_ERROR = 6,
-  STAT_DYN = 7,
-  STAT_STAT2 = 8,
-  STAT_SUBID = 12
+enum RailcomMOBID : uint8_t {
+  kMOB_POM = 0,
+  kMOB_ADR_HIGH = 1,
+  kMOB_ADR_LOW = 2,
+  kMOB_EXT = 3,
+  kMOB_DYN = 7,
+  kMOB_SUBID = 12
+};
+
+enum RailcomSTATID : uint8_t {
+  kSTAT_POM = 0,
+  kSTAT_STAT1 = 4,
+  kSTAT_TIME = 5,
+  kSTAT_ERROR = 6,
+  kSTAT_DYN = 7,
+  kSTAT_STAT2 = 8,
+  kSTAT_SUBID = 12
+};
+
+enum PacketType : uint8_t {
+  kResetType,
+  kIdleType,
+  kThrottleType,
+  kFunctionType,
+  kAccessoryType,
+  kPOMByteWriteType,  // Railcom is same as standard command for write byte
+  kPOMBitWriteType,   // Railcom is same as standard command for write bit
+  kPOMReadType,
+  kPOMLongReadType,
+  kSrvcByteWriteType,
+  kSrvcBitWriteType,
+  kSrvcReadType
+};
+
+struct RailcomDatagram {
+  uint8_t identifier; // 4-bit ID, LSB justified
+  uint8_t channel;  // Railcom channel the data came in on, either 1 or 2
+  uint32_t payload; // LSB justified payload of the datagram, excluding the ID
+};
+
+struct RailcomPOMResponse {
+  uint32_t data;
+  uint16_t transactionID;
 };
 
 class Railcom
@@ -76,7 +106,7 @@ public:
   void setup();
 
   void enableRecieve(uint8_t on);
-  void readData(uint16_t dataID);
+  void readData(uint16_t dataID, PacketType _packetType, uint16_t _address);
   void processData();
 
   // Railcom config modification
@@ -95,11 +125,17 @@ public:
   HardwareSerial* getSerial() { return serial; }
   void config_setSerial(HardwareSerial* serial) { railcom_serial = serial; }
 #endif
+  void config_setPOMResponseCallback(void (*_POMResponse)(RailcomPOMResponse)) {
+    POMResponse = _POMResponse;
+  }
 
 private:
   uint8_t rawData[8];
   uint16_t uniqueID;
+  uint16_t address;
+  PacketType type;
   bool dataReady = false;
+  void (*POMResponse)(RailcomPOMResponse);
 
   // Railcom hardware declarations
   uint8_t rx_pin;
