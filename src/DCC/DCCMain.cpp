@@ -23,10 +23,11 @@ DCCMain::DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom) {
   this->hdw = hardware;
   this->railcom = railcom;
   this->numDevices = numDevices;
-
+  
+  // Purge the queue memory
   packetQueue.clear();
 
-  // Allocate memory for the speed table
+  // Allocate memory for the speed table and clear it
   speedTable = (Speed *)calloc(numDevices+1, sizeof(Speed));
   for (int i = 0; i < numDevices+1; i++)
   {
@@ -55,7 +56,7 @@ void DCCMain::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
 
   const Packet pushPacket = newPacket;
   noInterrupts();
-  packetQueue.push(pushPacket);
+  packetQueue.push(pushPacket); // Push the packet into the queue for processing
   interrupts();  
 }
 
@@ -82,8 +83,8 @@ void DCCMain::updateSpeed() {
   }
 }
 
-int DCCMain::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
-  bool direction, setThrottleResponse& response) {
+uint8_t DCCMain::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
+  uint8_t direction, setThrottleResponse& response) {
   
   uint8_t b[5];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -124,7 +125,7 @@ int DCCMain::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed,
   return ERR_OK;
 }
 
-int DCCMain::setFunction(uint16_t addr, uint8_t byte1, 
+uint8_t DCCMain::setFunction(uint16_t addr, uint8_t byte1, 
   setFunctionResponse& response) {
   
   uint8_t b[4];     // Packet payload. Save space for checksum byte
@@ -150,7 +151,7 @@ int DCCMain::setFunction(uint16_t addr, uint8_t byte1,
   return ERR_OK;
 }
 
-int DCCMain::setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, 
+uint8_t DCCMain::setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, 
   setFunctionResponse& response) {
   
   uint8_t b[4];     // Packet payload. Save space for checksum byte
@@ -179,7 +180,7 @@ int DCCMain::setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2,
   return ERR_OK;
 }
 
-int DCCMain::setAccessory(uint16_t addr, uint8_t number, bool activate, 
+uint8_t DCCMain::setAccessory(uint16_t addr, uint8_t number, bool activate, 
   setAccessoryResponse& response) {
   
   uint8_t b[3];     // Packet payload. Save space for checksum byte
@@ -202,7 +203,7 @@ int DCCMain::setAccessory(uint16_t addr, uint8_t number, bool activate,
   return ERR_OK;
 }
 
-int DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
+uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
   writeCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
   
   uint8_t b[6];     // Packet payload. Save space for checksum byte
@@ -235,7 +236,7 @@ int DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue,
   return ERR_OK;
 }
 
-int DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
+uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
   uint8_t bValue, writeCVBitMainResponse& response,
   void (*POMCallback)(RailcomPOMResponse)) {
   
@@ -269,4 +270,71 @@ int DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum,
   response.transactionID = counterID;
 
   return ERR_OK;
+}
+
+uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv, 
+  readCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+
+  uint8_t b[6];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
+
+  cv--;   // actual CV addresses are cv-1 (0-1023)
+
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  } 
+
+  b[nB++] = lowByte(addr);
+  railcomAddr |= lowByte(addr);
+
+  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
+  b[nB++] = 0xE4 + (highByte(cv) & 0x03);   
+  b[nB++] = lowByte(cv);
+  b[nB++] = 0;  // For some reason the railcom spec leaves an empty byte  
+
+  railcom.config_setPOMResponseCallback(POMCallback);
+
+  incrementCounterID();
+  // Repeat the packet four times (one plus 3 repeats)
+  schedulePacket(b, nB, 3, counterID, kPOMReadType, railcomAddr); 
+
+  response.transactionID = counterID;
+
+  return ERR_OK;
+
+}
+
+uint8_t DCCMain::readCVBytesMain(uint16_t addr, uint16_t cv, 
+  readCVBytesMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+
+  uint8_t b[5];     // Packet payload. Save space for checksum byte
+  uint8_t nB = 0;   // Counter for number of bytes in the packet
+  uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
+
+  cv--;   // actual CV addresses are cv-1 (0-1023)
+
+  if(addr > 127) {
+    b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
+    railcomAddr = (highByte(addr) | 0xC0) << 8;
+  } 
+
+  b[nB++] = lowByte(addr);
+  railcomAddr |= lowByte(addr);
+
+  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
+  b[nB++] = 0xE0 + (highByte(cv) & 0x03);   
+  b[nB++] = lowByte(cv);  
+
+  railcom.config_setPOMResponseCallback(POMCallback);
+
+  incrementCounterID();
+  // Repeat the packet four times (one plus 3 repeats)
+  schedulePacket(b, nB, 3, counterID, kPOMLongReadType, railcomAddr); 
+
+  response.transactionID = counterID;
+
+  return ERR_OK;
+
 }

@@ -106,10 +106,10 @@ void Railcom::setupDAC() {
 // TODO(davidcutting42@gmail.com): test on AVR
 void Railcom::enableRecieve(uint8_t on) {
   if(on) {
-  #if defined(ARDUINO_ARCH_SAMD)
     while(serial->available()) {
       serial->read();   // Flush the buffer so we don't get a bunch of garbage
     }
+  #if defined(ARDUINO_ARCH_SAMD)
     pinPeripheral(rx_pin, rx_mux);
   #else
     serial->begin(baud);
@@ -165,6 +165,7 @@ void Railcom::processData() {
       }
     }
     
+    // Verbose print of decoded railcom data to CommManager
     // CommManager::printf(F("Railcom DCD %d = %x %x %x %x %x %x %x %x\n\r"), 
     //   uniqueID,
     //   rawData[0], rawData[1], rawData[2], rawData[3], 
@@ -209,9 +210,10 @@ void Railcom::processData() {
     else if(highByte(address) >= 192 && highByte(address) <= 231) {
       instructionType = kMOBInstruction;
     }
-    else if(highByte(address) == 255) {
+    else {
       instructionType = kNoInstruction;
     }
+
 
     datagrams[1].channel = 2;
     datagrams[1].identifier = (rawData[2] >> 2) & 0x0F;

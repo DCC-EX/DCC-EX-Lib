@@ -30,7 +30,7 @@ const uint8_t kServiceQueueSize = 35;
 // Threshold (mA) that a sample must cross to ACK
 const uint8_t kACKThreshold = 30; 
 
-enum cv_edit_type {
+enum cv_edit_type : uint8_t {
   READCV,
   WRITECV,
   WRITECVBIT,
@@ -53,16 +53,21 @@ public:
   static DCCService* Create_Pololu_MC33926Shield_Prog();
   static DCCService* Create_WSM_SAMCommandStation_Prog();
 
+  void setup() {
+    hdw.setup();
+  }
+
   void loop() {
     Waveform::loop(); // Checks for overcurrent and manages power
     checkAck();
   }
 
-  int writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
+  uint8_t writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
     uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
-  int writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, uint16_t callback, 
-    uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
-  int readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
+  uint8_t writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
+    uint16_t callback, uint16_t callbackSub, 
+    void(*callbackFunc)(serviceModeResponse));
+  uint8_t readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
     void(*callbackFunc)(serviceModeResponse));
 
 private:

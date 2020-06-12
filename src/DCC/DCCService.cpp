@@ -45,7 +45,7 @@ void DCCService::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
   interrupts();   
 }
 
-int DCCService::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
+uint8_t DCCService::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
   uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse)) {
   
   // If we're in the middle of a read/write or if there's not room in the queue.
@@ -111,7 +111,7 @@ int DCCService::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback,
 }
 
 
-int DCCService::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
+uint8_t DCCService::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
   uint16_t callback, uint16_t callbackSub, 
   void(*callbackFunc)(serviceModeResponse)) {
   
@@ -180,7 +180,7 @@ int DCCService::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue,
 }
 
 
-int DCCService::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
+uint8_t DCCService::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
   void(*callbackFunc)(serviceModeResponse)) {
   
   // If we're in the middle of a read/write or if there's not room in the queue.
@@ -240,8 +240,19 @@ int DCCService::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub,
 }
 
 void DCCService::checkAck() {
-  float currentMilliamps = hdw.getMilliamps();
+  // If the unique ID counter has wrapped, cancel the current read/write 
+  // operation. This shouldn't happen very often.
+  if(counterWrap) { 
+    counterWrap = false;
+    inVerify = false;
+    ackNeeded = 0;
+    cvState.cvValue = -1;
+    cvResponse(cvState);
+    return;
+  } 
+  
   if(!inVerify && (ackNeeded == 0)) return;
+  float currentMilliamps = hdw.getMilliamps();
 
   if(!inVerify) {
     uint16_t currentAckID;
@@ -265,7 +276,7 @@ void DCCService::checkAck() {
           interrupts();
         }
       }
-      // TODO(davidcutting42@gmail.com): check for wraparound
+      
       else if(compareID > currentAckID || backToIdle) {    
         bitClear(ackBuffer, i);  // We didn't get an ack on this bit (timeout)
         bitClear(ackNeeded, i);  // We no longer need an ack on this bit
@@ -315,7 +326,7 @@ void DCCService::checkAck() {
         interrupts();
       }
     }
-    // TODO(davidcutting42@gmail.com): check for wraparound
+    
     else if(compareID > ackPacketID[0] || backToIdle) {
       inVerify = false;
       

@@ -19,10 +19,6 @@
 
 #include "DCCService.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
-#include "wiring_private.h"
-#endif
-
 bool DCCService::interrupt1() {
   switch (interruptState) {
   case 0:   // start of bit transmission

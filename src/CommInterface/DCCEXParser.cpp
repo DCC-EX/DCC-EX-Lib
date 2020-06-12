@@ -261,6 +261,23 @@ void DCCEXParser::parse(const char *com) {
 
     break;
 
+/***** READ CONFIGURATION VARIABLE BYTE FROM RAILCOM DECODER ON MAIN TRACK ****/
+
+  case 'r': {   // <r CAB CV>
+    readCVByteMainResponse response;
+
+    mainTrack->readCVByteMain(p[0], p[1], response, POMResponse);
+    break;
+    }
+
+/***** READ 4 CONFIGURATION VARIABLE BYTES FROM RAILCOM DECODER ON MAIN  ****/
+
+  case 'm': { // <m CAB CV>
+    readCVBytesMainResponse response;
+
+    mainTrack->readCVBytesMain(p[0], p[1], response, POMResponse);
+    break;
+    }
 /***** TURN ON POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
   case '1':      // <1>
