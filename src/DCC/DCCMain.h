@@ -76,31 +76,31 @@ public:
     railcom.processData();
   }
 
-  uint8_t setThrottle(uint8_t nDev, uint16_t cab, uint8_t tSpeed, 
-    uint8_t tDirection, setThrottleResponse& response);
-  uint8_t setFunction(uint16_t cab, uint8_t byte1, 
+  uint8_t setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
+    uint8_t direction, setThrottleResponse& response);
+  uint8_t setFunction(uint16_t addr, uint8_t byte1, 
     setFunctionResponse& response);
-  uint8_t setFunction(uint16_t cab, uint8_t byte1, uint8_t byte2, 
+  uint8_t setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, 
     setFunctionResponse& response);
-  uint8_t setAccessory(uint16_t address, uint8_t number, bool activate, 
+  uint8_t setAccessory(uint16_t addr, uint8_t number, bool activate, 
     setAccessoryResponse& response);
   // Writes a CV to a decoder on the main track and calls a callback function
   // if there is any railcom response to the request.
-  uint8_t writeCVByteMain(uint16_t cab, uint16_t cv, uint8_t bValue, 
+  uint8_t writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
     writeCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse));
   // Writes a single bit to the decoder on the main track and calls a callback 
   // function if there is any railcom response to the request.
-  uint8_t writeCVBitMain(uint16_t cab, uint16_t cv, uint8_t bNum, 
+  uint8_t writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
     uint8_t bValue, writeCVBitMainResponse& response, 
     void (*POMCallback)(RailcomPOMResponse));
   // Reads one byte from the decoder over railcom and calls a callback function 
   // with the value
-  uint8_t readCVByteMain(uint16_t cab, uint16_t cv, 
+  uint8_t readCVByteMain(uint16_t addr, uint16_t cv, 
     readCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse));
   // Reads four bytes from the decoder over railcom. CV corresponds to the
   // first byte, the rest are CV+1, CV+2, and CV+3. Calls a callback function
   // with the four values.
-  uint8_t readCVBytesMain(uint16_t cab, uint16_t cv, 
+  uint8_t readCVBytesMain(uint16_t addr, uint16_t cv, 
     readCVBytesMainResponse& response, void (*POMCallback)(RailcomPOMResponse));
 
   uint8_t numDevices;

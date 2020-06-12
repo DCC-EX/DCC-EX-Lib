@@ -47,7 +47,7 @@ struct serviceModeResponse {
 
 class DCCService : public Waveform {
 public:
-  DCCService(Hardware settings);
+  DCCService(Hardware hardware);
 
   static DCCService* Create_Arduino_L298Shield_Prog();
   static DCCService* Create_Pololu_MC33926Shield_Prog();
