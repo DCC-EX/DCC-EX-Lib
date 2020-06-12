@@ -3,14 +3,14 @@ The DCC layer provides functions for interacting with devices on the bus/track. 
 ## API Documentation
 ### DCCMain and DCCService Classes
 For more effecient memory usage, DCC is split into two classes, one for the Main track and one for the service track.
-#### Constructor 
+#### DCCMain
+##### Constructor 
 
 ```cpp
 DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom);
 DCCService(Hardware settings);
 ```
 
-#### DCCMain
 Creates an instance of the DCCMain class, and accepts parameters numDevices, hardware, and railcom. "numDevices" defines the number of device slots (in DCC++ these were called registers) available to fill with devices. The maximum number of devices that can be added before running out of RAM is currently unknown, though it has been tested with 50 slots on an Arduino Uno. Microcontrollers with more RAM can handle more slots. The "hardware" parameter accepts a structure which defines the microcontroller timer, signal, and pin configuation. And the "railcom" parameter sets **TODO**
 
 !!! note
@@ -18,7 +18,7 @@ Creates an instance of the DCCMain class, and accepts parameters numDevices, har
 
 This constructor initializes the enable pin and sets it low. It then allocates memory for the device table and device map, as well as the speed table. It initializes the device table and contained packets so they are ready for interaction with the rest of the program. Finally, it loads the idle packet into device 1 and intitializes the timer that will generate the DCC signal (see ```DCC::init_timers()```).
 
-##### Hardware Struct
+###### Hardware Struct
 You will need to fill this struct and pass it to the DCC constructor, or use a static factory constructor as explained below.
 
 ```cpp
@@ -48,7 +48,7 @@ A brief explanation of the parameters in the DCChdw struct:
 - ```uint8_t current_sense_pin``` - selects the Arduino pin used for current detection. Note that unlike the signal pins, this is an Arduino pin and not a SAMD21 pin number
 - ```uint8_t trigger_value``` - selects the current value (in mA) at which the motor driver will be turned off
 
-#### Static Factory Constructors
+##### Static Factory Constructors
 CommandStation implements a method of setting up the hardware that uses static factory constructors. This allows the user to select either a pre-configured hardware setup from the main.cpp file, or to roll their own with the DCChdw struct.
 
 !!! info
