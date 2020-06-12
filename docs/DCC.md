@@ -8,7 +8,7 @@ The DCC layer provides functions for interacting with devices on the bus/track. 
 DCC::DCC(int numDev, DCChdw hdw)
 ```
 
-Creates an instance of the DCC class, and accepts parameters numDev and hdw. numDev defines the number of device slots (in DCC++ these were called registers) available to fill with devices. The maximum number of devices that can be added before running out of RAM is currently unknown.
+Creates an instance of the DCC class, and accepts parameters numDev and hdw. numDev defines the number of device slots (in DCC++ these were called registers) available to fill with devices. The maximum number of devices that can be added before running out of RAM is currently unknown, though it has been tested with 50 slots on an Arduino Uno. Microcontrollers with more RAM can handle more slots.
 
 !!! note
     **TODO** Test maximum number of devices on the SAMD21 platform
