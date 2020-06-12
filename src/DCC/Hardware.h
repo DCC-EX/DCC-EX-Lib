@@ -51,7 +51,6 @@ public:
 
   // General configuration and status getter functions
   inline bool getStatus() { return digitalRead(enable_pin); }
-  inline bool getIsProgTrack() { return is_prog_track; }
   inline uint8_t getPreambles() { return preambleBits; }
   
   // Waveform control functions
@@ -75,7 +74,6 @@ public:
   void config_setChannelName(const char *name) { channel_name = name; }
   void config_setControlScheme(control_type_t scheme) 
     { control_scheme = scheme; }
-  void config_setProgTrack(bool isProgTrack) { is_prog_track = isProgTrack; }
   void config_setPreambleBits(uint8_t preambleBits) 
     { this->preambleBits = preambleBits; }
 
@@ -99,7 +97,6 @@ private:
 
   const char *channel_name;
   control_type_t control_scheme;
-  bool is_prog_track;
   uint8_t preambleBits;
 
   uint8_t signal_a_pin;

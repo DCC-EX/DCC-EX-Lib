@@ -28,8 +28,6 @@ DCCMain* DCCMain::Create_Arduino_L298Shield_Main(uint8_t numDevices) {
 
   hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
 
-  hdw.config_setProgTrack(false);
-
   hdw.config_setPinSignalA(12);
   hdw.config_setPinSignalB(9);
   hdw.config_setDefaultSignalB(LOW);
@@ -53,8 +51,6 @@ DCCService* DCCService::Create_Arduino_L298Shield_Prog() {
   hdw.config_setChannelName("PROG");
 
   hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
-
-  hdw.config_setProgTrack(true);
 
   hdw.config_setPinSignalA(13);  
   hdw.config_setPinSignalB(8);  
@@ -80,8 +76,6 @@ DCCMain* DCCMain::Create_Pololu_MC33926Shield_Main(uint8_t numDevices) {
   hdw.config_setChannelName("MAIN");
 
   hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
-
-  hdw.config_setProgTrack(false);
   
   hdw.config_setPinSignalA(7);  
   hdw.config_setPinSignalB(9);  
@@ -106,8 +100,6 @@ DCCService* DCCService::Create_Pololu_MC33926Shield_Prog() {
   hdw.config_setChannelName("PROG");
 
   hdw.config_setControlScheme(DIRECTION_BRAKE_ENABLE);
-
-  hdw.config_setProgTrack(true);
   
   hdw.config_setPinSignalA(8);  
   hdw.config_setPinSignalB(10);  
@@ -135,8 +127,6 @@ DCCMain* DCCMain::Create_WSM_SAMCommandStation_Main(uint8_t numDevices) {
   hdw.config_setChannelName("MAIN");
 
   hdw.config_setControlScheme(DUAL_DIRECTION_INVERTED);
-
-  hdw.config_setProgTrack(false);
 
   hdw.config_setPinSignalA(6);  
   hdw.config_setPinSignalB(7);  
@@ -169,8 +159,6 @@ DCCService* DCCService::Create_WSM_SAMCommandStation_Prog() {
   hdw.config_setChannelName("PROG");
 
   hdw.config_setControlScheme(DUAL_DIRECTION_INVERTED);
-
-  hdw.config_setProgTrack(true);
 
   hdw.config_setPinSignalA(8);  
   hdw.config_setPinSignalB(9);  

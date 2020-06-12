@@ -132,10 +132,8 @@ void DCCMain::interrupt2() {
         transmitType=pendingPacket.type;
       }
       else {
-        // Load an idle packet or a reset packet
-        // Fortunately reset and idle packets are the same length
-        memcpy( transmitPacket, hdw.getIsProgTrack()?kResetPacket:kIdlePacket, 
-          sizeof(kIdlePacket));
+        // Load an idle packet
+        memcpy(transmitPacket, kIdlePacket, sizeof(kIdlePacket));
         transmitLength=sizeof(kIdlePacket);
         transmitRepeats=0;
       }
