@@ -1,21 +1,24 @@
 # DCC
 The DCC layer provides functions for interacting with devices on the bus/track. Compared to the original DCC++ code, it does not perform string parsing operations and instead exposes an API with parameterized functions for each functionality in the original DCC++ code.
 ## API Documentation
-### DCC Class
+### DCCMain and DCCService Classes
+For more effecient memory usage, DCC is split into two classes, one for the Main track and one for the service track.
 #### Constructor 
 
 ```cpp
-DCC::DCC(int numDev, DCChdw hdw)
+DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom);
+DCCService(Hardware settings);
 ```
 
-Creates an instance of the DCC class, and accepts parameters numDev and hdw. numDev defines the number of device slots (in DCC++ these were called registers) available to fill with devices. The maximum number of devices that can be added before running out of RAM is currently unknown, though it has been tested with 50 slots on an Arduino Uno. Microcontrollers with more RAM can handle more slots.
+#### DCCMain
+Creates an instance of the DCCMain class, and accepts parameters numDevices, hardware, and railcom. "numDevices" defines the number of device slots (in DCC++ these were called registers) available to fill with devices. The maximum number of devices that can be added before running out of RAM is currently unknown, though it has been tested with 50 slots on an Arduino Uno. Microcontrollers with more RAM can handle more slots. The "hardware" parameter accepts a structure which defines the microcontroller timer, signal, and pin configuation. And the "railcom" parameter sets **TODO**
 
 !!! note
     **TODO** Test maximum number of devices on the SAMD21 platform
 
 This constructor initializes the enable pin and sets it low. It then allocates memory for the device table and device map, as well as the speed table. It initializes the device table and contained packets so they are ready for interaction with the rest of the program. Finally, it loads the idle packet into device 1 and intitializes the timer that will generate the DCC signal (see ```DCC::init_timers()```).
 
-##### DCChdw Struct
+##### Hardware Struct
 You will need to fill this struct and pass it to the DCC constructor, or use a static factory constructor as explained below.
 
 ```cpp
