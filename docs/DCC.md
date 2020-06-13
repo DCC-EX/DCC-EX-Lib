@@ -34,7 +34,7 @@ struct DCChdw {
 A brief explanation of the parameters in the DCChdw struct:
 
 - ```bool is_prog_track``` - set true if the track will be current limited to 250mA and function as a programming track. Note that currently CommManager and JMRI only support one programming track and one main track.
-- ```bool use_dual_signal``` - if true, the dcc signal will be generate on two pins instead of one, 180 degrees out of phase with each other. Useful for chips like the DRV8876 a 3-5amp motor driver.
+- ```bool use_dual_signal``` - if true, the dcc signal will be generate on two pins instead of one, 180 degrees out of phase with each other. Useful for chips like the DRV8876 a 3.5amp motor driver.
 - ```uint8_t timer_num``` - selects the instance of TCC that will be used to denerate the clock signal. Currently only TCC0-2 are supported by the CMSIS core for Arduino, TCC3 still needs to be implemented. 
 - ```uint8_t gclk_num``` - selects the instance of GCLK (generic clock) that will be used to feed the TCC module. Typically clocks 4 and 5 are safe. Note that one clock can feed both TCC0 and TCC1, and a separate clock is needed for TCC2.
 - ```uint8_t signal_a/b_pin``` - selects the SAMD21 pin numberused for DCC signal generation. Please refer to a SAMD21 datasheet to confirm that the pin you want to use has a TCC peripheral attached to it. If you are using the dual signal feature, both pins must be on different bits of the same TCC timer. Please also note that this is the SAMD21 pin, not a corresponding arduino pin number. signal_b_pin's value will be disregarded if the dual_signal feature is disabled.
@@ -80,7 +80,7 @@ Sets the throttle of address ```cab```, held in device slot ```nDev```, to value
     **Return** Most DCC functions will return an int that indicates the error status. Errors are defined in ```DCC.h```
 
 !!! note
-    **Other Applications** You probably won't need to set the direction or speed of most devices on the bus if you're using this library for home automation or other things. You can safely ignore this next function and just use the other methods.
+    **Other Applications** You probably won't need to set the direction or speed of most devices on the bus if you're using this library for home automation or other things. You can safely ignore this function and just use the other methods.
 
 #### DCC::setFunction
 
