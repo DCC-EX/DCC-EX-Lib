@@ -29,7 +29,7 @@
 void Turnout::activate(int s, DCCMain* track){
   // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
   data.tStatus=(s>0);   
-  setAccessoryResponse response;
+  genericResponse response;
   track->setAccessory(data.address, data.subAddress, data.tStatus, response);
   if(num>0)
     EEPROM.put(num,data.tStatus);

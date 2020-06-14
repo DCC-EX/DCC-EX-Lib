@@ -50,8 +50,8 @@ public:
   void setup();
 
   // General configuration and status getter functions
-  inline bool getStatus() { return digitalRead(enable_pin); }
-  inline uint8_t getPreambles() { return preambleBits; }
+  bool getStatus() { return digitalRead(enable_pin); }
+  uint8_t getPreambles() { return preambleBits; }
   
   // Waveform control functions
   void setPower(bool on);
@@ -62,12 +62,12 @@ public:
   void checkCurrent();
 
   // Current functions
-  inline float getLastRead() { return reading; }
-  inline float getLastMilliamps() { return current; }
-  inline float getMilliamps() { return getMilliamps(readCurrent()); }
+  float getLastRead() { return reading; }
+  float getLastMilliamps() { return current; }
+  float getMilliamps() { return getMilliamps(readCurrent()); }
   
-  inline void setBaseCurrent() { baseMilliamps = getMilliamps(readCurrent()); }
-  inline float getBaseCurrent() { return baseMilliamps; }
+  void setBaseCurrent() { baseMilliamps = getMilliamps(readCurrent()); }
+  float getBaseCurrent() { return baseMilliamps; }
   
 
   // General config modification
@@ -93,7 +93,7 @@ public:
 
 private:
   float getMilliamps(uint32_t reading);
-  inline uint32_t readCurrent() { return analogRead(current_sense_pin); }
+  uint32_t readCurrent() { return analogRead(current_sense_pin); }
 
   const char *channel_name;
   control_type_t control_scheme;

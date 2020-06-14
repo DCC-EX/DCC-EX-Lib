@@ -98,26 +98,28 @@ void DCCEXParser::parse(const char *com) {
   
 /***** OPERATE ENGINE DECODER FUNCTIONS F0-F28 ****/
 
-  case 'f':       // <f CAB BYTE1 [BYTE2]>
-    setFunctionResponse functionResponse;
+  case 'f': {       // <f CAB BYTE1 [BYTE2]>
+    genericResponse response;
     
     if(numArgs == 2)
-      mainTrack->setFunction(p[0], p[1], functionResponse);
+      mainTrack->setFunction(p[0], p[1], response);
     else 
-      mainTrack->setFunction(p[0], p[1], p[2], functionResponse);
+      mainTrack->setFunction(p[0], p[1], p[2], response);
     
     // TODO use response?
     
     break;
+  }
 
 /***** OPERATE STATIONARY ACCESSORY DECODERS  ****/
 
-  case 'a':       // <a ADDRESS SUBADDRESS ACTIVATE>        
-    setAccessoryResponse accessoryResponse;
+  case 'a': {      // <a ADDRESS SUBADDRESS ACTIVATE>        
+    genericResponse response;
 
-    mainTrack->setAccessory(p[0], p[1], p[2], accessoryResponse);
+    mainTrack->setAccessory(p[0], p[1], p[2], response);
     
     break;
+  }
   
 /***** CREATE/EDIT/REMOVE/SHOW & OPERATE A TURN-OUT  ****/
 
@@ -222,21 +224,23 @@ void DCCEXParser::parse(const char *com) {
 
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON MAIN TRACK  ****/
 
-  case 'w':      // <w CAB CV VALUE>
-    writeCVByteMainResponse wresponse;
+  case 'w': {     // <w CAB CV VALUE>
+    genericResponse response;
 
-    mainTrack->writeCVByteMain(p[0], p[1], p[2], wresponse, POMResponse);
+    mainTrack->writeCVByteMain(p[0], p[1], p[2], response, POMResponse);
     
     break;
+  }
 
 /***** WRITE CONFIGURATION VARIABLE BIT TO ENGINE DECODER ON MAIN TRACK  ****/
 
-  case 'b':      // <b CAB CV BIT VALUE>
-    writeCVBitMainResponse bresponse;
+  case 'b': {     // <b CAB CV BIT VALUE>
+    genericResponse response;
 
-    mainTrack->writeCVBitMain(p[0], p[1], p[2], p[3], bresponse, POMResponse);
+    mainTrack->writeCVBitMain(p[0], p[1], p[2], p[3], response, POMResponse);
     
     break;
+  }
 
 /***** WRITE CONFIGURATION VARIABLE BYTE TO ENGINE DECODER ON PROG TRACK  ****/
 
@@ -264,7 +268,7 @@ void DCCEXParser::parse(const char *com) {
 /***** READ CONFIGURATION VARIABLE BYTE FROM RAILCOM DECODER ON MAIN TRACK ****/
 
   case 'r': {   // <r CAB CV>
-    readCVByteMainResponse response;
+    genericResponse response;
 
     mainTrack->readCVByteMain(p[0], p[1], response, POMResponse);
     break;
@@ -273,7 +277,7 @@ void DCCEXParser::parse(const char *com) {
 /***** READ 4 CONFIGURATION VARIABLE BYTES FROM RAILCOM DECODER ON MAIN  ****/
 
   case 'm': { // <m CAB CV>
-    readCVBytesMainResponse response;
+    genericResponse response;
 
     mainTrack->readCVBytesMain(p[0], p[1], response, POMResponse);
     break;

@@ -126,7 +126,7 @@ uint8_t DCCMain::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed,
 }
 
 uint8_t DCCMain::setFunction(uint16_t addr, uint8_t byte1, 
-  setFunctionResponse& response) {
+  genericResponse& response) {
   
   uint8_t b[4];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -152,7 +152,7 @@ uint8_t DCCMain::setFunction(uint16_t addr, uint8_t byte1,
 }
 
 uint8_t DCCMain::setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, 
-  setFunctionResponse& response) {
+  genericResponse& response) {
   
   uint8_t b[4];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -181,7 +181,7 @@ uint8_t DCCMain::setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2,
 }
 
 uint8_t DCCMain::setAccessory(uint16_t addr, uint8_t number, bool activate, 
-  setAccessoryResponse& response) {
+  genericResponse& response) {
   
   uint8_t b[3];     // Packet payload. Save space for checksum byte
   uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
@@ -204,7 +204,7 @@ uint8_t DCCMain::setAccessory(uint16_t addr, uint8_t number, bool activate,
 }
 
 uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
-  writeCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  genericResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
   
   uint8_t b[6];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -237,7 +237,7 @@ uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue,
 }
 
 uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
-  uint8_t bValue, writeCVBitMainResponse& response,
+  uint8_t bValue, genericResponse& response,
   void (*POMCallback)(RailcomPOMResponse)) {
   
   uint8_t b[6];     // Packet payload. Save space for checksum byte
@@ -273,7 +273,7 @@ uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum,
 }
 
 uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv, 
-  readCVByteMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  genericResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
 
   uint8_t b[6];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -307,7 +307,7 @@ uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv,
 }
 
 uint8_t DCCMain::readCVBytesMain(uint16_t addr, uint16_t cv, 
-  readCVBytesMainResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  genericResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
 
   uint8_t b[5];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
