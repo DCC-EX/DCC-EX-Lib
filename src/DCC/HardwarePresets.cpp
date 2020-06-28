@@ -120,7 +120,7 @@ DCCService* DCCService::Create_Pololu_MC33926Shield_Prog() {
 
 #if defined(ARDUINO_ARCH_SAMD)
 // TI DRV8874 on custom board
-DCCMain* DCCMain::Create_WSM_SAMCommandStation_Main(uint8_t numDevices) {
+DCCMain* DCCMain::Create_WSM_FireBox_Main(uint8_t numDevices) {
   Hardware hdw;
   Railcom rcom;
 
@@ -153,7 +153,7 @@ DCCMain* DCCMain::Create_WSM_SAMCommandStation_Main(uint8_t numDevices) {
 }
 
 // TI DRV8876 on custom board
-DCCService* DCCService::Create_WSM_SAMCommandStation_Prog() {
+DCCService* DCCService::Create_WSM_FireBox_Prog() {
   Hardware hdw;
   
   hdw.config_setChannelName("PROG");
