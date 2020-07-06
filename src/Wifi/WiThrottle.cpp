@@ -49,7 +49,7 @@ WiThrottle::WiThrottle(Print & stream, int wificlientid) {
    for (int loco=0;loco<MAX_MY_LOCO; loco++) myLocos[loco].throttle='\0';
   //StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), DCCWaveform::mainTrack.getPowerMode()==POWERMODE::ON);
 
-  StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), Waveform.hdw::getStatus()==HIGH);
+  StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), Waveform::hdw::getStatus()==HIGH);
 
    for(Turnout *tt=Turnout::firstTurnout;tt!=NULL;tt=tt->nextTurnout){
         StringFormatter::send(stream,F("]\\[LT&d}|{%d}|{%d"), tt->data.id, tt->data.id, (bool)(tt->data.tStatus));
@@ -83,13 +83,14 @@ void WiThrottle::parse(Print & stream, byte * cmd) {
        case 'P':  
             if (cmd[1]=='P' && cmd[2]=='A' )  {  //PPA power mode 
               //DCCWaveform::mainTrack.setPowerMode(cmd[3]=='1'?POWERMODE::ON:POWERMODE::OFF);
-              Waveform.hdw::setPower(cmd[3]=='1')
+              Waveform::hdw::setPower(cmd[3]=='1')
               StringFormatter::send(stream, F("PPA%c"),cmd[3]);
             }
             else if (cmd[1]=='T' && cmd[2]=='A') { // PTA accessory toggle 
                 // TODO... if we are given an address that is not a known Turnout...
                 // should we create one or just send the DCC message.                 
-                Turnout::activate(getInt(cmd+4),cmd[3]=='T');
+                //FIX THIS!!!!!!!!!!
+                //Turnout::activate(getInt(cmd+4),cmd[3]=='T');
             }
             break;
        case 'N':  // Heartbeat (2)
@@ -147,7 +148,7 @@ void WiThrottle::multithrottle(Print & stream, byte * cmd){
           case '-': // remove loco 
                  LOOPLOCOS(throttleChar, locoid) {
                      myLocos[loco].throttle='\0';
-                     DCC::setThrottle(myLocos[loco].cab,0,0);
+                     DCCMain::setThrottle(myLocos[loco].cab,0,0);
                      StringFormatter::send(stream, F("M%c-<;>\n"), throttleChar);
                   }
             
@@ -165,7 +166,7 @@ void WiThrottle::locoAction(Print & stream, byte* aval, char throttleChar, int c
              { 
               byte locospeed=getInt(aval+1);
               LOOPLOCOS(throttleChar, cab) {
-                DCC::setThrottle(myLocos[loco].cab,locospeed, DCC::getThrottleDirection(myLocos[loco].cab));
+                DCCMain::setThrottle(myLocos[loco].cab,locospeed, DCCMain::getThrottleDirection(myLocos[loco].cab));
                 }
              } 
             break;
@@ -174,19 +175,19 @@ void WiThrottle::locoAction(Print & stream, byte* aval, char throttleChar, int c
                   bool onOff=aval[1]=='1';
                   int fKey = getInt(aval+2);
                   LOOPLOCOS(throttleChar, cab) {
-                          DCC::setFn(myLocos[loco].cab, fKey,onOff);
+                          DCCMain::setFunction(myLocos[loco].cab, fKey,onOff);
                    } 
                 }
                 break;  
             case 'q':
                 if (aval[1]=='V') {   //qV
                   LOOPLOCOS(throttleChar, cab) {              
-                    StringFormatter::send(stream,F("M%cAL%d<;>V%d"), throttleChar, myLocos[loco].cab, DCC::getThrottleSpeed(myLocos[loco].cab));
+                    //StringFormatter::send(stream,F("M%cAL%d<;>V%d"), throttleChar, myLocos[loco].cab, DCC::getThrottleSpeed(myLocos[loco].cab));
                   }              
                 }
                 else if (aval[1]=='R') { // qR
                   LOOPLOCOS(throttleChar, cab) {              
-                    StringFormatter::send(stream,F("M%cAL%d<;>R%d"), throttleChar, myLocos[loco].cab, DCC::getThrottleDirection(myLocos[loco].cab));
+                    //StringFormatter::send(stream,F("M%cAL%d<;>R%d"), throttleChar, myLocos[loco].cab, DCC::getThrottleDirection(myLocos[loco].cab));
                   }             
                 }     
             break;    
@@ -194,20 +195,20 @@ void WiThrottle::locoAction(Print & stream, byte* aval, char throttleChar, int c
             { 
               bool forward=aval[1]!='0';
                  LOOPLOCOS(throttleChar, cab) {              
-                    DCC::setThrottle(myLocos[loco].cab, DCC::getThrottleSpeed(myLocos[loco].cab), forward);
+                    //DCCMain::setThrottle(myLocos[loco].cab, DCC::getThrottleSpeed(myLocos[loco].cab), forward);
                   }
             }        
             break;      
             case 'X':
               //Emergency Stop  (TODO check we have the correct speed code here)  
               LOOPLOCOS(throttleChar, cab) {
-                DCC::setThrottle(myLocos[loco].cab,1, DCC::getThrottleDirection(myLocos[loco].cab));
+                //DCCMain::setThrottle(myLocos[loco].cab,1, DCC::getThrottleDirection(myLocos[loco].cab));
                 }
                break;
             case 'I': // Idle
             case 'Q': // Quit
               LOOPLOCOS(throttleChar, cab) {
-                DCC::setThrottle(myLocos[loco].cab,0, DCC::getThrottleDirection(myLocos[loco].cab));
+                //DCCMain::setThrottle(myLocos[loco].cab,0, DCC::getThrottleDirection(myLocos[loco].cab));
                 }
                 break;
             }               
@@ -225,7 +226,7 @@ void WiThrottle::checkHeartbeat() {
     // Haertbeat missed... STOP all locos for this client
     for (int loco=0;loco<MAX_MY_LOCO;loco++) {
         if (myLocos[loco].throttle!='\0') {
-          DCC::setThrottle(myLocos[loco].cab, 1, DCC::getThrottleDirection(myLocos[loco].cab));
+          //DCC::setThrottle(myLocos[loco].cab, 1, DCC::getThrottleDirection(myLocos[loco].cab));
          }
     }
     delete this;
