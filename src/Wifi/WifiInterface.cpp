@@ -17,15 +17,15 @@ int WifiInterface::connectionId;
 byte WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream  WifiInterface::streamer(buffer,sizeof(buffer));
 
-void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, int port) {
+void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, __FlashStringHelper* hostname, __FlashStringHelper* servername, int port) {
   
   DIAG(F("\n++++++ Wifi Setup In Progress ++++++++\n"));
-  connected=setup2(wifiStream, SSid, password,port);
+  connected=setup2(wifiStream, SSid, password, hostname, servername, port);
   // TODO calloc the buffer and streamer and parser etc 
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected?F("OK"):F("FAILED"));
 }
 
-bool WifiInterface::setup2(Stream & wifiStream, const __FlashStringHelper* SSid, const __FlashStringHelper* password, int port)
+bool WifiInterface::setup2(Stream & wifiStream, const __FlashStringHelper* SSid, const __FlashStringHelper* password, __FlashStringHelper* hostname, __FlashStringHelper* servername, int port)
 {
   
   delay(1000);
@@ -34,11 +34,19 @@ bool WifiInterface::setup2(Stream & wifiStream, const __FlashStringHelper* SSid,
   checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
   if (!checkForOK(wifiStream,5000,READY_SEARCH,false)) return false; 
   
-  StringFormatter::send(wifiStream,F("AT+CWMODE=1\r\n")); // configure as access point
+  StringFormatter::send(wifiStream,F("AT+CWMODE=1\r\n")); // Configure as Wireless client
   if (!checkForOK(wifiStream,10000,OK_SEARCH,true)) return false;
+
+    StringFormatter::send(wifiStream,F("AT+CWHOSTNAME=\"%S\"\r\n"),hostname); // Set Host name for Wifi Client
+  if (!checkForOK(wifiStream,5000,OK_SEARCH,true)) return false;
+
+    StringFormatter::send(wifiStream,F("AT+MDNS=1,\"%S\",\"%S\",%d\r\n"),hostname, servername, port); // Setup mDNS for Server
+  if (!checkForOK(wifiStream,5000,OK_SEARCH,true)) return false;
  
-  StringFormatter::send(wifiStream,F("AT+CWJAP=\"%S\",\"%S\"\r\n"),SSid,password);
+  StringFormatter::send(wifiStream,F("AT+CWJAP=\"%S\",\"%S\"\r\n"),SSid,password); // Connect to wifi access point
   if (!checkForOK(wifiStream,20000,OK_SEARCH,true)) return false;
+
+
   
   StringFormatter::send(wifiStream,F("AT+CIFSR\r\n")); // get ip address //192.168.4.1
   if (!checkForOK(wifiStream,10000,OK_SEARCH,true)) return false;

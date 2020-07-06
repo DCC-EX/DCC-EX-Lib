@@ -32,6 +32,8 @@ const float kCurrentSampleSmoothing = 0.01;
 // Number of milliseconds between retries when the "breaker" is tripped.
 const int kRetryTime = 10000;
 
+enum class POWERMODE { LOW, HIGH };
+
 enum control_type_t : uint8_t {
   // One direction pin and one enable pin. Active high on both. Railcom is not 
   // supported with this setup.
