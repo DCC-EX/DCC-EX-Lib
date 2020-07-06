@@ -22,10 +22,10 @@
 */
 #include <Arduino.h>
 #include "WiThrottle.h"
-#include "DCC.h"
+#include "../DCC/DCCMain.h"
 #include "../DCC/Waveform.h"
 #include "StringFormatter.h"
-#include "Turnouts.h"
+#include "../Accessories/Turnouts.h"
 #include "DIAG.h"
 
 #define LOOPLOCOS(THROTTLECHAR, CAB)  for (int loco=0;loco<MAX_MY_LOCO;loco++) \

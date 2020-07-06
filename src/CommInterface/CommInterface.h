@@ -1,4 +1,4 @@
-/*
+/*m
  *  CommInterface.h
  * 
  *  This file is part of CommandStation.
