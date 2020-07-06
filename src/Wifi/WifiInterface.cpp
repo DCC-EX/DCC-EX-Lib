@@ -17,7 +17,7 @@ int WifiInterface::connectionId;
 byte WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream  WifiInterface::streamer(buffer,sizeof(buffer));
 
-void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, __FlashStringHelper* hostname, __FlashStringHelper* servername, int port) {
+void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, const __FlashStringHelper* hostname, const __FlashStringHelper* servername, int port) {
   
   DIAG(F("\n++++++ Wifi Setup In Progress ++++++++\n"));
   connected=setup2(wifiStream, SSid, password, hostname, servername, port);
@@ -25,7 +25,7 @@ void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid,
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected?F("OK"):F("FAILED"));
 }
 
-bool WifiInterface::setup2(Stream & wifiStream, const __FlashStringHelper* SSid, const __FlashStringHelper* password, __FlashStringHelper* hostname, __FlashStringHelper* servername, int port)
+bool WifiInterface::setup2(Stream & wifiStream, const __FlashStringHelper* SSid, const __FlashStringHelper* password, const __FlashStringHelper* hostname, const __FlashStringHelper* servername, int port)
 {
   
   delay(1000);
