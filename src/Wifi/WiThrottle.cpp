@@ -23,7 +23,7 @@
 #include <Arduino.h>
 #include "WiThrottle.h"
 #include "../DCC/DCCMain.h"
-#include "../DCC/Hardware.h"
+#include "../DCC/Waveform.h"
 #include "StringFormatter.h"
 #include "../Accessories/Turnouts.h"
 #include "DIAG.h"
@@ -49,10 +49,10 @@ WiThrottle::WiThrottle(Print & stream, int wificlientid) {
    for (int loco=0;loco<MAX_MY_LOCO; loco++) myLocos[loco].throttle='\0';
   //StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), DCCWaveform::mainTrack.getPowerMode()==POWERMODE::ON);
 
-  StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), Hardware::getStatus()==HIGH);
+  StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), Waveform.hdw::getStatus()==HIGH);
 
    for(Turnout *tt=Turnout::firstTurnout;tt!=NULL;tt=tt->nextTurnout){
-        StringFormatter::send(stream,F("]\\[LT&d}|{%d}|{%d"), tt->data.id, tt->data.id, (bool)(tt->data.tStatus & STATUS_ACTIVE));
+        StringFormatter::send(stream,F("]\\[LT&d}|{%d}|{%d"), tt->data.id, tt->data.id, (bool)(tt->data.tStatus));
       }
   StringFormatter::send(stream,F("\n*10\n"));
   heartBeatEnable=false; // until client turns it on
@@ -83,7 +83,7 @@ void WiThrottle::parse(Print & stream, byte * cmd) {
        case 'P':  
             if (cmd[1]=='P' && cmd[2]=='A' )  {  //PPA power mode 
               //DCCWaveform::mainTrack.setPowerMode(cmd[3]=='1'?POWERMODE::ON:POWERMODE::OFF);
-              Hardware::setPower(cmd[3]=='1')
+              Waveform.hdw::setPower(cmd[3]=='1')
               StringFormatter::send(stream, F("PPA%c"),cmd[3]);
             }
             else if (cmd[1]=='T' && cmd[2]=='A') { // PTA accessory toggle 
