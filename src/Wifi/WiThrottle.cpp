@@ -23,7 +23,6 @@
 #include <Arduino.h>
 #include "WiThrottle.h"
 #include "../DCC/DCCMain.h"
-#include "../DCC/Waveform.h"
 #include "StringFormatter.h"
 #include "../Accessories/Turnouts.h"
 #include "DIAG.h"
@@ -49,7 +48,7 @@ WiThrottle::WiThrottle(Print & stream, int wificlientid) {
    for (int loco=0;loco<MAX_MY_LOCO; loco++) myLocos[loco].throttle='\0';
   //StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), DCCWaveform::mainTrack.getPowerMode()==POWERMODE::ON);
 
-  StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), Waveform::hdw::getStatus()==HIGH);
+  //StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), ==HIGH);
 
    for(Turnout *tt=Turnout::firstTurnout;tt!=NULL;tt=tt->nextTurnout){
         StringFormatter::send(stream,F("]\\[LT&d}|{%d}|{%d"), tt->data.id, tt->data.id, (bool)(tt->data.tStatus));
@@ -148,7 +147,7 @@ void WiThrottle::multithrottle(Print & stream, byte * cmd){
           case '-': // remove loco 
                  LOOPLOCOS(throttleChar, locoid) {
                      myLocos[loco].throttle='\0';
-                     DCCMain::setThrottle(myLocos[loco].cab,0,0);
+                     //DCCMain::setThrottle(myLocos[loco].cab,0,0);
                      StringFormatter::send(stream, F("M%c-<;>\n"), throttleChar);
                   }
             
@@ -166,7 +165,7 @@ void WiThrottle::locoAction(Print & stream, byte* aval, char throttleChar, int c
              { 
               byte locospeed=getInt(aval+1);
               LOOPLOCOS(throttleChar, cab) {
-                DCCMain::setThrottle(myLocos[loco].cab,locospeed, DCCMain::getThrottleDirection(myLocos[loco].cab));
+                //DCCMain::setThrottle(myLocos[loco].cab,locospeed, DCCMain::getThrottleDirection(myLocos[loco].cab));
                 }
              } 
             break;
@@ -175,7 +174,7 @@ void WiThrottle::locoAction(Print & stream, byte* aval, char throttleChar, int c
                   bool onOff=aval[1]=='1';
                   int fKey = getInt(aval+2);
                   LOOPLOCOS(throttleChar, cab) {
-                          DCCMain::setFunction(myLocos[loco].cab, fKey,onOff);
+                          //DCCMain::setFunction(myLocos[loco].cab, fKey, onOff);
                    } 
                 }
                 break;  
