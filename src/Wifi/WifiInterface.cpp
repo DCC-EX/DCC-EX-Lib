@@ -14,7 +14,7 @@ DCCEXParser  WifiInterface::parser;
 byte WifiInterface::loopstate=0;
 int WifiInterface::datalength=0;
 int WifiInterface::connectionId;
-char[] WifiInterface::buffer[MAX_WIFI_BUFFER];
+char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream  WifiInterface::streamer(buffer,sizeof(buffer));
 
 void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, const __FlashStringHelper* hostname, const __FlashStringHelper* servername, int port) {
