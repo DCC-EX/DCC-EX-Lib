@@ -14,7 +14,7 @@ DCCEXParser  WifiInterface::parser;
 byte WifiInterface::loopstate=0;
 int WifiInterface::datalength=0;
 int WifiInterface::connectionId;
-byte WifiInterface::buffer[MAX_WIFI_BUFFER];
+char[] WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream  WifiInterface::streamer(buffer,sizeof(buffer));
 
 void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, const __FlashStringHelper* hostname, const __FlashStringHelper* servername, int port) {
@@ -145,7 +145,7 @@ void WifiInterface::loop(Stream & wifiStream) {
         } // switch 
     } // while
     if (loopstate!=99) return; 
-    streamer.write('\0');
+    streamer.write(static_cast<byte>'\0');
 
     DIAG(F("\nWifiRead:%d:%s\n"),connectionId,buffer);
     streamer.setBufferContentPosition(0,0);  // reset write position to start of buffer
@@ -165,7 +165,7 @@ void WifiInterface::loop(Stream & wifiStream) {
 
        
     if (streamer.available()) { // there is a reply to send 
-        streamer.write('\0');
+        streamer.write(static_cast<byte>'\0');
         DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"),connectionId,streamer.available()-1,buffer);
         
         StringFormatter::send(wifiStream,F("AT+CIPSEND=%d,%d\r\n"),connectionId,streamer.available()-1);

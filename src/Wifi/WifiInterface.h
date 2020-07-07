@@ -23,7 +23,7 @@ class WifiInterface {
     static int  datalength;
     static int connectionId;
     static const byte MAX_WIFI_BUFFER=250;
-    static byte buffer[MAX_WIFI_BUFFER];
+    static char[] buffer[MAX_WIFI_BUFFER];
     static MemStream  streamer;
 };
 
