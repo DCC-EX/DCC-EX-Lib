@@ -160,7 +160,7 @@ void WifiInterface::loop(Stream & wifiStream) {
       HTTPParser::parse(streamer,buffer);
       closeAfter=true;
     }
-    else if (buffer[0]=='<')  parser.parse(streamer,buffer);
+    else if (buffer[0]=='<')  parser.parse(buffer);
     else WiThrottle::getThrottle(streamer, connectionId)->parse(streamer, buffer);
 
        
