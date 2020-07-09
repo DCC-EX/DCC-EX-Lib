@@ -8,6 +8,7 @@ const char  PROGMEM OK_SEARCH[] ="\r\nOK\r\n";
 const char  PROGMEM END_DETAIL_SEARCH[] ="@ 1000";
 const char  PROGMEM PROMPT_SEARCH[] =">";
 const char  PROGMEM SEND_OK_SEARCH[] ="\r\nSEND OK\r\n";
+const char  PROGMEM WIFI_AUTO_CONNECT = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
 
 bool WifiInterface::connected=false;
 DCCEXParser  WifiInterface::parser;
@@ -31,14 +32,16 @@ bool WifiInterface::setup2(Stream & wifiStream, const __FlashStringHelper* SSid,
   delay(1000);
 
   StringFormatter::send(wifiStream,F("AT+RST\r\n")); // reset module
-  checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
-  if (!checkForOK(wifiStream,5000,READY_SEARCH,false)) return false; 
+  //checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
+  if (!checkForOK(wifiStream,7500,READY_SEARCH,false)) return false; 
+
+
   
   StringFormatter::send(wifiStream,F("AT+CWMODE=1\r\n")); // Configure as Wireless client
   if (!checkForOK(wifiStream,10000,OK_SEARCH,true)) return false;
 
     StringFormatter::send(wifiStream,F("AT+CWHOSTNAME=\"%S\"\r\n"),hostname); // Set Host name for Wifi Client
-  if (!checkForOK(wifiStream,5000,OK_SEARCH,true)) return false;
+  if (!checkForOK(wifiStream,5000,OK_SEARCH,true)) return true;
 
     StringFormatter::send(wifiStream,F("AT+MDNS=1,\"%S\",\"%S\",%d\r\n"),hostname, servername, port); // Setup mDNS for Server
   if (!checkForOK(wifiStream,5000,OK_SEARCH,true)) return false;

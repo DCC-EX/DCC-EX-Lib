@@ -82,7 +82,8 @@ void WiThrottle::parse(Print & stream, byte * cmd) {
        case 'P':  
             if (cmd[1]=='P' && cmd[2]=='A' )  {  //PPA power mode 
               //DCCWaveform::mainTrack.setPowerMode(cmd[3]=='1'?POWERMODE::ON:POWERMODE::OFF);
-              //Waveform::hdw::setPower(cmd[3]=='1')
+              //
+              Waveform::hdw::setPower(cmd[3]=='1')
               StringFormatter::send(stream, F("PPA%c"),cmd[3]);
             }
             else if (cmd[1]=='T' && cmd[2]=='A') { // PTA accessory toggle 
