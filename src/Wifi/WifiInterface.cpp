@@ -8,7 +8,7 @@ const char  PROGMEM OK_SEARCH[] ="\r\nOK\r\n";
 const char  PROGMEM END_DETAIL_SEARCH[] ="@ 1000";
 const char  PROGMEM PROMPT_SEARCH[] =">";
 const char  PROGMEM SEND_OK_SEARCH[] ="\r\nSEND OK\r\n";
-const char  PROGMEM WIFI_AUTO_CONNECT = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
+const char  PROGMEM WIFI_AUTO_CONNECT[] = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
 
 bool WifiInterface::connected=false;
 DCCEXParser  WifiInterface::parser;
@@ -16,7 +16,7 @@ byte WifiInterface::loopstate=0;
 int WifiInterface::datalength=0;
 int WifiInterface::connectionId;
 char WifiInterface::buffer[MAX_WIFI_BUFFER];
-MemStream  WifiInterface::streamer(buffer,sizeof(buffer));
+MemStream  WifiInterface::streamer((const uint8_t*)buffer,sizeof(buffer));
 
 void WifiInterface::setup(Stream & wifiStream,  const __FlashStringHelper* SSid, const __FlashStringHelper* password, const __FlashStringHelper* hostname, const __FlashStringHelper* servername, int port) {
   
