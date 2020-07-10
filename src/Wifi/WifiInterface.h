@@ -29,7 +29,7 @@ private:
   static const byte MAX_WIFI_BUFFER = 250;
   static char buffer[MAX_WIFI_BUFFER];
   static MemStream streamer;
-  Stream wifiStream;
+  Stream *wifiStream;
 };
 
 #endif
