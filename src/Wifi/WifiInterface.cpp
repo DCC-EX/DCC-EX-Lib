@@ -3,6 +3,9 @@
 #include "StringFormatter.h"
 #include "WiThrottle.h"
 #include "HTTPParser.h"
+#include "..\CommInterface\CommManager.h"
+#include "..\CommInterface\DCCEXParser.h"
+
 const char PROGMEM READY_SEARCH[] = "\r\nready\r\n";
 const char PROGMEM OK_SEARCH[] = "\r\nOK\r\n";
 const char PROGMEM END_DETAIL_SEARCH[] = "@ 1000";
@@ -17,24 +20,27 @@ int WifiInterface::datalength = 0;
 int WifiInterface::connectionId;
 char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
+Stream WifiInterface::wifiStream;
 
-void WifiInterface::setup(Stream &wifiStream, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
+void WifiInterface::WifiInterface(Stream &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
 {
 
   DIAG(F("\n++++++ Wifi Setup In Progress ++++++++\n"));
-  connected = setup2(wifiStream, SSid, password, hostname, servername, port);
+  wifiStream = wifiSerial;
+  connected = setup2(SSid, password, hostname, servername, port);
+  
   // TODO calloc the buffer and streamer and parser etc
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected ? F("OK") : F("FAILED"));
 }
 
-bool WifiInterface::setup2(Stream &wifiStream, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
+bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
 {
 
   delay(1000);
 
   StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
   //checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
-  if (!checkForOK(wifiStream, 7500, READY_SEARCH, false))
+  if (!checkForOK(wifiStream, 2500, READY_SEARCH, false))
     return false;
 
   if (!checkForOK(wifiStream, 5000, WIFI_AUTO_CONNECT_SEARCH, false))
@@ -126,7 +132,7 @@ bool WifiInterface::isHTML()
   }
 }
 
-void WifiInterface::loop(Stream &wifiStream)
+void WifiInterface::process()
 {
   if (!connected)
     return;
@@ -218,4 +224,17 @@ void WifiInterface::loop(Stream &wifiStream)
   }
 
   loopstate = 0; // go back to looking for +IPD
+}
+
+
+void WifiInterface::showConfiguration() {
+
+}
+
+void WifiInterface::showInitInfo() {
+  CommManager::printf("<WiFi:Initialized>");
+}
+
+void WifiInterface::send(const char *buf) {
+  queueForSending(buf);
 }
