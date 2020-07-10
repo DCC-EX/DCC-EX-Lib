@@ -14,7 +14,7 @@ const char PROGMEM SEND_OK_SEARCH[] = "\r\nSEND OK\r\n";
 const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
 
 bool WifiInterface::connected = false;
-DCCEXParser WifiInterface::parser;
+DCCEXParser parser;
 byte WifiInterface::loopstate = 0;
 int WifiInterface::datalength = 0;
 int WifiInterface::connectionId;
@@ -22,7 +22,7 @@ char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
 Stream WifiInterface::wifiStream;
 
-void WifiInterface::WifiInterface(Stream &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
+WifiInterface::WifiInterface(Stream &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
 {
 
   DIAG(F("\n++++++ Wifi Setup In Progress ++++++++\n"));
