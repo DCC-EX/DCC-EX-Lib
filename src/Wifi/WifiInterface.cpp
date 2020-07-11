@@ -20,18 +20,33 @@ int WifiInterface::datalength = 0;
 int WifiInterface::connectionId;
 char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
-Stream WifiInterface::wifiStream;
 
-WifiInterface::WifiInterface(Stream &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
+#if defined(ARDUINO_AVR_UNO)
+WifiInterface::WifiInterface(SoftwareSerial &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port) : wifiStream(wifiSerial)
 {
 
-  DIAG(F("\n++++++ Wifi Setup In Progress ++++++++\n"));
+  DIAG(F("\n++++++ Wifi Setup In Progress Using SW Serial ++++++++\n"));
   wifiStream = wifiSerial;
   connected = setup2(SSid, password, hostname, servername, port);
 
   // TODO calloc the buffer and streamer and parser etc
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected ? F("OK") : F("FAILED"));
 }
+#else
+WifiInterface::WifiInterface(HardwareSerial &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port) : wifiStream(wifiSerial)
+{
+
+  DIAG(F("\n++++++ Wifi Setup In Progress Using HW Serial ++++++++\n"));
+  wifiStream.begin(115200);
+  wifiStream.flush();
+  connected = setup2(SSid, password, hostname, servername, port);
+
+  // TODO calloc the buffer and streamer and parser etc
+  DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected ? F("OK") : F("FAILED"));
+}
+#endif
+
+
 
 bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
 {
