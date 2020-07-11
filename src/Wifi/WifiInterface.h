@@ -16,7 +16,7 @@ public:
   void showConfiguration();
   void showInitInfo();
   void send(const char *buf);
-  Stream *getStream() { return &streamer; }
+  Stream *getStream() { return &wifiStream; }
 
 private:
   static bool setup2(Stream &wifiStream, const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);

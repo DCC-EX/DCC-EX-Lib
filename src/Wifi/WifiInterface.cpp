@@ -28,7 +28,7 @@ WifiInterface::WifiInterface(Stream &wifiSerial, const __FlashStringHelper *SSid
   DIAG(F("\n++++++ Wifi Setup In Progress ++++++++\n"));
   wifiStream = wifiSerial;
   connected = setup2(SSid, password, hostname, servername, port);
-  
+
   // TODO calloc the buffer and streamer and parser etc
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected ? F("OK") : F("FAILED"));
 }
@@ -40,42 +40,42 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
 
   StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
   //checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
-  if (!checkForOK(wifiStream, 2500, READY_SEARCH, false))
+  if (!checkForOK(2500, READY_SEARCH, false))
     return false;
 
-  if (!checkForOK(wifiStream, 5000, WIFI_AUTO_CONNECT_SEARCH, false))
+  if (!checkForOK(5000, WIFI_AUTO_CONNECT_SEARCH, false))
   {
     StringFormatter::send(wifiStream, F("AT+CWMODE=1\r\n")); // Configure as Wireless client
-    if (!checkForOK(wifiStream, 10000, OK_SEARCH, true))
+    if (!checkForOK(10000, OK_SEARCH, true))
       return false;
     StringFormatter::send(wifiStream, F("AT+CWJAP=\"%S\",\"%S\"\r\n"), SSid, password); // Connect to wifi access point
-    if (!checkForOK(wifiStream, 20000, OK_SEARCH, true))
+    if (!checkForOK(20000, OK_SEARCH, true))
       return false;
   }
 
   StringFormatter::send(wifiStream, F("AT+CIFSR\r\n")); // get ip address //192.168.4.1
-  if (!checkForOK(wifiStream, 10000, OK_SEARCH, true))
+  if (!checkForOK(10000, OK_SEARCH, true))
     return false;
 
   StringFormatter::send(wifiStream, F("AT+CWHOSTNAME=\"%S\"\r\n"), hostname); // Set Host name for Wifi Client
-  checkForOK(wifiStream, 5000, OK_SEARCH, true);
+  checkForOK(5000, OK_SEARCH, true);
 
   StringFormatter::send(wifiStream, F("AT+CIPMUX=1\r\n")); // configure for multiple connections
-  if (!checkForOK(wifiStream, 10000, OK_SEARCH, true))
+  if (!checkForOK(10000, OK_SEARCH, true))
     return false;
 
   StringFormatter::send(wifiStream, F("AT+CIPSERVER=1,%d\r\n"), port); // turn on server on port 80
-  if (!checkForOK(wifiStream, 10000, OK_SEARCH, true))
+  if (!checkForOK(10000, OK_SEARCH, true))
     return false;
 
   StringFormatter::send(wifiStream, F("AT+MDNS=1,\"%S\",\"%S\",%d\r\n"), hostname, servername, port); // Setup mDNS for Server
-  if (!checkForOK(wifiStream, 5000, OK_SEARCH, true))
+  if (!checkForOK(5000, OK_SEARCH, true))
     return false;
 
   return true;
 }
 
-bool WifiInterface::checkForOK(Stream &wifiStream, const unsigned int timeout, const char *waitfor, bool echo)
+bool WifiInterface::checkForOK(const unsigned int timeout, const char *waitfor, bool echo)
 {
   unsigned long startTime = millis();
   char const *locator = waitfor;
@@ -226,15 +226,25 @@ void WifiInterface::process()
   loopstate = 0; // go back to looking for +IPD
 }
 
-
-void WifiInterface::showConfiguration() {
-
+void WifiInterface::showConfiguration()
+{
 }
 
-void WifiInterface::showInitInfo() {
+void WifiInterface::showInitInfo()
+{
   CommManager::printf("<WiFi:Initialized>");
 }
 
-void WifiInterface::send(const char *buf) {
-  queueForSending(buf);
+void WifiInterface::send(, const char *buf)
+{
+  if (streamer.available())
+  { // there is a reply to send
+    streamer.write(buf);
+    DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buf);
+
+    StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
+    if (checkForOK(wifiStream, 1000, PROMPT_SEARCH, true))
+      wifiStream.print(buf);
+    checkForOK(wifiStream, 3000, SEND_OK_SEARCH, true);
+  }
 }
