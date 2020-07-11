@@ -26,9 +26,10 @@ WifiInterface::WifiInterface(SoftwareSerial &wifiSerial, const __FlashStringHelp
 {
 
   DIAG(F("\n++++++ Wifi Setup In Progress Using SW Serial ++++++++\n"));
-  wifiStream = wifiSerial;
-  connected = setup2(SSid, password, hostname, servername, port);
 
+  connected = setup2(SSid, password, hostname, servername, port);
+  wifiStream.begin(115200);
+  wifiStream.flush();
   // TODO calloc the buffer and streamer and parser etc
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected ? F("OK") : F("FAILED"));
 }
@@ -45,8 +46,6 @@ WifiInterface::WifiInterface(HardwareSerial &wifiSerial, const __FlashStringHelp
   DIAG(F("\n++++++ Wifi Setup %S ++++++++\n"), connected ? F("OK") : F("FAILED"));
 }
 #endif
-
-
 
 bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port)
 {

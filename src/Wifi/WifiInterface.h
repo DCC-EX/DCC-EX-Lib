@@ -20,7 +20,7 @@ public:
   void showConfiguration();
   void showInitInfo();
   void send(const char *buf);
-  Stream *getStream() { return &wifiSerial; }
+  Stream *getStream() { return &wifiStream; }
 
 private:
   static bool setup2(const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
@@ -34,9 +34,9 @@ private:
   static char buffer[MAX_WIFI_BUFFER];
   static MemStream streamer;
 #ifdef defined(AVR_UNO)
-  SoftwareSerial &wifiSerial;
+  SoftwareSerial &wifiStream;
 #else
-  HardwareSerial &wifiSerial;
+  HardwareSerial &wifiStream;
 #endif
 };
 
