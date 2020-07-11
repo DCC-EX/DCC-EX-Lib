@@ -15,7 +15,12 @@ class WifiInterface : public CommInterface
 {
 
 public:
-  WifiInterface(Stream &wifiStream, const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
+#ifdef defined(AVR_UNO)
+  WifiInterface(SoftwareSerial &wifiStream, const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
+#else
+  WifiInterface(HardwareSerial &wifiStream, const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
+#endif
+
   void process();
   void showConfiguration();
   void showInitInfo();
