@@ -233,11 +233,11 @@ void WifiInterface::process()
   else if (buffer[0] == '<')
   {
 
-    String command = String(buffer);
-    command.replace('<', '\0');
-    command.replace('>', '\0');
+    //String command = String(buffer);
+    //command.replace('<', '\0');
+    //command.replace('>', '\0');
     DIAG(F("Sending Command:%s to DCCEXParser\n"), command);
-    DCCEXParser::parse(command.c_str());
+    //DCCEXParser::parse(command.c_str());
   }
   else
   {
