@@ -55,7 +55,7 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
   delay(1000);
 
   StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
-  checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
+  checkForOK(5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
   if (!checkForOK(5000, READY_SEARCH, true))
     return false;
 
