@@ -42,7 +42,7 @@ WifiInterface::WifiInterface(HardwareSerial &wifiSerial, const __FlashStringHelp
   DIAG(F("\n++++++ Wifi Setup In Progress Using HW Serial ++++++++\n"));
   wifiStream.begin(115200);
   wifiStream.flush();
- //MemStream streamer(buffer, sizeof(buffer));
+  //MemStream streamer(buffer, sizeof(buffer));
   connected = setup2(SSid, password, hostname, servername, port);
 
   // TODO calloc the buffer and streamer and parser etc
@@ -56,10 +56,10 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
   delay(1000);
 
   StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
-  checkForOK(1000, OK_SEARCH,true);
-  delay(1000);
-  checkForOK(5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
-  delay(1000);
+  checkForOK(1000, OK_SEARCH, true);
+
+  checkForOK(5000, END_DETAIL_SEARCH, true); // Show startup but ignore unreadable upto ready
+
   if (!checkForOK(5000, READY_SEARCH, true))
     return false;
 
@@ -106,9 +106,13 @@ bool WifiInterface::checkForOK(const unsigned int timeout, const char *waitfor, 
     {
       int ch = wifiStream.read();
       if (echo)
+      {
         Serial.write(ch);
-      if (ch != strstr(ch, pgm_read_byte_near(locator)))
+      }
+      if (ch != pgm_read_byte_near(locator))
+      {
         locator = waitfor;
+      }
       if (ch == pgm_read_byte_near(locator))
       {
         locator++;
