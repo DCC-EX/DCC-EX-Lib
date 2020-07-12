@@ -4,8 +4,8 @@
 #include "WiThrottle.h"
 #include "HTTPParser.h"
 #include <string.h>
-#include "..\CommInterface\CommManager.h"
-#include "..\CommInterface\DCCEXParser.h"
+#include "..\CommManager.h"
+#include "..\DCCEXParser.h"
 
 const char PROGMEM READY_SEARCH[] = "ready";
 const char PROGMEM OK_SEARCH[] = "OK";
@@ -232,7 +232,8 @@ void WifiInterface::process()
   }
   else if (buffer[0] == '<')
   {
-    String command = String(buffer);
+    
+    String command = String(streamer.);
     command.replace('<', '\0');
     command.replace('>', '\0');
     DCCEXParser::parse(command.c_str());

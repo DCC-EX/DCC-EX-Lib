@@ -26,7 +26,7 @@
 #include "CommInterface/DCCEXParser.h"
 #include "DCC/DCCMain.h"
 #include "DCC/DCCService.h"
-#include "Wifi/WifiInterface.h"
+#include "CommInterface/Wifi/WifiInterface.h"
 
 #if defined (ARDUINO_ARCH_SAMD)
   #include "CommInterface/CommInterfaceUSB.h"

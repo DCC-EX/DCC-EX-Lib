@@ -1,7 +1,7 @@
 
 #ifndef WifiInterface_h
 #define WifiInterface_h
-#include "..\CommInterface\CommInterface.h"
+#include "../CommInterface.h"
 #include "MemStream.h"
 #include <Arduino.h>
 #include <avr/pgmspace.h>

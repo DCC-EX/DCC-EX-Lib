@@ -312,8 +312,8 @@ void DCCEXParser::parse(const char *com) {
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
   case 's':      // <s>
-    CommManager::printf("<p%d MAIN>", mainTrack->hdw.getStatus());
-    CommManager::printf("<p%d PROG>", progTrack->hdw.getStatus());
+    CommManager::printf(F("<p%d MAIN>"), mainTrack->hdw.getStatus());
+    CommManager::printf(F("<p%d PROG>"), progTrack->hdw.getStatus());
     for(int i=1;i<=mainTrack->numDevices;i++){
       if(mainTrack->speedTable[i].speed==0)
       continue;
@@ -321,7 +321,7 @@ void DCCEXParser::parse(const char *com) {
         mainTrack->speedTable[i].forward);
     }
     CommManager::printf(
-        "<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>", 
+        F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), 
         "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
     CommManager::showInitInfo();
     Turnout::show();
