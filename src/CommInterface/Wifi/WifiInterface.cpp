@@ -268,20 +268,16 @@ void WifiInterface::showConfiguration()
 
 void WifiInterface::showInitInfo()
 {
-  CommManager::printf(connected ? "<WiFi:Connected>": "<Wifi:Not Connected>");
+  CommManager::printf(connected ? "<WiFi:Connected>" : "<Wifi:Not Connected>");
 }
 
 void WifiInterface::send(const char *buf)
 {
-  DIAG(F("WiFiInterface Sending  %s\n"), buf);
-  if (streamer.available())
-  { // there is a reply to send
-    streamer.write(buf);
-    DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buf);
+  streamer.write(buf);
+  DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buf);
 
-    StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
-    if (checkForOK(1000, PROMPT_SEARCH, true))
-      wifiStream.print(buf);
-    checkForOK(3000, SEND_OK_SEARCH, true);
-  }
+  StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
+  if (checkForOK(1000, PROMPT_SEARCH, true))
+    wifiStream.print(buf);
+  checkForOK(3000, SEND_OK_SEARCH, true);
 }
