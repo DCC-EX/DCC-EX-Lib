@@ -69,9 +69,9 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
     if (!checkForOK(10000, OK_SEARCH, true))
       return false;
     StringFormatter::send(wifiStream, F("AT+CWJAP=\"%S\",\"%S\"\r\n"), SSid, password); // Connect to wifi access point
-    if (!checkForOK(5000, OK_SEARCH, true))
+    if (!checkForOK(20000, OK_SEARCH, true))
     {
-      if (!checkForOK(20000,WIFI_AUTO_CONNECT_SEARCH, true)) {
+      if (!checkForOK(30000,WIFI_AUTO_CONNECT_SEARCH, true)) {
         return false;
       }
     }
