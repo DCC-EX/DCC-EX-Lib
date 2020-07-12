@@ -4,8 +4,8 @@
 #include "WiThrottle.h"
 #include "HTTPParser.h"
 #include <string.h>
-#include "..\CommManager.h"
-#include "..\DCCEXParser.h"
+#include "../CommManager.h"
+#include "../DCCEXParser.h"
 
 const char PROGMEM READY_SEARCH[] = "ready";
 const char PROGMEM OK_SEARCH[] = "OK";
