@@ -232,10 +232,11 @@ void WifiInterface::process()
   }
   else if (buffer[0] == '<')
   {
-    DIAG(F("Sending Buffer:%s  to DCCEXParser\n"), buffer);
+    
     String command = String(buffer);
     command.replace('<', '\0');
     command.replace('>', '\0');
+    DIAG(F("Sending Command:%s to DCCEXParser\n"), command);
     DCCEXParser::parse(command.c_str());
   }
   else
@@ -278,6 +279,6 @@ void WifiInterface::send(const char *buf)
 
   StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
   if (checkForOK(1000, PROMPT_SEARCH, true))
-    wifiStream.print(buf);
+  wifiStream.print(buf);
   checkForOK(3000, SEND_OK_SEARCH, true);
 }
