@@ -236,7 +236,7 @@ void WifiInterface::process()
     //String command = String(buffer);
     //command.replace('<', '\0');
     //command.replace('>', '\0');
-    DIAG(F("Sending Command:%s to DCCEXParser\n"), command);
+    DIAG(F("Sending Command:%s to DCCEXParser\n"), buffer);
     //DCCEXParser::parse(command.c_str());
   }
   else
