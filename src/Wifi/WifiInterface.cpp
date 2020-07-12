@@ -18,7 +18,7 @@ DCCEXParser parser;
 //byte WifiInterface::loopstate = 0;
 //int WifiInterface::datalength = 0;
 //int WifiInterface::connectionId;
-//char WifiInterface::buffer[MAX_WIFI_BUFFER];
+char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
 
 #if defined(ARDUINO_AVR_UNO)
