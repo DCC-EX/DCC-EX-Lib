@@ -5,7 +5,7 @@
 #include "MemStream.h"
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#ifdef defined(ARDUINO_AVR_UNO)
+#if defined(ARDUINO_AVR_UNO)
 #include <SoftwareSerial.h>
 #else
 #include <HardwareSerial.h>
@@ -15,7 +15,7 @@ class WifiInterface : public CommInterface
 {
 
 public:
-#ifdef defined(ARDUINO_AVR_UNO)
+#if defined(ARDUINO_AVR_UNO)
   WifiInterface(SoftwareSerial &wifiStream, const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
 #else
   WifiInterface(HardwareSerial &wifiStream, const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
@@ -40,7 +40,7 @@ private:
   static MemStream streamer;
 
 protected:
-#ifdef defined(ARDUINO_AVR_UNO)
+#if defined(ARDUINO_AVR_UNO)
   SoftwareSerial &wifiStream;
 #else
   HardwareSerial &wifiStream;
