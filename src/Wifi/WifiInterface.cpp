@@ -19,7 +19,7 @@ DCCEXParser parser;
 //int WifiInterface::datalength = 0;
 //int WifiInterface::connectionId;
 //char WifiInterface::buffer[MAX_WIFI_BUFFER];
-//MemStream WifiInterface::streamer(buffer, sizeof(buffer));
+MemStream WifiInterface::streamer(buffer, sizeof(buffer));
 
 #if defined(ARDUINO_AVR_UNO)
 WifiInterface::WifiInterface(SoftwareSerial &wifiSerial, const __FlashStringHelper *SSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port) : wifiStream(wifiSerial)
