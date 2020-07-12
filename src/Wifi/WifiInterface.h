@@ -37,7 +37,7 @@ private:
   int connectionId;
   static const byte MAX_WIFI_BUFFER = 250;
   char buffer[MAX_WIFI_BUFFER];
-  MemStream streamer;
+  MemStream streamer(buffer, sizeof(buffer));
 
 protected:
 #ifdef defined(ARDUINO_AVR_UNO)
