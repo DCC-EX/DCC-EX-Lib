@@ -31,9 +31,9 @@ private:
   bool setup2(const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
   bool checkForOK(const unsigned int timeout, const char *waitfor, bool echo);
   bool isHTML();
-  bool connected;
-  byte loopstate;
-  int datalength;
+  bool connected = false;
+  byte loopstate = 0;
+  int datalength = 0;
   int connectionId;
   static const byte MAX_WIFI_BUFFER = 250;
   char buffer[MAX_WIFI_BUFFER];

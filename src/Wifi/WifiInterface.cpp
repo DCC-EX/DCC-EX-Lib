@@ -13,12 +13,12 @@ const char PROGMEM PROMPT_SEARCH[] = ">";
 const char PROGMEM SEND_OK_SEARCH[] = "\r\nSEND OK\r\n";
 const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
 
-bool WifiInterface::connected = false;
+//bool WifiInterface::connected = false;
 DCCEXParser parser;
-byte WifiInterface::loopstate = 0;
-int WifiInterface::datalength = 0;
-int WifiInterface::connectionId;
-char WifiInterface::buffer[MAX_WIFI_BUFFER];
+//byte WifiInterface::loopstate = 0;
+//int WifiInterface::datalength = 0;
+//int WifiInterface::connectionId;
+//char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
 
 #if defined(ARDUINO_AVR_UNO)
