@@ -41,7 +41,7 @@ WifiInterface::WifiInterface(HardwareSerial &wifiSerial, const __FlashStringHelp
   DIAG(F("\n++++++ Wifi Setup In Progress Using HW Serial ++++++++\n"));
   wifiStream.begin(115200);
   wifiStream.flush();
-  streamer(*buffer, sizeof(buffer));
+  //streamer(buffer, sizeof(buffer));
   connected = setup2(SSid, password, hostname, servername, port);
 
   // TODO calloc the buffer and streamer and parser etc
