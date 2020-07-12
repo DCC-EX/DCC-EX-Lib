@@ -59,15 +59,15 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
   if (!checkForOK(5000, READY_SEARCH, true))
     return false;
 
-  // if (!checkForOK(10000, WIFI_AUTO_CONNECT_SEARCH, true))
-  // {
-  //   StringFormatter::send(wifiStream, F("AT+CWMODE=1\r\n")); // Configure as Wireless client
-  //   if (!checkForOK(10000, OK_SEARCH, true))
-  //     return false;
-  //   StringFormatter::send(wifiStream, F("AT+CWJAP=\"%S\",\"%S\"\r\n"), SSid, password); // Connect to wifi access point
-  //   if (!checkForOK(20000, OK_SEARCH, true))
-  //     return false;
-  // }
+  if (!checkForOK(20000, WIFI_AUTO_CONNECT_SEARCH, true))
+  {
+    StringFormatter::send(wifiStream, F("AT+CWMODE=1\r\n")); // Configure as Wireless client
+    if (!checkForOK(10000, OK_SEARCH, true))
+      return false;
+    StringFormatter::send(wifiStream, F("AT+CWJAP=\"%S\",\"%S\"\r\n"), SSid, password); // Connect to wifi access point
+    if (!checkForOK(20000, OK_SEARCH, true))
+      return false;
+  }
 
   StringFormatter::send(wifiStream, F("AT+CIFSR\r\n")); // get ip address //192.168.4.1
   if (!checkForOK(10000, OK_SEARCH, true))
