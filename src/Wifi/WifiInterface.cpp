@@ -8,7 +8,7 @@
 
 const char PROGMEM READY_SEARCH[] = "\r\nready\r\n";
 const char PROGMEM OK_SEARCH[] = "\r\nOK\r\n";
-const char PROGMEM END_DETAIL_SEARCH[] = "@ 1000";
+const char PROGMEM END_DETAIL_SEARCH[] = "\r\ncorrect flash map\r\n";
 const char PROGMEM PROMPT_SEARCH[] = ">";
 const char PROGMEM SEND_OK_SEARCH[] = "\r\nSEND OK\r\n";
 const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
@@ -55,7 +55,7 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
   delay(1000);
 
   StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
-  //checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
+  checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
   if (!checkForOK(5000, READY_SEARCH, true))
     return false;
 
