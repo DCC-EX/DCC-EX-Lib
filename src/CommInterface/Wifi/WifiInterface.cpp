@@ -1,11 +1,32 @@
+/*
+ *  WifiInterface.cpp
+ * 
+ *  This file is part of CommandStation.
+ *
+ *  CommandStation is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CommandStation is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "WifiInterface.h"
-#include "DIAG.h"
-#include "StringFormatter.h"
-#include "WiThrottle.h"
-#include "HTTPParser.h"
-#include <string.h>
+
 #include "../CommManager.h"
 #include "../DCCEXParser.h"
+#include "DIAG.h"
+#include "HTTPParser.h"
+#include "StringFormatter.h"
+#include "WiThrottle.h"
+
+#include <string.h>
 
 const char PROGMEM READY_SEARCH[] = "ready";
 const char PROGMEM OK_SEARCH[] = "OK";

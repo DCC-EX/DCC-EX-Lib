@@ -1,4 +1,23 @@
 /*
+ *  WiThrottle.cpp
+ * 
+ *  This file is part of CommandStation.
+ *
+ *  CommandStation is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CommandStation is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
  * Truncated JMRI WiThrottle server implementation for DCC-EX command station
  * Credit is due to  Valerie Valley RR https://sites.google.com/site/valerievalleyrr/
  *  for showing how it could be done, but this code is very different to the original
@@ -20,6 +39,7 @@
  *       
  *  WiThrottle.h sets the max locos per client at 10, this is ok to increase but requires just an extra 3 bytes per loco per client.
 */
+
 #include <Arduino.h>
 #include "WiThrottle.h"
 #include "../../DCC/DCCMain.h"
