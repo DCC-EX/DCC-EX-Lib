@@ -56,10 +56,10 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
 
   StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
   //checkForOK(wifiStream,5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
-  if (!checkForOK(2500, READY_SEARCH, false))
+  if (!checkForOK(5000, READY_SEARCH, true))
     return false;
 
-  if (!checkForOK(10000, WIFI_AUTO_CONNECT_SEARCH, false))
+  if (!checkForOK(10000, WIFI_AUTO_CONNECT_SEARCH, true))
   {
     StringFormatter::send(wifiStream, F("AT+CWMODE=1\r\n")); // Configure as Wireless client
     if (!checkForOK(10000, OK_SEARCH, true))
