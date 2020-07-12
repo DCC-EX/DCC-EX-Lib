@@ -18,7 +18,7 @@ const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "WIFI CONNECTED\r\nWIFI GOT IP";
 //byte WifiInterface::loopstate = 0;
 //int WifiInterface::datalength = 0;
 //int WifiInterface::connectionId;
-char WifiInterface::buffer[MAX_WIFI_BUFFER];
+byte WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
 
 #if defined(ARDUINO_AVR_UNO)
@@ -232,7 +232,7 @@ void WifiInterface::process()
   }
   else if (buffer[0] == '<')
   {
-    
+
     String command = String(buffer);
     command.replace('<', '\0');
     command.replace('>', '\0');
@@ -279,6 +279,6 @@ void WifiInterface::send(const char *buf)
 
   StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
   if (checkForOK(1000, PROMPT_SEARCH, true))
-  wifiStream.print(buf);
+    wifiStream.print(buf);
   checkForOK(3000, SEND_OK_SEARCH, true);
 }
