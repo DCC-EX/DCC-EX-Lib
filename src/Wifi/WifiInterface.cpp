@@ -267,7 +267,7 @@ void WifiInterface::showConfiguration()
 
 void WifiInterface::showInitInfo()
 {
-  CommManager::printf("<WiFi:Initialized>");
+  CommManager::printf(connected ? "<WiFi:Connected>": "<Wifi:Not Connected>");
 }
 
 void WifiInterface::send(const char *buf)
