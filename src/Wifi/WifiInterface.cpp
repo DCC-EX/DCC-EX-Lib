@@ -272,6 +272,7 @@ void WifiInterface::showInitInfo()
 
 void WifiInterface::send(const char *buf)
 {
+  DIAG(F("WiFiInterface Sending  %s\n"), buf);
   if (streamer.available())
   { // there is a reply to send
     streamer.write(buf);
