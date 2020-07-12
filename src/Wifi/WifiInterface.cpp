@@ -234,8 +234,8 @@ void WifiInterface::process()
   {
     String command = String(buffer);
     command.replace('<', '\0');
-    command.replace('>', '\0')
-        DCCEXParser::parse(command.c_str());
+    command.replace('>', '\0');
+    DCCEXParser::parse(command.c_str());
   }
   else
   {
