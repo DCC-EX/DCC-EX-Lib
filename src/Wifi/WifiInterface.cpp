@@ -229,14 +229,14 @@ void WifiInterface::process()
     DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buffer);
 
     StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
-    if (checkForOK(wifiStream, 1000, PROMPT_SEARCH, true))
+    if (checkForOK(1000, PROMPT_SEARCH, true))
       wifiStream.print((char *)buffer);
-    checkForOK(wifiStream, 3000, SEND_OK_SEARCH, true);
+    checkForOK(3000, SEND_OK_SEARCH, true);
   }
   if (closeAfter)
   {
     StringFormatter::send(wifiStream, F("AT+CIPCLOSE=%d\r\n"), connectionId);
-    checkForOK(wifiStream, 2000, OK_SEARCH, true);
+    checkForOK(2000, OK_SEARCH, true);
   }
 
   loopstate = 0; // go back to looking for +IPD
@@ -251,7 +251,7 @@ void WifiInterface::showInitInfo()
   CommManager::printf("<WiFi:Initialized>");
 }
 
-void WifiInterface::send(, const char *buf)
+void WifiInterface::send(const char *buf)
 {
   if (streamer.available())
   { // there is a reply to send
@@ -259,8 +259,8 @@ void WifiInterface::send(, const char *buf)
     DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buf);
 
     StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
-    if (checkForOK(wifiStream, 1000, PROMPT_SEARCH, true))
+    if (checkForOK(1000, PROMPT_SEARCH, true))
       wifiStream.print(buf);
-    checkForOK(wifiStream, 3000, SEND_OK_SEARCH, true);
+    checkForOK(3000, SEND_OK_SEARCH, true);
   }
 }
