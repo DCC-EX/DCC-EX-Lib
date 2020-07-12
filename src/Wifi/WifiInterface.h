@@ -35,8 +35,8 @@ private:
   byte loopstate = 0;
   int datalength = 0;
   int connectionId;
-  //const byte MAX_WIFI_BUFFER = 250;
-  char buffer[250];
+  static const byte MAX_WIFI_BUFFER = 250;
+  static char buffer[MAX_WIFI_BUFFER];
   static MemStream streamer;
 
 protected:
