@@ -70,7 +70,8 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
     StringFormatter::send(wifiStream, F("AT+CWJAP=\"%S\",\"%S\"\r\n"), SSid, password); // Connect to wifi access point
     if (!checkForOK(20000, OK_SEARCH, true))
     {
-      if (!checkForOK(30000,WIFI_AUTO_CONNECT_SEARCH, true)) {
+      if (!checkForOK(30000, WIFI_AUTO_CONNECT_SEARCH, true))
+      {
         return false;
       }
     }
@@ -230,12 +231,16 @@ void WifiInterface::process()
     closeAfter = true;
   }
   else if (buffer[0] == '<')
+  {
     String command = String(buffer);
-    command.replace('<','\0');
-    command.replace('>','\0')
-    DCCEXParser::parse(command.c_str());
+    command.replace('<', '\0');
+    command.replace('>', '\0')
+        DCCEXParser::parse(command.c_str());
+  }
   else
+  {
     WiThrottle::getThrottle(streamer, connectionId)->parse(streamer, buffer);
+  }
 
   if (streamer.available())
   { // there is a reply to send
