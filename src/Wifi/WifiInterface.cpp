@@ -3,15 +3,16 @@
 #include "StringFormatter.h"
 #include "WiThrottle.h"
 #include "HTTPParser.h"
+#include <string.h>
 #include "..\CommInterface\CommManager.h"
 #include "..\CommInterface\DCCEXParser.h"
 
-const char PROGMEM READY_SEARCH[] = "\r\nready\r\n";
-const char PROGMEM OK_SEARCH[] = "\r\nOK\r\n";
-const char PROGMEM END_DETAIL_SEARCH[] = "\r\ncorrect flash map\r\n";
+const char PROGMEM READY_SEARCH[] = "ready";
+const char PROGMEM OK_SEARCH[] = "OK";
+const char PROGMEM END_DETAIL_SEARCH[] = "correct flash map";
 const char PROGMEM PROMPT_SEARCH[] = ">";
-const char PROGMEM SEND_OK_SEARCH[] = "\r\nSEND OK\r\n";
-const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "\r\nWIFI CONNECTED\r\nWIFI GOT IP\r\n";
+const char PROGMEM SEND_OK_SEARCH[] = "SEND OK";
+const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "WIFI CONNECTED\r\nWIFI GOT IP";
 
 //bool WifiInterface::connected = false;
 DCCEXParser parser;
@@ -104,7 +105,7 @@ bool WifiInterface::checkForOK(const unsigned int timeout, const char *waitfor, 
       int ch = wifiStream.read();
       if (echo)
         Serial.write(ch);
-      if (ch != pgm_read_byte_near(locator))
+      if (ch != strstr(ch, pgm_read_byte_near(locator)))
         locator = waitfor;
       if (ch == pgm_read_byte_near(locator))
       {
