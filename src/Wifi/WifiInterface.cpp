@@ -15,7 +15,6 @@ const char PROGMEM SEND_OK_SEARCH[] = "SEND OK";
 const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "WIFI CONNECTED\r\nWIFI GOT IP";
 
 //bool WifiInterface::connected = false;
-DCCEXParser parser;
 //byte WifiInterface::loopstate = 0;
 //int WifiInterface::datalength = 0;
 //int WifiInterface::connectionId;
@@ -231,7 +230,10 @@ void WifiInterface::process()
     closeAfter = true;
   }
   else if (buffer[0] == '<')
-    parser.parse(buffer);
+    String command = buffer;
+    command.replace('<','');
+    command.replace('>','')
+    DCCEXParser::parse(command.c_str());
   else
     WiThrottle::getThrottle(streamer, connectionId)->parse(streamer, buffer);
 
