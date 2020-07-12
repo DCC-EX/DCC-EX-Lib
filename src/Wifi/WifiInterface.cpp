@@ -230,9 +230,9 @@ void WifiInterface::process()
     closeAfter = true;
   }
   else if (buffer[0] == '<')
-    String command = buffer;
-    command.replace('<','');
-    command.replace('>','')
+    String command = String(buffer);
+    command.replace('<','\0');
+    command.replace('>','\0')
     DCCEXParser::parse(command.c_str());
   else
     WiThrottle::getThrottle(streamer, connectionId)->parse(streamer, buffer);
