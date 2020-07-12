@@ -59,7 +59,7 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
   if (!checkForOK(2500, READY_SEARCH, false))
     return false;
 
-  if (!checkForOK(5000, WIFI_AUTO_CONNECT_SEARCH, false))
+  if (!checkForOK(10000, WIFI_AUTO_CONNECT_SEARCH, false))
   {
     StringFormatter::send(wifiStream, F("AT+CWMODE=1\r\n")); // Configure as Wireless client
     if (!checkForOK(10000, OK_SEARCH, true))
