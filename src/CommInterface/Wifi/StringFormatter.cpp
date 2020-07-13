@@ -25,7 +25,13 @@ void StringFormatter::print(const __FlashStringHelper *input...)
 {
   va_list args;
   va_start(args, input);
+
+  #if defined(ARDUINO_ARCH_AVR)
   send2(Serial, input, args);
+  #else
+  send2(SerialUSB, input, args);
+  #endif
+  
 }
 
 void StringFormatter::send(Print &stream, const __FlashStringHelper *input...)

@@ -55,7 +55,7 @@ private:
   bool connected = false;
   byte loopstate = 0;
   int datalength = 0;
-  int connectionId;
+  int connectionId = 0;
   static const byte MAX_WIFI_BUFFER = 250;
   static byte buffer[MAX_WIFI_BUFFER];
   static MemStream streamer;
