@@ -25,6 +25,8 @@
 
 #include <Arduino.h>
 
+typedef void (*FILTER_CALLBACK)(Print & stream, byte & opcode, byte & paramCount, int p[]);
+
 struct DCCEXParser
 {
   static DCCMain *mainTrack;
@@ -33,10 +35,12 @@ struct DCCEXParser
   static void parse(const char *);
   static void cvResponse(serviceModeResponse response);
   static void POMResponse(RailcomPOMResponse response);
+  static void setFilter(FILTER_CALLBACK filter);
 private:
   static int stringParser(const char * com, int result[]);
   static const int MAX_PARAMS=10; 
   static int p[MAX_PARAMS];
+  static FILTER_CALLBACK  filterCallback;
 };
 
 #endif  // COMMANDSTATION_COMMINTERFACE_DCCEXPARSER_H_

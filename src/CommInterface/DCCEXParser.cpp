@@ -78,11 +78,21 @@ int DCCEXParser::stringParser(const char *com, int result[]) {
   return parameterCount;
 }
 
+/***** Allow a user to create a filter to insert commands into the API *****/
+FILTER_CALLBACK  DCCEXParser::filterCallback=0;
+void DCCEXParser::setFilter(FILTER_CALLBACK filter) {
+  filterCallback=filter;  
+}
+
 // See documentation on DCC class for info on this section
 void DCCEXParser::parse(const char *com) {
   int numArgs = stringParser(com+1, p);
-  
-  switch(com[0]) {
+  byte opcode=com[0];
+     
+  if (filterCallback) filterCallback(stream,opcode,params,p);
+  switch(opcode) {
+
+  case '\0': return;    // filterCallback asked us to ignore the command here
   
 /***** SET ENGINE THROTTLES USING 128-STEP SPEED CONTROL ****/
 
