@@ -28,6 +28,8 @@
 #define writePin digitalWrite2
 #endif
 
+
+
 void Hardware::setup() {
   // Set up the output pins for this track
   pinMode(signal_a_pin, OUTPUT);

@@ -1,5 +1,5 @@
 /*
- *  CommandStation.h
+ *  HTTPParser.cpp
  * 
  *  This file is part of CommandStation.
  *
@@ -17,22 +17,16 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMANDSTATION_COMMANDSTATION_H_
-#define COMMANDSTATION_COMMANDSTATION_H_
+#include "HTTPParser.h"
+#include "StringFormatter.h"
 
-#include "Accessories/EEStore.h"
-#include "CommInterface/CommManager.h"
-#include "CommInterface/CommInterfaceSerial.h"
-#include "CommInterface/DCCEXParser.h"
-#include "DCC/DCCMain.h"
-#include "DCC/DCCService.h"
-#include "CommInterface/Wifi/WifiInterface.h"
+void HTTPParser::parse(Print &stream, byte *cmd)
+{
+  (void)cmd; // Avoid compiler warning because this example doesnt use this parameter
 
-#if defined (ARDUINO_ARCH_SAMD)
-  #include "CommInterface/CommInterfaceUSB.h"
-#endif
+  // BEWARE   - As soon as you start responding, the cmd buffer is trashed!
+  // You must get everything you need from it before using StringFormatter::send!
 
-#define VERSION "1.0.0"
-#define BOARD_NAME "DCC++ Command Station"
-
-#endif  // COMMANDSTATION_COMMANDSTATION_H_
+  StringFormatter::send(stream, F("HTTP/1.1 200 OK\nContent-Type: text/html\nConnnection: close\n\n"));
+  StringFormatter::send(stream, F("<html><body>This is <b>not</b> a web server.<br/></body></html>"));
+}

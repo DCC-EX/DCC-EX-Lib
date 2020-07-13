@@ -1,5 +1,5 @@
 /*
- *  CommandStation.h
+ *  HTTPParser.h
  * 
  *  This file is part of CommandStation.
  *
@@ -17,22 +17,14 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMANDSTATION_COMMANDSTATION_H_
-#define COMMANDSTATION_COMMANDSTATION_H_
+#ifndef COMMANDSTATION_COMMINTERFACE_WIFI_HTTPPARSER_H_
+#define COMMANDSTATION_COMMINTERFACE_WIFI_HTTPPARSER_H_
 
-#include "Accessories/EEStore.h"
-#include "CommInterface/CommManager.h"
-#include "CommInterface/CommInterfaceSerial.h"
-#include "CommInterface/DCCEXParser.h"
-#include "DCC/DCCMain.h"
-#include "DCC/DCCService.h"
-#include "CommInterface/Wifi/WifiInterface.h"
+#include <Arduino.h>
 
-#if defined (ARDUINO_ARCH_SAMD)
-  #include "CommInterface/CommInterfaceUSB.h"
-#endif
+class HTTPParser {
+public:
+  static void parse(Print &stream, byte *cmd);
+};
 
-#define VERSION "1.0.0"
-#define BOARD_NAME "DCC++ Command Station"
-
-#endif  // COMMANDSTATION_COMMANDSTATION_H_
+#endif  // COMMANDSTATION_COMMINTERFACE_WIFI_HTTPPARSER_H_

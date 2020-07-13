@@ -1,5 +1,5 @@
 /*
- *  CommandStation.h
+ *  DIAG.h
  * 
  *  This file is part of CommandStation.
  *
@@ -17,22 +17,15 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMANDSTATION_COMMANDSTATION_H_
-#define COMMANDSTATION_COMMANDSTATION_H_
+#ifndef COMMANDSTATION_COMMINTERFACE_WIFI_DIAG_H_
+#define COMMANDSTATION_COMMINTERFACE_WIFI_DIAG_H_
 
-#include "Accessories/EEStore.h"
-#include "CommInterface/CommManager.h"
-#include "CommInterface/CommInterfaceSerial.h"
-#include "CommInterface/DCCEXParser.h"
-#include "DCC/DCCMain.h"
-#include "DCC/DCCService.h"
-#include "CommInterface/Wifi/WifiInterface.h"
+#include "StringFormatter.h"
 
-#if defined (ARDUINO_ARCH_SAMD)
-  #include "CommInterface/CommInterfaceUSB.h"
+#ifndef DIAG_ENABLED
+  #define DIAG_ENABLED true
 #endif
 
-#define VERSION "1.0.0"
-#define BOARD_NAME "DCC++ Command Station"
+#define DIAG if (DIAG_ENABLED) StringFormatter::print
 
-#endif  // COMMANDSTATION_COMMANDSTATION_H_
+#endif  // COMMANDSTATION_COMMINTERFACE_WIFI_DIAG_H_

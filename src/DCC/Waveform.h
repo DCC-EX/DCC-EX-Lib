@@ -30,6 +30,7 @@ const uint8_t kBitMask[] = {0x00,0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
 
 const uint8_t kPacketMaxSize = 6; 
 
+
 enum : uint8_t {
   ERR_OK = 1,
   ERR_OUT_OF_RANGE = 2,
