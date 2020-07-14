@@ -40,9 +40,10 @@ void DCCService::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
   newPacket.transmitID = identifier;
 
   const Packet pushPacket = newPacket;
-  noInterrupts();
-  packetQueue.push(pushPacket);
-  interrupts();   
+  
+  packetQueue.push(pushPacket);   
+
+  transmitResetCount = 0;
 }
 
 const int  MIN_ACK_PULSE_DURATION = 3000;
@@ -167,8 +168,9 @@ void DCCService::checkAck() {
     return;
   }
 
-  lastCurrent = hdw.getMilliamps();
-  
+  //lastCurrent = hdw.getMilliamps();
+  //lastCurrent = analogRead(A1);
+
   // Store the highest reading we see
   // TODO: Remove or use this
   if(lastCurrent > ackMaxCurrent)
@@ -177,7 +179,7 @@ void DCCService::checkAck() {
   // Detect the leading edge of a pulse
   if(lastCurrent-hdw.getBaseCurrent() > kACKThreshold) {
     if(ackPulseStart==0) ackPulseStart=micros();
-    return;
+    return; 
   }
 
   if(ackPulseStart==0) return;  // keep waiting for leading edge
@@ -257,6 +259,7 @@ void DCCService::ackManagerLoop() {
     
     case WACK:   // wait for ack (or absence of ack)
       {
+        lastCurrent = hdw.getMilliamps();
         uint8_t ackState = didAck();
         if (ackState==2) return; // keep polling
         ackReceived = (ackState==1);

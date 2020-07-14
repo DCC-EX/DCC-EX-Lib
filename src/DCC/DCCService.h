@@ -28,7 +28,7 @@
 const uint8_t kServiceQueueSize = 35;
 
 // Threshold (mA) that a sample must cross to ACK
-const uint8_t kACKThreshold = 30; 
+const uint8_t kACKThreshold = 10; 
 
 enum cv_edit_type : uint8_t {
   READCV,
@@ -113,18 +113,17 @@ private:
     ACK_CALLBACK callback);
   void ackManagerLoop();
   void callback(serviceModeResponse value);
-  ackOpCodes const * ackManagerProg;
-  uint8_t ackManagerByte;
-  uint8_t ackManagerBitNum;
-  uint16_t ackManagerCV;
-  uint8_t ackManagerStash;
-  uint8_t ackReceived;
+  ackOpCodes const * ackManagerProg = NULL;
+  uint8_t ackManagerByte = 0;
+  uint8_t ackManagerBitNum = 0;
+  uint16_t ackManagerCV = 0;
+  bool ackReceived = false;
   const uint8_t kProgRepeats = 8;
   const uint8_t kResetRepeats = 8;
-  ACK_CALLBACK ackManagerCallback;
-  uint16_t ackManagerCallbackNum;
-  uint16_t ackManagerCallbackSub;
-  cv_edit_type ackManagerType;
+  ACK_CALLBACK ackManagerCallback = NULL;
+  uint16_t ackManagerCallbackNum = 0;
+  uint16_t ackManagerCallbackSub = 0;
+  cv_edit_type ackManagerType = READCV;
 
   uint8_t cv1(uint8_t opcode, uint16_t cv)  {
     cv--;
@@ -135,19 +134,19 @@ private:
     return lowByte(cv);
   }
 
-  uint8_t transmitResetCount;   // Tracks resets sent since last payload packet
+  uint8_t transmitResetCount = 0;   // Tracks resets sent since last payload packet
 
   void setAckPending();
   uint8_t didAck();
   void checkAck();
-  float ackMaxCurrent;
-  float lastCurrent;
-  unsigned long ackCheckStart;    // millis
-  unsigned int ackCheckDuration;  // millis
-  unsigned int ackPulseDuration;  // micros
-  unsigned long ackPulseStart;    // micros
-  uint8_t ackPending;   // "bool", uint8_t saves space
-  uint8_t ackDetected;  // "bool", uint8_t saves space
+  float ackMaxCurrent = 0;
+  float lastCurrent = 0;
+  unsigned long ackCheckStart = 0;    // millis
+  unsigned int ackCheckDuration = 0;  // millis
+  unsigned int ackPulseDuration = 0;  // micros
+  unsigned long ackPulseStart = 0;    // micros
+  bool ackPending = false;
+  bool ackDetected = false; 
 
   // NMRA codes #
   const uint8_t SET_SPEED = 0x3f;

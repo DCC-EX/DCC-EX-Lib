@@ -20,6 +20,8 @@
 #ifndef COMMANDSTATION_DCC_HARDWARE_H_
 #define COMMANDSTATION_DCC_HARDWARE_H_
 
+#include "AnalogReadFast.h"
+
 #include <Arduino.h>
 #include <ArduinoTimers.h>
 
@@ -93,7 +95,9 @@ public:
 
 private:
   float getMilliamps(uint32_t reading);
-  uint32_t readCurrent() { return analogRead(current_sense_pin); }
+  uint32_t readCurrent() {
+    return analogReadFast(current_sense_pin);
+  }
 
   const char *channel_name;
   control_type_t control_scheme;

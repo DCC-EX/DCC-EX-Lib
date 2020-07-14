@@ -92,7 +92,7 @@ void DCCService::interrupt2() {
 
         // Load info about the packet into the transmit variables.
         // TODO(davidcutting42@gmail.com): check if this can be done with a 
-        // peek() into packetQueue intead.
+        // peek() into packetQueue instead.
         for (int b=0;b<pendingPacket.length;b++) 
           transmitPacket[b] = pendingPacket.payload[b];
         transmitLength=pendingPacket.length;
