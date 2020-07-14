@@ -1,24 +1,33 @@
 /*
-Copyright (C) 2016  Albert van Dalen http://www.avdweb.nl
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License at http://www.gnu.org/licenses .
-AUTHOR: Albert van Dalen
-WEBSITE: http://www.avdweb.nl/arduino/libraries/fast-10-bit-adc.html
-HISTORY:
-1.0.0 7-3-2018 analogReadFast for SAMD21 (10/12bit) and AVR (10bit)
-*/
+ *  AnalogReadFast.h
+ * 
+ *  Copyright (C) 2016  Albert van Dalen http://www.avdweb.nl
+ * 
+ *  This file is part of CommandStation.
+ *
+ *  CommandStation is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CommandStation is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-#ifndef analogReadFast_H
-#define analogReadFast_H
+#ifndef COMMANDSTATION_DCC_ANALOGREADFAST_H_
+#define COMMANDSTATION_DCC_ANALOGREADFAST_H_
 
 #include <Arduino.h>
 
 int inline analogReadFast(uint8_t ADCpin);
 
 #if defined(__arm__) 
-int inline analogReadFast(uint8_t ADCpin)    // inline library functions must be in header
+int inline analogReadFast(uint8_t ADCpin)
 { ADC->CTRLA.bit.ENABLE = 0;              // disable ADC
   while( ADC->STATUS.bit.SYNCBUSY == 1 ); // wait for synchronization
 
@@ -52,4 +61,4 @@ int inline analogReadFast(uint8_t ADCpin)
   return adc;
 }
 #endif
-#endif
+#endif  // COMMANDSTATION_DCC_ANALOGREADFAST_H_
