@@ -96,13 +96,14 @@ void DCCService::interrupt2() {
         transmitLength=pendingPacket.length;
         transmitRepeats=pendingPacket.repeats;
         transmitID=pendingPacket.transmitID;
+        transmitResetCount = 0;
       }
       else {
         // Load a reset packet
         memcpy( transmitPacket, kResetPacket, sizeof(kResetPacket));
         transmitLength=sizeof(kResetPacket);
         transmitRepeats=0;
-        backToIdle = true;
+        if(transmitResetCount < 250) transmitResetCount++;
       }
     }
   }

@@ -45,67 +45,68 @@ void DCCService::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
   interrupts();   
 }
 
+const int  MIN_ACK_PULSE_DURATION = 3000;
+const int  MAX_ACK_PULSE_DURATION = 8500;
+
+
+
+const ackOpCodes PROGMEM WRITE_BIT0_PROG[] = {
+  BASELINE,
+  W0, WACK,
+  V0, WACK,  // validate bit is 0 
+  ITC1,      // if acked, callback(1)
+  FAIL  // callback (-1)
+};
+
+const ackOpCodes PROGMEM WRITE_BIT1_PROG[] = {
+  BASELINE,
+  W1,WACK,
+  V1, WACK,  // validate bit is 1 
+  ITC1,      // if acked, callback(1)
+  FAIL  // callback (-1)
+};
+
+
+const ackOpCodes PROGMEM READ_BIT_PROG[] = {
+  BASELINE,
+  V1, WACK,  // validate bit is 1 
+  ITC1,      // if acked, callback(1)
+  V0, WACK,  // validate bit is zero
+  ITC0,      // if acked callback 0
+  FAIL       // bit not readable 
+};
+     
+const ackOpCodes PROGMEM WRITE_BYTE_PROG[] = {
+  BASELINE,
+  WB,WACK,    // Write 
+  VB,WACK,     // validate byte 
+  ITC1,       // if ok callback (1)
+  FAIL        // callback (-1)
+};
+      
+      
+const ackOpCodes PROGMEM READ_CV_PROG[] = {
+  BASELINE,
+  STARTMERGE,    //clear bit and byte values ready for merge pass
+  // each bit is validated against 0 and the result inverted in MERGE
+  // this is because there tend to be more zeros in cv values than ones.  
+  // There is no need for one validation as entire byte is validated at the end
+  V0, WACK, MERGE,  // read and merge bit 0
+  V0, WACK, MERGE,  // read and merge bit 1 etc
+  V0, WACK, MERGE,
+  V0, WACK, MERGE,
+  V0, WACK, MERGE,
+  V0, WACK, MERGE,
+  V0, WACK, MERGE,
+  V0, WACK, MERGE,
+  VB, WACK, ITCB,   // verify merged byte and return it if acked ok 
+  FAIL              // verification failed
+};          
+
 uint8_t DCCService::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
   uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse)) {
   
-  // If we're in the middle of a read/write or if there's not room in the queue.
-  if(ackNeeded != 0 || inVerify 
-    || (packetQueue.count() > (kServiceQueueSize - 8))) 
-    return ERR_BUSY;
-  
-  uint8_t bWrite[4];
-
-  hdw.setBaseCurrent();
-
-  cv--;       // actual CV addresses are cv-1 (0-1023)
-
-  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  bWrite[0]=0x7C+(highByte(cv)&0x03);                     
-  bWrite[1]=lowByte(cv);
-  bWrite[2]=bValue;
-
-  incrementCounterID();
-  // NMRA recommends starting with 3 reset packets (one plus two repeats)
-  schedulePacket(kResetPacket, 2, 2, counterID);           
-  // NMRA recommends 5 verify packets (one plue 4 repeats)
-  schedulePacket(bWrite, 3, 4, counterID);          
-  // NMRA recommends 6 write or reset packets for decoder recovery time 
-  // (one plus 5 repeats)      
-  schedulePacket(bWrite, 3, 5, counterID);                
-  
-  incrementCounterID();
-   // set-up to re-verify entire byte
-  bWrite[0]=0x74+(highByte(cv)&0x03);                
-  // NMRA recommends starting with 3 reset packets (one plus two repeats)    
-  schedulePacket(kResetPacket, 2, 2, counterID);        
-  // We send 2 packets before looking for an ack (one plus one repeat)   
-  schedulePacket(bWrite, 3, 1, counterID);                
-
-  incrementCounterID();
-  // NMRA recommends 5 verify packets - we sent 2, here are three more 
-  // (one plus two repeats)
-  schedulePacket(bWrite, 3, 2, counterID);           
-  // NMRA recommends 6 write or reset packets for decoder recovery time 
-  // (one plus five repeats)     
-  schedulePacket(bWrite, 3, 5, counterID);                
-  
-  ackPacketID[0] = counterID;
-  
-  incrementCounterID();
-  // Final reset packet (and decoder begins to respond) (one plus no repeats)
-  schedulePacket(kResetPacket, 2, 0, counterID);           
-
-  inVerify = true;
-
-  cvState.type = WRITECV;
-  cvState.callback = callback;
-  cvState.callbackSub = callbackSub;
-  cvState.cv = cv+1;
-  cvState.cvValue = bValue;
-
-  backToIdle = false;
-
-  cvResponse = callbackFunc;
+  ackManagerSetup(cv, bValue, WRITE_BYTE_PROG, WRITECV, callback, callbackSub, callbackFunc);
 
   return ERR_OK;
 }
@@ -114,67 +115,9 @@ uint8_t DCCService::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback,
 uint8_t DCCService::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
   uint16_t callback, uint16_t callbackSub, 
   void(*callbackFunc)(serviceModeResponse)) {
-  
-  // If we're in the middle of a read/write or if there's not room in the queue.
-  if(ackNeeded != 0 || inVerify 
-    || (packetQueue.count() > (kServiceQueueSize - 8))) 
-    return ERR_BUSY;
-  
-  byte bWrite[4];
 
-  hdw.setBaseCurrent();
-
-  cv--;         // actual CV addresses are cv-1 (0-1023)
-  bValue=bValue%2;
-  bNum=bNum%8;
-
-  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  bWrite[0]=0x78+(highByte(cv)&0x03);   
-  bWrite[1]=lowByte(cv);
-  bWrite[2]=0xF0+bValue*8+bNum;
-
-  incrementCounterID();
-  // NMRA recommends starting with 3 reset packets (one plus two repeats)
-  schedulePacket(kResetPacket, 2, 2, counterID);          
-  // NMRA recommends 5 verify packets (one plue 4 repeats) 
-  schedulePacket(bWrite, 3, 4, counterID);                
-  // NMRA recommends 6 write or reset packets for decoder recovery time 
-  // (one plus 5 repeats)
-  schedulePacket(bWrite, 3, 5, counterID);                
-  
-  incrementCounterID();
-  bitClear(bWrite[2],4);  // change instruction code from Write to Verify
-  // NMRA recommends starting with 3 reset packets (one plus two repeats)
-  schedulePacket(kResetPacket, 2, 2, counterID); 
-  // We send 2 packets before looking for an ack (one plus one repeat)
-  schedulePacket(bWrite, 3, 1, counterID);                
-
-  incrementCounterID();
-  // NMRA recommends 5 verify packets - we already sent 2, here are three more 
-  // (one plus two repeats)
-  schedulePacket(bWrite, 3, 2, counterID);              
-  // NMRA recommends 6 write or reset packets for decoder recovery time 
-  // (one plus five repeats)  
-  schedulePacket(bWrite, 3, 5, counterID);                
-  
-  ackPacketID[0] = counterID;
-  
-  incrementCounterID();
-  // Final reset packet (and decoder begins to respond) (one plus no repeats)
-  schedulePacket(kResetPacket, 2, 0, counterID);           
-
-  inVerify = true;
-
-  cvState.type = WRITECVBIT;
-  cvState.callback = callback;
-  cvState.callbackSub = callbackSub;
-  cvState.cv = cv+1;
-  cvState.cvBitNum = bNum;
-  cvState.cvValue = bValue;
-
-  backToIdle = false;
-
-  cvResponse = callbackFunc;
+  ackManagerSetup(cv, bNum, (bValue==0 ? WRITE_BIT0_PROG : WRITE_BIT1_PROG), 
+    WRITECVBIT, callback, callbackSub, callbackFunc);
 
   return ERR_OK;
 }
@@ -183,155 +126,233 @@ uint8_t DCCService::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue,
 uint8_t DCCService::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
   void(*callbackFunc)(serviceModeResponse)) {
   
-  // If we're in the middle of a read/write or if there's not room in the queue.
-  if(ackNeeded != 0 || inVerify 
-    || (packetQueue.count() > (kServiceQueueSize - 25))) 
-    return ERR_BUSY;
-  
-  uint8_t bRead[4];
-
-  hdw.setBaseCurrent();
-
-  cv--;    // actual CV addresses are cv-1 (0-1023)
-
-  // any CV>1023 will become modulus(1024) due to bit-mask of 0x03
-  bRead[0]=0x78+(highByte(cv)&0x03);            
-  bRead[1]=lowByte(cv);
-  
-  // Queue up all unique packets required for the CV read. 
-  for(int i=0;i<8;i++) {                                  
-    bRead[2]=0xE8+i;
-
-    incrementCounterID();
-    // NMRA recommends starting with 3 reset packets (one plue two repeats)
-    schedulePacket(kResetPacket, 2, 2, counterID);       
-    // We send 2 packets before looking for an ack (one plus one repeat)
-    schedulePacket(bRead, 3, 1, counterID);             
-
-    incrementCounterID();
-    // NMRA recommends 5 verify packets - we already sent 2, here are three more 
-    // (one plus two repeats)
-    schedulePacket(bRead, 3, 2, counterID);             
-
-    ackPacketID[i] = counterID;
-
-    incrementCounterID();
-    // NMRA recommends 1 reset packet after checking for an ACK 
-    // (one and no repeats)
-    schedulePacket(kResetPacket, 2, 0, counterID);       
-  }
-
-  ackNeeded = 0b11111111;
-  
-  cvState.type = READCV;
-  cvState.callback = callback;
-  cvState.callbackSub = callbackSub;
-  cvState.cv = cv+1;
-
-  verifyPayload[0]=0x74+(highByte(cv)&0x03);  // set-up to re-verify entire byte
-  verifyPayload[1]=lowByte(cv);
-  // verifyPayload[2] and verifyPayload[3] get set in checkAck when verifying 
-
-  backToIdle = false;
-
-  cvResponse = callbackFunc;
+  ackManagerSetup(cv, 0, READ_CV_PROG, READCV, callback, callbackSub, callbackFunc);
 
   return ERR_OK;
 }
 
-void DCCService::checkAck() {
-  // If the unique ID counter has wrapped, cancel the current read/write 
-  // operation. This shouldn't happen very often.
-  if(counterWrap) { 
-    counterWrap = false;
-    inVerify = false;
-    ackNeeded = 0;
-    cvState.cvValue = -1;
-    cvResponse(cvState);
-    return;
-  } 
+void DCCService::ackManagerSetup(uint16_t cv, uint8_t value, 
+  ackOpCodes const program[], cv_edit_type type, uint16_t callbackNum, 
+  uint16_t callbackSub, ACK_CALLBACK callback) {
   
-  if(!inVerify && (ackNeeded == 0)) return;
-  float currentMilliamps = hdw.getMilliamps();
+  ackManagerCV = cv;
+  ackManagerProg = program;
+  ackManagerByte = value;
+  ackManagerBitNum = value;
+  ackManagerCallback = callback;
+  ackManagerCallbackNum = callbackNum;
+  ackManagerCallbackSub = callbackSub;
+  ackManagerType = type;
+}
 
-  if(!inVerify) {
-    uint16_t currentAckID;
-    for (uint8_t i = 0; i < 8; i++)
-    {
-      if(!bitRead(ackNeeded, i)) continue;  // We don't need an ack on this bit
+void DCCService::setAckPending() {
+  ackMaxCurrent = 0;
+  ackPulseStart = 0;
+  ackPulseDuration = 0;
+  ackDetected = false;
+  ackCheckStart = millis();
+  ackPending = true;
+}
 
-      currentAckID = ackPacketID[i];
-      uint16_t compareID = transmitID;
-      if(currentAckID == compareID) {
-        if((currentMilliamps - hdw.getBaseCurrent()) > kACKThreshold) {
-          bitSet(ackBuffer, i);       // We got an ack on this bit
-          bitClear(ackNeeded, i);     // We no longer need an ack on this bit
+uint8_t DCCService::didAck() {
+  if(ackPending) return (2);
+  if(ackDetected) return (1);
+  return(0);
+}
 
-          // Fast-forward to the next packet set
-          noInterrupts();
-          transmitRepeats = 0;    // Stop transmitting current packet
-          while(packetQueue.peek().transmitID == currentAckID) {
-            packetQueue.pop();  // Pop off all packets with the the same ID
-          }
-          interrupts();
-        }
-      }
-      
-      else if(compareID > currentAckID || backToIdle) {    
-        bitClear(ackBuffer, i);  // We didn't get an ack on this bit (timeout)
-        bitClear(ackNeeded, i);  // We no longer need an ack on this bit
-      }
-
-      if(ackNeeded == 0) {        // If we've now gotten all the ACKs we need 
-        if(cvState.type == READCV) {
-          verifyPayload[2] = ackBuffer;   // Set up the verifyPayload for verify
-        
-          incrementCounterID();               
-          // Load 3 reset packets
-          schedulePacket(kResetPacket, 2, 2, counterID); 
-          // Load 5 verify packets
-          schedulePacket(verifyPayload, 3, 4, counterID);     
-          // Load 1 Reset packet
-          schedulePacket(kResetPacket, 2, 0, counterID);       
-
-          ackPacketID[0] = counterID;
-
-          incrementCounterID();
-          // We need one additional packet with incremented counter so ACK 
-          // completes and doesn't hang in checkAck()
-          schedulePacket(kResetPacket, 2, 0, counterID);   
-
-          inVerify = true;
-          backToIdle = false;
-        }
-        break;
-      }
-    }    
+void DCCService::checkAck() {
+  if(transmitResetCount > 6) {
+    ackCheckDuration = millis() - ackCheckStart;
+    ackPending = false;
+    return;
   }
-  else {
-    uint16_t compareID = transmitID;
-    if(ackPacketID[0] == compareID) {
-      if((currentMilliamps - hdw.getBaseCurrent()) > kACKThreshold) {
-        inVerify = false;
-        if(cvState.type == READCV)
-          cvState.cvValue = ackBuffer;
-        cvResponse(cvState);
 
-        // Fast-forward to the next packet set
-        noInterrupts();
-        transmitRepeats = 0;  // Stop transmitting current packet
-        while(packetQueue.peek().transmitID == ackPacketID[0]) {
-          packetQueue.pop();  // Pop off all packets with the the same ID
-        }
-        interrupts();
+  lastCurrent = hdw.getMilliamps();
+  
+  // Store the highest reading we see
+  // TODO: Remove or use this
+  if(lastCurrent > ackMaxCurrent)
+    ackMaxCurrent = lastCurrent;
+
+  // Detect the leading edge of a pulse
+  if(lastCurrent-hdw.getBaseCurrent() > kACKThreshold) {
+    if(ackPulseStart==0) ackPulseStart=micros();
+    return;
+  }
+
+  if(ackPulseStart==0) return;  // keep waiting for leading edge
+
+  ackPulseDuration = micros() - ackPulseStart;
+
+  if(ackPulseDuration>=MIN_ACK_PULSE_DURATION && 
+        ackPulseDuration<=MAX_ACK_PULSE_DURATION) {
+    ackCheckDuration = millis() - ackCheckStart;
+    ackDetected = true;
+    ackPending = false;
+    transmitRepeats = 0;  // stop sending repeats
+    return;   // we have a genuine ACK result      
+  }
+
+  ackPulseStart = 0;  // We have detected a too-short or too-long pulse so 
+                      // ignore and wait for next leading edge 
+}
+
+void DCCService::ackManagerLoop() {
+  while (ackManagerProg) {
+
+    // breaks from this switch will step to next prog entry
+    // returns from this switch will stay on same entry (typically WACK waiting 
+    // and when all finished.)
+    uint8_t opcode = pgm_read_byte_near(ackManagerProg);
+    uint8_t resets = transmitResetCount;
+     
+    switch (opcode) {
+    case BASELINE:
+      if (resets<kResetRepeats) return; // try later 
+      hdw.setBaseCurrent();
+      break;   
+    case W0:    // write 0 bit 
+    case W1:    // write 1 bit 
+      {
+        if (resets<kResetRepeats) return; // try later 
+        uint8_t instruction = WRITE_BIT | (opcode==W1 ? BIT_ON : BIT_OFF) | ackManagerBitNum;
+        uint8_t message[] = {cv1(BIT_MANIPULATE, ackManagerCV), cv2(ackManagerCV), instruction };
+        incrementCounterID();
+        schedulePacket(message, sizeof(message), kProgRepeats, counterID);
+        setAckPending(); 
       }
-    }
+      break; 
     
-    else if(compareID > ackPacketID[0] || backToIdle) {
-      inVerify = false;
+    case WB:   // write byte 
+      {
+        if (resets<kResetRepeats) return; // try later 
+        uint8_t message[] = {cv1(WRITE_BYTE, ackManagerCV), cv2(ackManagerCV), ackManagerByte };
+        incrementCounterID();
+        schedulePacket(message, sizeof(message), kProgRepeats, counterID);
+        setAckPending(); 
+      }
+      break;
+    
+    case VB:     // Issue validate Byte packet
+      {
+        if (resets<kResetRepeats) return; // try later 
+        uint8_t message[] = { cv1(VERIFY_BYTE, ackManagerCV), cv2(ackManagerCV), ackManagerByte };
+        incrementCounterID();
+        schedulePacket(message, sizeof(message), kProgRepeats, counterID);
+        setAckPending(); 
+      }
+      break;
+    
+    case V0:
+    case V1:      // Issue validate bit=0 or bit=1  packet
+      {
+        if (resets<kResetRepeats) return; // try later 
+        uint8_t instruction = VERIFY_BIT | (opcode==V0?BIT_OFF:BIT_ON) | ackManagerBitNum;
+        uint8_t message[] = {cv1(BIT_MANIPULATE, ackManagerCV), cv2(ackManagerCV), instruction };
+        incrementCounterID();
+        schedulePacket(message, sizeof(message), kProgRepeats, counterID);
+        setAckPending(); 
+      }
+      break;
+    
+    case WACK:   // wait for ack (or absence of ack)
+      {
+        uint8_t ackState = didAck();
+        if (ackState==2) return; // keep polling
+        ackReceived = (ackState==1);
+      }
+      break;  // we have a genuine ACK result
+    case ITC0:
+    case ITC1:   // If True Callback(0 or 1)  (if prevous WACK got an ACK)
+      {
+        if (ackReceived) {
+          ackManagerProg = NULL; // all done now
+          serviceModeResponse response;
+          response.cv = ackManagerCV;
+          response.cvBitNum = ackManagerBitNum;
+          response.cvValue = opcode==ITC0?0:1;
+          response.callback = ackManagerCallbackNum;
+          response.callbackSub = ackManagerCallbackSub; 
+          response.type = ackManagerType;
+          callback(response);
+          return;
+        }
+      }
+      break;
       
-      cvState.cvValue = -1;
-      cvResponse(cvState);
-    }
+    case ITCB:   // If True callback(byte)
+      {
+        if (ackReceived) {
+          ackManagerProg = NULL; // all done now
+          serviceModeResponse response;
+          response.cv = ackManagerCV;
+          response.cvBitNum = 0;
+          response.cvValue = ackManagerByte;
+          response.callback = ackManagerCallbackNum;
+          response.callbackSub = ackManagerCallbackSub; 
+          response.type = ackManagerType;
+          callback(response);
+          return;
+        }
+      }
+      break;
+      
+    case NACKFAIL:   // If nack callback(-1)
+      {
+        if (!ackReceived) {
+          ackManagerProg = NULL; // all done now
+          serviceModeResponse response;
+          response.cv = ackManagerCV;
+          response.cvValue = -1;
+          response.callback = ackManagerCallbackNum;
+          response.callbackSub = ackManagerCallbackSub; 
+          response.type = ackManagerType;
+          callback(response);
+          return;
+        }
+      }
+      break;
+      
+    case FAIL:  // callback(-1)
+      {
+        ackManagerProg = NULL;
+        serviceModeResponse response;
+        response.cv = ackManagerCV;
+        response.cvValue = -1;
+        response.callback = ackManagerCallbackNum;
+        response.callbackSub = ackManagerCallbackSub; 
+        response.type = ackManagerType;
+        callback(response);
+      }
+      return;
+          
+    case STARTMERGE:
+      ackManagerBitNum=7;
+      ackManagerByte=0;     
+      break;
+        
+    case MERGE:  // Merge previous Validate zero wack response with byte value and update bit number (use for reading CV bytes)
+      ackManagerByte <<= 1;
+      // ackReceived means bit is zero. 
+      if (!ackReceived) ackManagerByte |= 1;
+      ackManagerBitNum--;
+      break;
+    default: 
+      {
+        ackManagerProg=NULL;
+        serviceModeResponse response;
+        response.cv = ackManagerCV;
+        response.cvValue = -1;
+        response.callback = ackManagerCallbackNum;
+        response.callbackSub = ackManagerCallbackSub; 
+        response.type = ackManagerType;
+        callback(response);
+      }
+      return;        
+    }  // end of switch
+    ackManagerProg++;
   }
+}
+void DCCService::callback(serviceModeResponse response) {
+  (ackManagerCallback)(response);
 }
