@@ -79,7 +79,7 @@ public:
 
   void loop() {
     Waveform::loop(); // Checks for overcurrent and manages power
-    checkAck();
+    ackManagerLoop();
   }
 
   uint8_t writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
