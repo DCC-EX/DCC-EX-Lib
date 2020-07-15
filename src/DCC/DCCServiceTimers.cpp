@@ -51,7 +51,7 @@ bool DCCService::interrupt1() {
     interruptState++;
     break;
   }
-
+  
   return false;   // Don't call interrupt2
 }
 
@@ -90,19 +90,20 @@ void DCCService::interrupt2() {
 
         // Load info about the packet into the transmit variables.
         // TODO(davidcutting42@gmail.com): check if this can be done with a 
-        // peek() into packetQueue intead.
+        // peek() into packetQueue instead.
         for (int b=0;b<pendingPacket.length;b++) 
           transmitPacket[b] = pendingPacket.payload[b];
         transmitLength=pendingPacket.length;
         transmitRepeats=pendingPacket.repeats;
         transmitID=pendingPacket.transmitID;
+        transmitResetCount = 0;
       }
       else {
         // Load a reset packet
         memcpy( transmitPacket, kResetPacket, sizeof(kResetPacket));
         transmitLength=sizeof(kResetPacket);
         transmitRepeats=0;
-        backToIdle = true;
+        if(transmitResetCount < 250) transmitResetCount++;
       }
     }
   }
