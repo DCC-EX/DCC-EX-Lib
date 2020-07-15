@@ -71,6 +71,16 @@ void CommManager::printf(const char *fmt, ...) {
   }
 }
 
+void CommManager::printf(const char *fmt, va_list args) {
+  char buf[256] = {0};
+  vsnprintf(buf, sizeof(buf), fmt, args);
+  for(int i = 0; i < nextInterface; i++) {
+    if(interfaces[i] != NULL) {
+      interfaces[i]->send(buf);
+    }
+  }
+}
+
 void CommManager::printf(const __FlashStringHelper *fmt, ...) {
   for(int i = 0; i < nextInterface; i++) {
     if(interfaces[i] != NULL) {
@@ -79,12 +89,15 @@ void CommManager::printf(const __FlashStringHelper *fmt, ...) {
 
       char* flash = (char*)fmt;
       char string[256];
+      for(int i=0; i < 256; ++i) {
+        string[i] = '\0';
+      }
       for(int i=0; ; ++i) {
         char c=pgm_read_byte_near(flash+i);
         if (c=='\0') break;
         string[i] = c;
       }
-      printf(string);
+      printf(string, args);
       va_end(args);
     }
   }

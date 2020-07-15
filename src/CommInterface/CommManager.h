@@ -24,6 +24,10 @@
 #include "../DCC/DCCMain.h"
 #include "../DCC/DCCService.h"
 
+#if defined(ARDUINO_ARCH_SAMD)
+#include <cstdarg>
+#endif
+
 class CommManager {
 public:
 	static void update();
@@ -31,6 +35,7 @@ public:
 	static void showConfiguration();
 	static void showInitInfo();
 	static void printf(const char *fmt, ...);
+	static void printf(const char *fmt, va_list args);
 	static void printf(const __FlashStringHelper* fmt, ...);
 private:
 	static CommInterface *interfaces[5];
