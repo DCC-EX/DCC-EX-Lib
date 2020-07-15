@@ -74,30 +74,17 @@ void CommManager::printf(const char *fmt, ...) {
 void CommManager::printf(const __FlashStringHelper *fmt, ...) {
   for(int i = 0; i < nextInterface; i++) {
     if(interfaces[i] != NULL) {
-      // Stream* mStream = interfaces[i]->getStream();
       va_list args;
       va_start(args, fmt);
 
       char* flash = (char*)fmt;
+      char string[256];
       for(int i=0; ; ++i) {
         char c=pgm_read_byte_near(flash+i);
-        if (c=='\0') return;
-        if(c!='%') { 
-          printf(&c);
-          continue; 
-        }
-        i++;
-        c=pgm_read_byte_near(flash+i);
-        switch(c) {
-          case '%': printf("%"); break;
-          case 's': printf(va_arg(args, char*)); break;
-          case 'd': printf("%d",va_arg(args, int)); break;
-          case 'b': printf("%b",va_arg(args, int)); break;
-          case 'o': printf("%o",va_arg(args, int)); break;
-          case 'x': printf("%x",va_arg(args, int)); break;
-          case 'f': printf("%f",va_arg(args, double)); break;
-        }	
+        if (c=='\0') break;
+        string[i] = c;
       }
+      printf(string);
       va_end(args);
     }
   }

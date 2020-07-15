@@ -314,7 +314,7 @@ void DCCEXParser::parse(const char *com) {
   case 's':      // <s>
     CommManager::printf(F("<p%d MAIN>"), mainTrack->hdw.getStatus());
     CommManager::printf(F("<p%d PROG>"), progTrack->hdw.getStatus());
-    for(int i=1;i<=mainTrack->numDevices;i++){
+    for(int i=1;i<mainTrack->numDevices;i++){
       if(mainTrack->speedTable[i].speed==0)
       continue;
       CommManager::printf("<T%d %d %d>", i, mainTrack->speedTable[i].speed, 
