@@ -71,15 +71,7 @@ void Hardware::setBrake(bool on) {
 }
 
 float Hardware::getMilliamps(uint32_t reading) {
-  // TODO(davidcutting42@gmail.com): Using this as a 3.3V/5V and precision 
-  // detector, but need more robust way to do this.
-  #if defined(ARDUINO_ARCH_AVR)   
-    return ((float)reading / 1023.0 * 5 * 1000 * amps_per_volt);
-  #elif defined(ARDUINO_ARCH_SAMD)
-    return ((float)reading / 4095.0 * 3.3 * 1000 * amps_per_volt);
-  #else
-    #error "Cannot compile - invalid architecture for current sensing"
-  #endif
+  return ((float)reading / 1023.0 * 5 * 1000 * amps_per_volt);
 }
 
 void Hardware::checkCurrent() {

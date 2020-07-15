@@ -39,11 +39,8 @@ enum : uint8_t {
 
 class Waveform {
 public:
-  void interruptHandler() {
-    if(interrupt1()) {
-      interrupt2();
-    }
-  }
+  virtual bool interrupt1() = 0;
+  virtual void interrupt2() = 0;
 
   void loop() {
     hdw.checkCurrent();
@@ -63,8 +60,7 @@ protected:
   uint16_t transmitID = 0;
 
   // Interrupt segments, called in interrupt_handler
-  virtual bool interrupt1() = 0;
-  virtual void interrupt2() = 0;
+  
   uint8_t interruptState = 0; // Waveform generator state
 
   uint16_t counterID = 1; // Maintains the last assigned packet ID
