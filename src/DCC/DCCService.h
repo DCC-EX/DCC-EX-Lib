@@ -25,10 +25,8 @@
 #include "Waveform.h"
 #include "Queue.h"
 
-const uint8_t kServiceQueueSize = 35;
-
 // Threshold (mA) that a sample must cross to ACK
-const uint8_t kACKThreshold = 10; 
+const uint8_t kACKThreshold = 20; 
 
 enum cv_edit_type : uint8_t {
   READCV,
@@ -82,6 +80,9 @@ public:
     ackManagerLoop();
   }
 
+  bool interrupt1();
+  void interrupt2();
+
   uint8_t writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
     uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
   uint8_t writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
@@ -98,14 +99,11 @@ private:
     uint16_t transmitID;  // Identifier for CV programming
   };
 
-  // Queue of packets, FIFO, that controls what gets sent out next. Size 35.
-  Queue<Packet, kServiceQueueSize> packetQueue;
+  // Queue of packets, FIFO, that controls what gets sent out next.
+  Queue<Packet, 5> packetQueue;
 
   void schedulePacket(const uint8_t buffer[], uint8_t byteCount, 
-    uint8_t repeats, uint16_t identifier);
-
-  bool interrupt1();
-  void interrupt2();
+    uint8_t repeats, uint16_t identifier);  
 
   // ACK MANAGER
   void ackManagerSetup(uint16_t cv, uint8_t value, ackOpCodes const program[],
@@ -139,12 +137,7 @@ private:
   void setAckPending();
   uint8_t didAck();
   void checkAck();
-  float ackMaxCurrent = 0;
-  float lastCurrent = 0;
-  unsigned long ackCheckStart = 0;    // millis
-  unsigned int ackCheckDuration = 0;  // millis
-  unsigned int ackPulseDuration = 0;  // micros
-  unsigned long ackPulseStart = 0;    // micros
+  uint16_t lastCurrent = 0;
   bool ackPending = false;
   bool ackDetected = false; 
 

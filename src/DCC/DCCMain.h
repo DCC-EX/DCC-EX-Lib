@@ -56,6 +56,9 @@ public:
     railcom.processData();
   }
 
+  bool interrupt1();
+  void interrupt2();
+
   uint8_t setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
     uint8_t direction, setThrottleResponse& response);
   uint8_t setFunction(uint16_t addr, uint8_t byte1, 
@@ -126,8 +129,7 @@ private:
   void schedulePacket(const uint8_t buffer[], uint8_t byteCount, 
     uint8_t repeats, uint16_t identifier, PacketType type, uint16_t address);
 
-  bool interrupt1();
-  void interrupt2();
+  
 
   // Railcom cutout variables
   // TODO(davidcutting42@gmail.com): Move these to the railcom class

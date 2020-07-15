@@ -69,7 +69,7 @@ public:
   float getMilliamps() { return getMilliamps(readCurrent()); }
   
   void setBaseCurrent() { baseMilliamps = getMilliamps(readCurrent()); }
-  float getBaseCurrent() { return baseMilliamps; }
+  uint16_t getBaseCurrent() { return baseMilliamps; }
   
 
   // General config modification
@@ -124,7 +124,7 @@ private:
   long int lastTripTime;
 
   // ACK detection base current
-  float baseMilliamps;
+  uint16_t baseMilliamps;
 };
 
 #endif  // COMMANDSTATION_DCC_HARDWARE_H_

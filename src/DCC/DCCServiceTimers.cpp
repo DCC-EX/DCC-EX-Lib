@@ -51,9 +51,7 @@ bool DCCService::interrupt1() {
     interruptState++;
     break;
   }
-
-  if(ackPending) checkAck();
-
+  
   return false;   // Don't call interrupt2
 }
 

@@ -47,7 +47,7 @@ void DCCService::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
 }
 
 const int  MIN_ACK_PULSE_DURATION = 3000;
-const int  MAX_ACK_PULSE_DURATION = 8500;
+const int  MAX_ACK_PULSE_DURATION = 9000;
 
 
 
@@ -147,11 +147,10 @@ void DCCService::ackManagerSetup(uint16_t cv, uint8_t value,
 }
 
 void DCCService::setAckPending() {
-  ackMaxCurrent = 0;
-  ackPulseStart = 0;
-  ackPulseDuration = 0;
+  //ackPulseStart = 0;
+  //ackPulseDuration = 0;
   ackDetected = false;
-  ackCheckStart = millis();
+  //ackCheckStart = millis();
   ackPending = true;
 }
 
@@ -163,43 +162,26 @@ uint8_t DCCService::didAck() {
 
 void DCCService::checkAck() {
   if(transmitResetCount > 6) {
-    ackCheckDuration = millis() - ackCheckStart;
+    // ackCheckDuration = millis() - ackCheckStart;
     ackPending = false;
     return;
   }
 
-  //lastCurrent = hdw.getMilliamps();
-  //lastCurrent = analogRead(A1);
-
-  // Store the highest reading we see
-  // TODO: Remove or use this
-  if(lastCurrent > ackMaxCurrent)
-    ackMaxCurrent = lastCurrent;
+  lastCurrent = hdw.getMilliamps();
 
   // Detect the leading edge of a pulse
   if(lastCurrent-hdw.getBaseCurrent() > kACKThreshold) {
-    if(ackPulseStart==0) ackPulseStart=micros();
-    return; 
-  }
-
-  if(ackPulseStart==0) return;  // keep waiting for leading edge
-
-  ackPulseDuration = micros() - ackPulseStart;
-
-  if(ackPulseDuration>=MIN_ACK_PULSE_DURATION && 
-        ackPulseDuration<=MAX_ACK_PULSE_DURATION) {
-    ackCheckDuration = millis() - ackCheckStart;
     ackDetected = true;
     ackPending = false;
     transmitRepeats = 0;  // stop sending repeats
-    return;   // we have a genuine ACK result      
-  }
 
-  ackPulseStart = 0;  // We have detected a too-short or too-long pulse so 
-                      // ignore and wait for next leading edge 
+    return; 
+  }
 }
 
 void DCCService::ackManagerLoop() {
+  if(ackPending) checkAck();
+
   while (ackManagerProg) {
 
     // breaks from this switch will step to next prog entry
@@ -259,12 +241,11 @@ void DCCService::ackManagerLoop() {
     
     case WACK:   // wait for ack (or absence of ack)
       {
-        lastCurrent = hdw.getMilliamps();
         uint8_t ackState = didAck();
         if (ackState==2) return; // keep polling
         ackReceived = (ackState==1);
       }
-      break;  // we have a genuine ACK result
+      break;  // we have an ACK result (good or bad)
     case ITC0:
     case ITC1:   // If True Callback(0 or 1)  (if prevous WACK got an ACK)
       {
