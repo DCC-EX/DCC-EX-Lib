@@ -100,7 +100,7 @@ WiThrottle::~WiThrottle()
   }
 }
 
-void WiThrottle::parse(Print &stream, byte *cmd)
+void WiThrottle::parse(Print &stream, char *cmd)
 {
   heartBeat = millis();
   DIAG(F("\nWiThrottle parse (%d) %s"), clientid, cmd);
@@ -143,7 +143,7 @@ void WiThrottle::parse(Print &stream, byte *cmd)
     break;
   }
 }
-int WiThrottle::getInt(byte *cmd)
+int WiThrottle::getInt(char *cmd)
 {
   int i = 0;
   while (cmd[0] >= '0' && cmd[0] <= '9')
@@ -154,7 +154,7 @@ int WiThrottle::getInt(byte *cmd)
   return i;
 }
 
-int WiThrottle::getLocoId(byte *cmd)
+int WiThrottle::getLocoId(char *cmd)
 {
   if (cmd[0] == '*')
     return -1; // match all locos
@@ -162,11 +162,11 @@ int WiThrottle::getLocoId(byte *cmd)
     return 0; // should not match any locos
   return getInt(cmd + 1);
 }
-void WiThrottle::multithrottle(Print &stream, byte *cmd)
+void WiThrottle::multithrottle(Print &stream, char *cmd)
 {
   char throttleChar = cmd[1];
   int locoid = getLocoId(cmd + 3); // -1 for *
-  byte *aval = cmd;
+  char *aval = cmd;
   while (*aval != ';' && *aval != '\0')
     aval++;
   if (*aval)
@@ -206,7 +206,7 @@ void WiThrottle::multithrottle(Print &stream, byte *cmd)
   }
 }
 
-void WiThrottle::locoAction(Print &stream, byte *aval, char throttleChar, int cab)
+void WiThrottle::locoAction(Print &stream, char *aval, char throttleChar, int cab)
 {
   // Note cab=-1 for all cabs in the consist called throttleChar.
   DIAG(F("\nLoco Action aval=%c throttleChar=%c, cab=%d"), aval[0], throttleChar, cab);

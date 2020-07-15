@@ -30,7 +30,7 @@ class WiThrottle
 {
 public:
   static void loop();
-  void parse(Print &stream, byte *cmd);
+  void parse(Print &stream, char *cmd);
   static WiThrottle *getThrottle(Print &stream, int wifiClient);
 
 private:
@@ -40,8 +40,8 @@ private:
   static const int MAX_MY_LOCO = 10;
   static const int HEARTBEAT_TIMEOUT = 10;
   static WiThrottle *firstThrottle;
-  static int getInt(byte *cmd);
-  static int getLocoId(byte *cmd);
+  static int getInt(char *cmd);
+  static int getLocoId(char *cmd);
 
   WiThrottle *nextThrottle;
   int clientid;
@@ -50,9 +50,9 @@ private:
   bool heartBeatEnable;
   unsigned long heartBeat;
 
-  void multithrottle(Print &stream, byte *cmd);
-  void locoAction(Print &stream, byte *aval, char throttleChar, int cab);
-  void accessory(Print &stream, byte *cmd);
+  void multithrottle(Print &stream, char *cmd);
+  void locoAction(Print &stream, char *aval, char throttleChar, int cab);
+  void accessory(Print &stream, char *cmd);
   void checkHeartbeat();
 };
 

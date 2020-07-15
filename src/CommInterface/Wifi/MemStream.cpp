@@ -19,7 +19,7 @@
 
 #include "MemStream.h"
 
-MemStream::MemStream(uint8_t *buffer, const uint16_t len, uint16_t content_len, bool allowWrite)
+MemStream::MemStream(char *buffer, const uint16_t len, uint16_t content_len, bool allowWrite)
     : _buffer(buffer), _len(len), _buffer_overflow(false), _pos_write(content_len), _pos_read(0), _allowWrite(allowWrite)
 {
   if (content_len == 0)
@@ -31,7 +31,7 @@ MemStream::MemStream(uint8_t *buffer, const uint16_t len, uint16_t content_len, 
   }
 }
 
-size_t MemStream::write(uint8_t byte)
+size_t MemStream::write(uint8_t value)
 {
   if (!_allowWrite)
     return -1;
@@ -40,7 +40,7 @@ size_t MemStream::write(uint8_t byte)
     _buffer_overflow = true;
     return 0;
   }
-  _buffer[_pos_write] = byte;
+  _buffer[_pos_write] = (char)value;
   ++_pos_write;
   return 1;
 }
@@ -88,7 +88,7 @@ int MemStream::available()
   return ret;
 }
 
-void MemStream::setBufferContent(uint8_t *buffer, uint16_t content_len)
+void MemStream::setBufferContent(char *buffer, uint16_t content_len)
 {
   memset(_buffer, 0, _len);
   memcpy(_buffer, buffer, content_len);
@@ -97,7 +97,7 @@ void MemStream::setBufferContent(uint8_t *buffer, uint16_t content_len)
   _pos_read = 0;
 }
 
-void MemStream::setBufferContentFromProgmem(uint8_t *buffer, uint16_t content_len)
+void MemStream::setBufferContentFromProgmem(char *buffer, uint16_t content_len)
 {
   memset(_buffer, 0, _len);
   memcpy_P(_buffer, buffer, content_len);

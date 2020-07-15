@@ -27,20 +27,19 @@
 class MemStream : public Stream
 {
 private:
-  uint8_t *_buffer;
+  char *_buffer;
   const uint16_t _len;
   bool _buffer_overflow;
-  uint16_t _pos_read;
-  uint16_t _pos_write;
+  uint16_t _pos_read = 0;
+  uint16_t _pos_write = 0;
   bool _allowWrite;
 
 public:
   // public methods
-  MemStream(uint8_t *buffer, const uint16_t len, uint16_t content_len = 0, bool allowWrite = true);
+  MemStream(char *buffer, const uint16_t len, uint16_t content_len = 0, bool allowWrite = true);
   ~MemStream() {}
 
-  operator const uint8_t *() const { return _buffer; }
-  operator const char *() const { return (const char *)_buffer; }
+  operator const char *() const { return _buffer; }
 
   uint16_t current_length() const { return _pos_write; }
 
@@ -55,13 +54,13 @@ public:
   }
   int peek();
 
-  virtual size_t write(uint8_t byte);
+  virtual size_t write(uint8_t value);
   virtual int read();
   virtual int available();
   virtual void flush();
 
-  void setBufferContent(uint8_t *buffer, uint16_t content_len);
-  void setBufferContentFromProgmem(uint8_t *buffer, uint16_t content_len);
+  void setBufferContent(char *buffer, uint16_t content_len);
+  void setBufferContentFromProgmem(char *buffer, uint16_t content_len);
   void setBufferContentPosition(uint16_t read_pos, uint16_t write_pos);
 
   using Print::write;

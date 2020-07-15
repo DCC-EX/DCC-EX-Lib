@@ -39,7 +39,7 @@ const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "WIFI CONNECTED\r\nWIFI GOT IP";
 //byte WifiInterface::loopstate = 0;
 //int WifiInterface::datalength = 0;
 //int WifiInterface::connectionId;
-byte WifiInterface::buffer[MAX_WIFI_BUFFER];
+char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
 
 #if defined(ARDUINO_AVR_UNO)
@@ -187,8 +187,9 @@ bool WifiInterface::isHTML()
 
 void WifiInterface::process()
 {
-  if (!connected)
+  if (!connected) {
     return;
+  }
 
   WiThrottle::loop(); // check heartbeats
 
@@ -238,7 +239,7 @@ void WifiInterface::process()
   }   // while
   if (loopstate != 99)
     return;
-  char a = 0;
+  const char * a = "\0";
   streamer.write(a);
 
   DIAG(F("\nWifiRead:%d:%s\n"), connectionId, buffer);
@@ -257,12 +258,12 @@ void WifiInterface::process()
   }
   else if (buffer[0] == '<')
   {
-
-    //String command = String(buffer);
-    //command.replace('<', '\0');
-    //command.replace('>', '\0');
+    String command = String(buffer);
+    command.replace('<', '\0');
+    command.replace('>', '\0');
     DIAG(F("Sending Command:%s to DCCEXParser\n"), buffer);
-    //DCCEXParser::parse(command.c_str());
+    DIAG(F("Command: %s"), command.c_str());
+    DCCEXParser::parse(command.c_str());
   }
   else
   {

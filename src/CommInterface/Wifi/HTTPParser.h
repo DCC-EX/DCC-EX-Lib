@@ -24,7 +24,7 @@
 
 class HTTPParser {
 public:
-  static void parse(Print &stream, byte *cmd);
+  static void parse(Print &stream, char *cmd);
 };
 
 #endif  // COMMANDSTATION_COMMINTERFACE_WIFI_HTTPPARSER_H_

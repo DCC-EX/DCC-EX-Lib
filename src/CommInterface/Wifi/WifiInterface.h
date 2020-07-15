@@ -53,11 +53,11 @@ private:
   bool checkForOK(const unsigned int timeout, const char *waitfor, bool echo);
   bool isHTML();
   bool connected = false;
-  byte loopstate = 0;
+  uint8_t loopstate = 0;
   int datalength = 0;
   int connectionId = 0;
-  static const byte MAX_WIFI_BUFFER = 250;
-  static byte buffer[MAX_WIFI_BUFFER];
+  static const uint8_t MAX_WIFI_BUFFER = 250;
+  static char buffer[MAX_WIFI_BUFFER];
   static MemStream streamer;
 
 protected:

@@ -20,7 +20,7 @@
 #include "HTTPParser.h"
 #include "StringFormatter.h"
 
-void HTTPParser::parse(Print &stream, byte *cmd)
+void HTTPParser::parse(Print &stream, char *cmd)
 {
   (void)cmd; // Avoid compiler warning because this example doesnt use this parameter
 
