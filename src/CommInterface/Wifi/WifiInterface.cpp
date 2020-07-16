@@ -27,11 +27,12 @@
 #include "WiThrottle.h"
 
 #include <string.h>
-const char PROGMEM READY_SEARCH[] = "\r\nready\r\n";
-const char PROGMEM OK_SEARCH[] = "\r\nOK\r\n";
-const char PROGMEM END_DETAIL_SEARCH[] = "@ 1000";
+const char PROGMEM READY_SEARCH[] = "ready";
+const char PROGMEM OK_SEARCH[] = "OK";
+const char PROGMEM END_DETAIL_SEARCH[] = "correct flash map";
 const char PROGMEM PROMPT_SEARCH[] = ">";
-const char PROGMEM SEND_OK_SEARCH[] = "\r\nSEND OK\r\n";
+const char PROGMEM SEND_OK_SEARCH[] = "SEND OK";
+const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "WIFI CONNECTED\r\nWIFI GOT IP";
 
 char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
