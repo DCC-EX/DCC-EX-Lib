@@ -27,11 +27,11 @@
 #include "WiThrottle.h"
 
 #include <string.h>
-const char  PROGMEM READY_SEARCH[]  ="\r\nready\r\n";
-const char  PROGMEM OK_SEARCH[] ="\r\nOK\r\n";
-const char  PROGMEM END_DETAIL_SEARCH[] ="@ 1000";
-const char  PROGMEM PROMPT_SEARCH[] =">";
-const char  PROGMEM SEND_OK_SEARCH[] ="\r\nSEND OK\r\n";
+const char PROGMEM READY_SEARCH[] = "\r\nready\r\n";
+const char PROGMEM OK_SEARCH[] = "\r\nOK\r\n";
+const char PROGMEM END_DETAIL_SEARCH[] = "@ 1000";
+const char PROGMEM PROMPT_SEARCH[] = ">";
+const char PROGMEM SEND_OK_SEARCH[] = "\r\nSEND OK\r\n";
 
 char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
@@ -68,47 +68,82 @@ bool WifiInterface::setup2(const __FlashStringHelper *SSid, const __FlashStringH
 {
   delay(1000);
 
-  StringFormatter::send(wifiStream,F("AT+RST\r\n")); // reset module
-  checkForOK(5000,END_DETAIL_SEARCH,true);  // Show startup but ignore unreadable upto ready
+  StringFormatter::send(wifiStream, F("AT+RST\r\n")); // reset module
+  //checkForOK(1000, OK_SEARCH, true);
 
-  if (!checkForOK(5000,READY_SEARCH,false)) return false; 
-  
-  StringFormatter::send(wifiStream,F("AT+CWMODE=1\r\n")); // configure as access point
-  if (!checkForOK(10000,OK_SEARCH,true)) return false;
- 
-  StringFormatter::send(wifiStream,F("AT+CWJAP=\"%S\",\"%S\"\r\n"),SSid,password);
-  if (!checkForOK(20000,OK_SEARCH,true)) return false;
-  
-  StringFormatter::send(wifiStream,F("AT+CIFSR\r\n")); // get ip address //192.168.4.1
-  if (!checkForOK(10000,OK_SEARCH,true)) return false;
-  
-  StringFormatter::send(wifiStream,F("AT+CIPMUX=1\r\n")); // configure for multiple connections
-  if (!checkForOK(10000,OK_SEARCH,true)) return false;
-  
-  StringFormatter::send(wifiStream,F("AT+CIPSERVER=1,%d\r\n"),port); // turn on server on port 80
-  if (!checkForOK(10000,OK_SEARCH,true)) return false;
+  //checkForOK(5000, END_DETAIL_SEARCH, true); // Show startup but ignore unreadable upto ready
 
+  if (!checkForOK(5000, READY_SEARCH, false))
+    return false;
+
+  if (!checkForOK(20000, WIFI_AUTO_CONNECT_SEARCH, false))
+  {
+    StringFormatter::send(wifiStream, F("AT+CWMODE=1\r\n")); // Configure as Wireless client
+    if (!checkForOK(10000, OK_SEARCH, false))
+      return false;
+    StringFormatter::send(wifiStream, F("AT+CWJAP=\"%S\",\"%S\"\r\n"), SSid, password); // Connect to wifi access point
+    if (!checkForOK(20000, OK_SEARCH, false))
+    {
+      if (!checkForOK(30000, WIFI_AUTO_CONNECT_SEARCH, false))
+      {
+        return false;
+      }
+    }
+  }
+
+  StringFormatter::send(wifiStream, F("AT+CIFSR\r\n")); // get ip address //192.168.4.1
+  if (!checkForOK(10000, OK_SEARCH, true))
+    return false;
+
+  StringFormatter::send(wifiStream, F("AT+CWHOSTNAME=\"%S\"\r\n"), hostname); // Set Host name for Wifi Client
+  checkForOK(5000, OK_SEARCH, true);
+
+  StringFormatter::send(wifiStream, F("AT+CIPMUX=1\r\n")); // configure for multiple connections
+  if (!checkForOK(10000, OK_SEARCH, false))
+    return false;
+
+  StringFormatter::send(wifiStream, F("AT+CIPSERVER=1,%d\r\n"), port); // turn on server on port 80
+  if (!checkForOK(10000, OK_SEARCH, false))
+    return false;
+
+  StringFormatter::send(wifiStream, F("AT+MDNS=1,\"%S\",\"%S\",%d\r\n"), hostname, servername, port); // Setup mDNS for Server
+  if (!checkForOK(5000, OK_SEARCH, false))
+    return false;
   return true;
 }
 
-bool WifiInterface::checkForOK(const unsigned int timeout, const char * waitfor, bool echo) {
-  unsigned long  startTime = millis();
-  char const *locator=waitfor;
-  DIAG(F("\nWifi Check: %E"),waitfor);
-  while( millis()-startTime < timeout) {
-    while(wifiStream.available()) {
-      int ch=wifiStream.read();
-      if (ch!=pgm_read_byte_near(locator)) locator=waitfor;
-      if (ch==pgm_read_byte_near(locator)) {
+bool WifiInterface::checkForOK(const unsigned int timeout, const char *waitfor, bool echo)
+{
+  unsigned long startTime = millis();
+  char const *locator = waitfor;
+  DIAG(F("\nWifi Check: %E"), waitfor);
+  while (millis() - startTime < timeout)
+  {
+    while (wifiStream.available())
+    {
+      int ch = wifiStream.read();
+      if (echo)
+      {
+#if defined(ARDUINO_ARCH_AVR)
+        Serial.write(ch);
+#else
+        SerialUSB.write(ch);
+#endif
+      }
+      if (ch != pgm_read_byte_near(locator))
+        locator = waitfor;
+      if (ch == pgm_read_byte_near(locator))
+      {
         locator++;
-        if (!pgm_read_byte_near(locator)) {
-          DIAG(F("\nChecked after %dms"),millis()-startTime);
+        if (!pgm_read_byte_near(locator))
+        {
+          DIAG(F("\nChecked after %dms"), millis() - startTime);
           return true;
         }
       }
     }
   }
-  DIAG(F("\nTIMEOUT after %dms\n"),timeout);
+  DIAG(F("\nTIMEOUT after %dms\n"), timeout);
   return false;
 }
 
@@ -142,7 +177,8 @@ bool WifiInterface::isHTML()
 
 void WifiInterface::process()
 {
-  if (!connected) {
+  if (!connected)
+  {
     return;
   }
 
@@ -194,7 +230,7 @@ void WifiInterface::process()
   }   // while
   if (loopstate != 99)
     return;
-  const char * a = "\0";
+  const char *a = "\0";
   streamer.write(a);
 
   DIAG(F("\nWifiRead:%d:%s\n"), connectionId, buffer);
@@ -213,9 +249,10 @@ void WifiInterface::process()
   }
   else if (buffer[0] == '<')
   {
-    char * command = buffer;
+    char *command = buffer;
     DIAG(F("Sending Command:%s to DCCEXParser\n"), buffer);
-    while (command[0]=='<' || command[0]==' ') command++;
+    while (command[0] == '<' || command[0] == ' ')
+      command++;
     DIAG(F("Command: %s"), command);
     DCCEXParser::parse(command);
   }
@@ -244,7 +281,8 @@ void WifiInterface::send(const char *buf)
     DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buffer);
 
     StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
-    if (checkForOK(1000, PROMPT_SEARCH, true)) wifiStream.print((char *)buffer);
+    if (checkForOK(1000, PROMPT_SEARCH, true))
+      wifiStream.print((char *)buffer);
     checkForOK(3000, SEND_OK_SEARCH, true);
   }
 }
