@@ -278,12 +278,12 @@ void WifiInterface::send(const char *buf)
 {
   if (streamer.available())
   { // there is a reply to send
-    streamer.write((byte)0);
-    DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buffer);
+    streamer.write(buf);
+    DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available() - 1, buf);
 
     StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
     if (checkForOK(1000, PROMPT_SEARCH, true))
-      wifiStream.print((char *)buffer);
+      wifiStream.print((char *)buf);
     checkForOK(3000, SEND_OK_SEARCH, true);
   }
 }
