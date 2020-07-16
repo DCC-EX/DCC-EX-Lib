@@ -33,6 +33,7 @@ const char PROGMEM END_DETAIL_SEARCH[] = "correct flash map";
 const char PROGMEM PROMPT_SEARCH[] = ">";
 const char PROGMEM SEND_OK_SEARCH[] = "SEND OK";
 const char PROGMEM WIFI_AUTO_CONNECT_SEARCH[] = "WIFI CONNECTED\r\nWIFI GOT IP";
+bool sending = false;
 
 char WifiInterface::buffer[MAX_WIFI_BUFFER];
 MemStream WifiInterface::streamer(buffer, sizeof(buffer));
@@ -276,6 +277,10 @@ void WifiInterface::showInitInfo()
 
 void WifiInterface::send(const char *buf)
 {
+  while (sending)
+  {
+    delay(1250);
+  }
   if (streamer.available())
   { // there is a reply to send
     streamer.flush();
@@ -284,7 +289,11 @@ void WifiInterface::send(const char *buf)
 
     StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available() - 1);
     if (checkForOK(2500, PROMPT_SEARCH, true))
+    {
+      sending = true;
       wifiStream.print((char *)buf);
+    }
     checkForOK(5000, SEND_OK_SEARCH, true);
+    sending = false;
   }
 }
