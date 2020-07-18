@@ -33,6 +33,7 @@ struct DCCEXParser
   static void parse(const char *);
   static void cvResponse(serviceModeResponse response);
   static void POMResponse(RailcomPOMResponse response);
+  static void trackPowerCallback(const char* name, bool status);
 private:
   static int stringParser(const char * com, int result[]);
   static const int MAX_PARAMS=10; 

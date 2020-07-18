@@ -96,15 +96,17 @@ void Hardware::checkCurrent() {
 
     current = getMilliamps(reading);
 
-    if(current > trigger_value && digitalRead(enable_pin)) {
+    if(current > trigger_value && (enable_default ? !digitalRead(enable_pin) : digitalRead(enable_pin))) {
       // TODO(davidcutting42@gmail.com) add announce feature back in so JMRI 
       // knows when the power goes out.
+      TrackPowerCallback(channel_name, false);
       setPower(false);    
       tripped=true;
       lastTripTime=millis();
     } 
     else if(current < trigger_value && tripped) {
       if (millis() - lastTripTime > kRetryTime) {
+        TrackPowerCallback(channel_name, true);
         setPower(true);
         tripped=false;
       }

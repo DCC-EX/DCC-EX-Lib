@@ -371,3 +371,10 @@ void DCCEXParser::cvResponse(serviceModeResponse response) {
 void DCCEXParser::POMResponse(RailcomPOMResponse response) {
   CommManager::printf(F("<k %d %x>"), response.transactionID, response.data);
 }
+
+void DCCEXParser::trackPowerCallback(const char* name, bool status) {
+  if(status) 
+    CommManager::printf(F("<p1 %s>"), name);
+  else 
+    CommManager::printf(F("<p0 %s>"), name);
+}

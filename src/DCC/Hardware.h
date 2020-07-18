@@ -104,11 +104,17 @@ public:
   void config_setMaxValue(int maxValue) { maximum_value = maxValue; }
   void config_setAmpsPerVolt(float ampsPerVolt) { amps_per_volt = ampsPerVolt; }
 
+  void config_setTrackPowerCallback(void (*_TrackPowerCallback)(const char* name, bool status)) {
+    TrackPowerCallback = _TrackPowerCallback;
+  }
+
 private:
   float getMilliamps(uint32_t reading);
   uint32_t readCurrent() {
     return analogReadFast(current_sense_pin);
   }
+
+  void (*TrackPowerCallback)(const char* name, bool status);
 
   const char *channel_name;
   control_type_t control_scheme;
