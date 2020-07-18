@@ -42,7 +42,7 @@
 
 #include <Arduino.h>
 #include "WiThrottle.h"
-#include "../../DCC/DCCMain.h"
+#include "../DCCEXParser.h"
 #include "StringFormatter.h"
 #include "../../Accessories/Turnouts.h"
 #include "DIAG.h"
@@ -71,7 +71,7 @@ WiThrottle::WiThrottle(Print &stream, int wificlientid)
   clientid = wificlientid;
   for (int loco = 0; loco < MAX_MY_LOCO; loco++)
     myLocos[loco].throttle = '\0';
-  //StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), DCCWaveform::mainTrack.getPowerMode()==POWERMODE::ON);
+  StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), DCCEXParser::mainTrack->hdw.getStatus());
 
   //StringFormatter::send(stream,F("VN2.0\nHTDCC++EX\nRL0\nPPA%x\nPTT]\\[Turnouts}|{Turnout]\\[Closed}|{2]\\[Thrown}|{4\\PTL"), ==HIGH);
 
@@ -116,9 +116,7 @@ void WiThrottle::parse(Print &stream, char *cmd)
   case 'P':
     if (cmd[1] == 'P' && cmd[2] == 'A')
     { //PPA power mode
-      //DCCWaveform::mainTrack.setPowerMode(cmd[3]=='1'?POWERMODE::ON:POWERMODE::OFF);
-      //
-      //Waveform::hdw::setPower(cmd[3]=='1')
+      DCCEXParser::mainTrack->hdw.setPower(cmd[3]=='1');
       StringFormatter::send(stream, F("PPA%c"), cmd[3]);
     }
     else if (cmd[1] == 'T' && cmd[2] == 'A')
