@@ -113,7 +113,7 @@ public:
   void config_setEnable(uint8_t isRailcom) { enable = isRailcom; }
   void config_setRxPin(uint8_t pin) { rx_pin = pin; }
   void config_setTxPin(uint8_t pin) { tx_pin = pin; }
-#if defined(ARDUINO_ARCH_SAMD) 
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
   Uart* getSerial() { return serial; }
   void config_setSerial(Uart* serial) { this->serial = serial; }
   void config_setSercom(SERCOM* sercom) { this->sercom = sercom; }
@@ -141,7 +141,7 @@ private:
   uint8_t rx_pin;
   uint8_t tx_pin;     
   static const long baud = 250000;
-#if defined(ARDUINO_ARCH_SAMD) 
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
   Uart* serial = nullptr;
   SERCOM* sercom;
   EPioType rx_mux;

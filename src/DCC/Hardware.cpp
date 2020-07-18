@@ -19,7 +19,7 @@
 
 #include "Hardware.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 #define writePin digitalWrite
 #elif defined(ARDUINO_ARCH_AVR)
 // Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot 
@@ -37,9 +37,14 @@ void Hardware::setup() {
     pinMode(signal_b_pin, OUTPUT);
     writePin(signal_b_pin, signal_b_default);
   }
-  pinMode(enable_pin, OUTPUT);
-  writePin(enable_pin, LOW);
-
+  if(enable_default != DEFAULT_NOT_USED) {
+    pinMode(enable_pin, OUTPUT);
+    writePin(enable_pin, enable_default);
+  }
+  if(sleep_default != DEFAULT_NOT_USED) {
+    pinMode(sleep_pin, OUTPUT);
+    writePin(sleep_pin, sleep_default);
+  }
   // Set up the current sense pin
   pinMode(current_sense_pin, INPUT);
 
@@ -47,7 +52,12 @@ void Hardware::setup() {
 }
 
 void Hardware::setPower(bool on) {
-  writePin(enable_pin, on);
+  if(enable_default != DEFAULT_NOT_USED) {
+    writePin(enable_pin, on ? !enable_default : enable_default);
+  }
+  if(sleep_default != DEFAULT_NOT_USED) {
+    writePin(sleep_pin, on ? !sleep_default : sleep_default);
+  }
 }
 
 void Hardware::setSignal(bool high) {
@@ -60,8 +70,8 @@ void Hardware::setSignal(bool high) {
 // setBrake(false) puts the bus into "Hi-Z" mode and disconnects leads
 void Hardware::setBrake(bool on) {
   if(control_scheme == DUAL_DIRECTION_INVERTED) {
-    writePin(signal_a_pin, on);
-    writePin(signal_b_pin, on);
+    writePin(signal_a_pin, !on);
+    writePin(signal_b_pin, !on);
   }
   else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
     writePin(signal_b_pin, signal_b_default?!on:on);
@@ -69,7 +79,11 @@ void Hardware::setBrake(bool on) {
 }
 
 float Hardware::getMilliamps(uint32_t reading) {
+  #if (ARDUINO_ARCH_SAMD || ARDUINO_ARCH_SAMC)
+  return ((float)reading / 1023.0 * 3.3 * 1000 * amps_per_volt);
+  #else
   return ((float)reading / 1023.0 * 5 * 1000 * amps_per_volt);
+  #endif
 }
 
 void Hardware::checkCurrent() {

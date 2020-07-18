@@ -23,7 +23,7 @@
 
 #include "../CommInterface/CommManager.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
   #include "wiring_private.h"
 #endif
 
@@ -65,7 +65,7 @@ const uint8_t railcom_decode[256] PROGMEM =
 void Railcom::setup() {
   if(enable) {
 
-  #if defined(ARDUINO_ARCH_SAMD)
+  #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
     setupDAC();
     if(serial == nullptr) {
       serial = new Uart(sercom, rx_pin, tx_pin, rx_pad, tx_pad);
@@ -100,6 +100,28 @@ void Railcom::setupDAC() {
   while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
   DAC->DATA.reg = dac_value;    // ~10mV reference voltage
   while(DAC->STATUS.bit.SYNCBUSY==1);     // Wait for sync
+}
+
+#elif defined(ARDUINO_ARCH_SAMC)
+// Sets up the DAC on pin A0
+void Railcom::setupDAC() {
+  PORT->Group[0].PINCFG[2].bit.INEN = 0;      // Disable input on DAC pin
+  PORT->Group[0].PINCFG[2].bit.PULLEN = 0;    // Disable pullups
+  PORT->Group[0].DIRCLR.reg = 1 << 2;      // Disable digital outputs on DAC pin
+  PORT->Group[0].PINCFG[2].bit.PMUXEN = 1;    // Enables pinmuxing
+  PORT->Group[0].PMUX[2 >> 1].reg |= PORT_PMUX_PMUXE(PER_ANALOG); // Sets pin to analog
+
+  // // Select the voltage reference to the internal 1V reference
+  DAC->CTRLB.bit.REFSEL = 0x0;
+  // // Enable the DAC
+  DAC->CTRLA.bit.ENABLE = 1;
+  while(DAC->SYNCBUSY.bit.ENABLE==1);     // Wait for sync
+  // // Enable the DAC as an external output
+  DAC->CTRLB.bit.EOEN = 1;
+  // Set the output voltage   
+  DAC->CTRLB.bit.LEFTADJ = 0;
+  DAC->DATA.reg = dac_value;    // ~10mV reference voltage
+  while(DAC->SYNCBUSY.bit.DATA==1);     // Wait for sync
 }
 #endif
 

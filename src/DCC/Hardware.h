@@ -46,6 +46,12 @@ enum control_type_t : uint8_t {
   DIRECTION_BRAKE_ENABLE      
 };
 
+enum default_pin_state_t : uint8_t {
+  DEFAULT_LOW = 0,
+  DEFAULT_HIGH = 1,
+  DEFAULT_NOT_USED,
+};
+
 class Hardware {
 public:
   Hardware() {}
@@ -82,9 +88,14 @@ public:
   // Pin config modification
   void config_setPinSignalA(uint8_t pin) { signal_a_pin = pin; }
   void config_setPinSignalB(uint8_t pin) { signal_b_pin = pin; }
-  void config_setDefaultSignalB(bool default_state) 
+  void config_setDefaultSignalB(default_pin_state_t default_state) 
     { signal_b_default = default_state; }
   void config_setPinEnable(uint8_t pin) { enable_pin = pin; }
+  void config_setDefaultEnable(default_pin_state_t default_state) 
+    { enable_default = default_state; }
+  void config_setPinSleep(uint8_t pin) { sleep_pin = pin; }
+  void config_setDefaultSleep(default_pin_state_t default_state) 
+    { sleep_default = default_state; }
   void config_setPinCurrentSense(uint8_t pin) { current_sense_pin = pin; }
 
   // Current config modification
@@ -107,9 +118,12 @@ private:
   uint8_t signal_b_pin;       // Inverted output if DUAL_DIRECTION_ENABLED, 
                               // brake pin if DIRECTION_BRAKE_ENABLE, else not 
                               // enabled
-  uint8_t signal_b_default;   // Default state of signal B pin. If true, the 
+  default_pin_state_t signal_b_default;   // Default state of signal B pin. If true, the 
                               // signal B pin is HIGH by default. Else low.
   uint8_t enable_pin;
+  default_pin_state_t enable_default; // State of pin when track is off
+  uint8_t sleep_pin;
+  default_pin_state_t sleep_default;  // State of pin when track is off
   uint8_t current_sense_pin;
 
   int trigger_value;          // Trigger value in milliamps

@@ -22,11 +22,11 @@
 
 #include <Arduino.h>
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 #include <SparkFun_External_EEPROM.h>
 #endif
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 extern ExternalEEPROM EEPROM;
 #endif
 

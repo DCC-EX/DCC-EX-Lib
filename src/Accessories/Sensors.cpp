@@ -22,7 +22,7 @@
 #include "../CommInterface/CommManager.h"
 #include "EEStore.h"
 
-#if !defined(ARDUINO_ARCH_SAMD)
+#if !defined(ARDUINO_ARCH_SAMD) && !defined(ARDUINO_ARCH_SAMC)
 #include <EEPROM.h>
 #endif
 

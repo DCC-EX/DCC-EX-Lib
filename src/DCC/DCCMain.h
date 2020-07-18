@@ -43,7 +43,11 @@ public:
 
   static DCCMain* Create_Arduino_L298Shield_Main(uint8_t numDevices);
   static DCCMain* Create_Pololu_MC33926Shield_Main(uint8_t numDevices);
-  static DCCMain* Create_WSM_FireBox_Main(uint8_t numDevices);
+  #if defined(ARDUINO_ARCH_SAMD)
+  static DCCMain* Create_WSM_FireBox_MK1_Main(uint8_t numDevices);
+  #elif defined(ARDUINO_ARCH_SAMC)
+  static DCCMain* Create_WSM_FireBox_MK1S_Main(uint8_t numDevices);
+  #endif
 
   void setup() {
     hdw.setup();

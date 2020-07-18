@@ -69,7 +69,11 @@ public:
 
   static DCCService* Create_Arduino_L298Shield_Prog();
   static DCCService* Create_Pololu_MC33926Shield_Prog();
-  static DCCService* Create_WSM_FireBox_Prog();
+  #if defined(ARDUINO_ARCH_SAMD)
+  static DCCService* Create_WSM_FireBox_MK1_Prog();
+  #elif defined(ARDUINO_ARCH_SAMC)
+  static DCCService* Create_WSM_FireBox_MK1S_Prog();
+  #endif
 
   void setup() {
     hdw.setup();
