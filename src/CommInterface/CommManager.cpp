@@ -21,7 +21,7 @@
 
 #include <Arduino.h>
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 #include <cstdarg>
 #endif
 

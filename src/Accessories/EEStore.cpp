@@ -23,18 +23,18 @@
 #include "Sensors.h"
 #include "Turnouts.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 #include <SparkFun_External_EEPROM.h>
 #else
 #include <EEPROM.h>
 #endif
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 ExternalEEPROM EEPROM;
 #endif
 
 void EEStore::init(){
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
   // Address for Microchip 24-series EEPROM with all three address pins grounded 
   // (0b1010000 = 0x50)
   EEPROM.begin(0x50);     
