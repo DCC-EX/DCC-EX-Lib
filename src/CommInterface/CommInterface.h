@@ -29,7 +29,7 @@ public:
   virtual void showInitInfo() = 0;
   virtual void send(const char *buf, const int *connectionId) = 0;
   virtual Stream* getStream() = 0;
-  virtual int id = 0;
+  int id = 0;
 };
 
 #endif	// COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_
