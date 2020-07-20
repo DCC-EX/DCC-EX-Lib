@@ -256,7 +256,7 @@ void WifiInterface::process()
     while (command[0] == '<' || command[0] == ' ')
       command++;
     DIAG(F("Command: %s"), command);
-    DCCEXParser::parse(command);
+    DCCEXParser::parse(id, connectionId, command);
   }
   else
   {
@@ -268,20 +268,21 @@ void WifiInterface::process()
 
 void WifiInterface::showConfiguration()
 {
+  
 }
 
 void WifiInterface::showInitInfo()
 {
-  CommManager::printf(connected ? "<WiFi:Connected>" : "<Wifi:Not Connected>");
+  CommManager::allprintf(connected ? "<WiFi:Connected>" : "<Wifi:Not Connected>");
 }
 
-void WifiInterface::send(const char *buf)
+void WifiInterface::send(int connId, const char *buf)
 {
   streamer.flush();
   sending = true;
   streamer.write(buf);
-  DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available(), buf);
-  StringFormatter::send(wifiStream, F("AT+CIPSENDBUF=%d,%d\r\n"), connectionId, streamer.available());
+  DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connId, streamer.available(), buf);
+  StringFormatter::send(wifiStream, F("AT+CIPSENDBUF=%d,%d\r\n"), connId, streamer.available());
   if (checkForOK(500, PROMPT_SEARCH, true))
   {
     wifiStream.print(buf);

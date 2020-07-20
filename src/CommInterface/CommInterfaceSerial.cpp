@@ -45,13 +45,13 @@ void SerialInterface::process() {
   }
 }
 
-void SerialInterface::showConfiguration() {
+void SerialInterface::showConfiguration(const int connId) {
   serialStream.print("Hardware Serial - Speed:");
   serialStream.println(baud);
 }
 
 void SerialInterface::showInitInfo() {
-  CommManager::printf("<N0:SERIAL>");
+  CommManager::allprintf("<N0:SERIAL>");
 }
 
 void SerialInterface::send(const char *buf, const int *connectionId) {

@@ -26,7 +26,7 @@
 #include <EEPROM.h>
 #endif
 
-void Output::activate(int s){
+void Output::activate(int comId, int connId,int s){
   // if s>0, set status to active, else inactive
   data.oStatus=(s>0);             
   // set state of output pin to HIGH or LOW depending on whether bit zero of 
@@ -34,7 +34,7 @@ void Output::activate(int s){
   digitalWrite(data.pin,data.oStatus ^ bitRead(data.iFlag,0));      
   if(num>0)
     EEPROM.put(num,data.oStatus);
-  CommManager::printf("<Y %d %d>", data.id, data.oStatus);
+  CommManager::printf(comId,connId,"<Y %d %d>", data.id, data.oStatus);
 }
 
 Output* Output::get(int n){
@@ -43,7 +43,7 @@ Output* Output::get(int n){
   return(tt);
 }
 
-void Output::remove(int n){
+void Output::remove(int comId, int connId,int n){
   Output *tt,*pp;
   tt=firstOutput;
   pp=tt;
@@ -51,7 +51,7 @@ void Output::remove(int n){
   for( ; tt!=NULL && tt->data.id!=n; pp=tt,tt=tt->nextOutput);
 
   if(tt==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId,connId,"<X>");
     return;
   }
 
@@ -62,22 +62,22 @@ void Output::remove(int n){
 
   free(tt);
 
-  CommManager::printf("<O>");
+  CommManager::printf(comId,connId,"<O>");
 }
 
-void Output::show(int n){
+void Output::show(int comId, int connId,int n){
   Output *tt;
 
   if(firstOutput==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId,connId,"<X>");
     return;
   }
 
   for(tt=firstOutput;tt!=NULL;tt=tt->nextOutput){
     if(n==1) {
-    CommManager::printf("<Y %d %d %d %d>", tt->data.id, tt->data.pin, tt->data.iFlag, tt->data.oStatus);
+    CommManager::printf(comId,connId,"<Y %d %d %d %d>", tt->data.id, tt->data.pin, tt->data.iFlag, tt->data.oStatus);
     } else {
-    CommManager::printf("<Y %d %d>", tt->data.id, tt->data.oStatus);
+    CommManager::printf(comId,connId,"<Y %d %d>", tt->data.id, tt->data.oStatus);
     }
   }
 }
@@ -113,7 +113,7 @@ void Output::store(){
 
 }
 
-Output *Output::create(int id, int pin, int iFlag, int v){
+Output *Output::create(int comId, int connId,int id, int pin, int iFlag, int v){
   Output *tt;
 
   if(firstOutput==NULL){
@@ -129,7 +129,7 @@ Output *Output::create(int id, int pin, int iFlag, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-    CommManager::printf("<X>");
+    CommManager::printf(comId,connId,"<X>");
     return(tt);
   }
 
@@ -142,7 +142,7 @@ Output *Output::create(int id, int pin, int iFlag, int v){
     tt->data.oStatus=bitRead(tt->data.iFlag,1)?bitRead(tt->data.iFlag,2):0;      // sets status to 0 (INACTIVE) is bit 1 of iFlag=0, otherwise set to value of bit 2 of iFlag
     digitalWrite(tt->data.pin,tt->data.oStatus ^ bitRead(tt->data.iFlag,0));
     pinMode(tt->data.pin,OUTPUT);
-    CommManager::printf("<O>");
+    CommManager::printf(comId,connId,"<O>");
   }
 
   return(tt);

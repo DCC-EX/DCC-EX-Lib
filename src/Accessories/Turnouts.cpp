@@ -26,23 +26,23 @@
 #include <EEPROM.h>
 #endif
 
-void Turnout::activate(int s, DCCMain* track){
+void Turnout::activate(int comId, int connId,int s, DCCMain* track){
   // if s>0 set turnout=ON, else if zero or negative set turnout=OFF
   data.tStatus=(s>0);   
   genericResponse response;
   track->setAccessory(data.address, data.subAddress, data.tStatus, response);
   if(num>0)
     EEPROM.put(num,data.tStatus);
-  CommManager::printf("<H %d %d>", data.id, data.tStatus);
+  CommManager::printf(comId, connId,"<H %d %d>", data.id, data.tStatus);
 }
 
-Turnout* Turnout::get(int n){
+Turnout* Turnout::get(int comId, int connId,int n){
   Turnout *tt;
   for(tt=firstTurnout;tt!=NULL && tt->data.id!=n;tt=tt->nextTurnout);
   return(tt);
 }
 
-void Turnout::remove(int n){
+void Turnout::remove(int comId, int connId,int n){
   Turnout *tt,*pp;
   tt=firstTurnout;
   pp=tt;
@@ -50,7 +50,7 @@ void Turnout::remove(int n){
   for( ;tt!=NULL && tt->data.id!=n;pp=tt,tt=tt->nextTurnout);
 
   if(tt==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return;
   }
 
@@ -61,24 +61,24 @@ void Turnout::remove(int n){
 
   free(tt);
 
-  CommManager::printf("<O>");
+  CommManager::printf(comId, connId,"<O>");
 }
 
-void Turnout::show(int n){
+void Turnout::show(int comId, int connId,int n){
   Turnout *tt;
 
   if(firstTurnout==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return;
   }
 
   for(tt=firstTurnout;tt!=NULL;tt=tt->nextTurnout){
     if(n==1) {
-    CommManager::printf("<H %d %d %d %d>", tt->data.id, tt->data.address, 
+    CommManager::printf(comId, connId,"<H %d %d %d %d>", tt->data.id, tt->data.address, 
       tt->data.subAddress, tt->data.tStatus);
     } 
     else {
-    CommManager::printf("<H %d %d>", tt->data.id, tt->data.tStatus);
+    CommManager::printf(comId, connId,"<H %d %d>", tt->data.id, tt->data.tStatus);
     }
   }
 }
@@ -112,7 +112,7 @@ void Turnout::store(){
 
 }
 
-Turnout *Turnout::create(int id, int add, int subAdd, int v){
+Turnout *Turnout::create(int comId, int connId,int id, int add, int subAdd, int v){
   Turnout *tt;
 
   if(firstTurnout==NULL){
@@ -128,7 +128,7 @@ Turnout *Turnout::create(int id, int add, int subAdd, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return(tt);
   }
 
@@ -137,7 +137,7 @@ Turnout *Turnout::create(int id, int add, int subAdd, int v){
   tt->data.subAddress=subAdd;
   tt->data.tStatus=0;
   if(v==1)
-    CommManager::printf("<O>");
+    CommManager::printf(comId, connId,"<O>");
   return(tt);
 }
 

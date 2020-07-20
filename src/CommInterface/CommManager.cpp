@@ -48,25 +48,19 @@ void CommManager::registerInterface(CommInterface *interface)
   }
 }
 
-void CommManager::showConfiguration()
+void CommManager::showConfiguration(const int comId, const int connectionId)
 {
-  for (int i = 0; i < nextInterface; i++)
+  if (interfaces[comId] != NULL)
   {
-    if (interfaces[i] != NULL)
-    {
-      interfaces[i]->showConfiguration();
-    }
+    interfaces[comId]->showConfiguration(connectionId);
   }
 }
 
-void CommManager::showInitInfo()
+void CommManager::showInitInfo(const int comId, const int connectionId)
 {
-  for (int i = 0; i < nextInterface; i++)
+  if (interfaces[comId] != NULL)
   {
-    if (interfaces[i] != NULL)
-    {
-      interfaces[i]->showInitInfo();
-    }
+    interfaces[comId]->showInitInfo(connectionId);
   }
 }
 
@@ -83,34 +77,49 @@ void CommManager::printf(const int comId, const int connectionId, const char *fm
   }
 }
 
-void CommManager::printf(const int comId, const int connectionId, const char *fmt, va_list args)
+void CommManager::allprintf(const char *fmt, ...)
 {
   char buf[256] = {0};
-  vsnprintf(buf, sizeof(buf), fmt, args);
-  if (interfaces[comId] != NULL)
-  {
-    interfaces[comId]->send(connectionId, buf);
-  }
-}
-
-void CommManager::printf(const int comId, const int connectionId, const __FlashStringHelper *fmt, ...)
-{
   va_list args;
   va_start(args, fmt);
-
-  char *flash = (char *)fmt;
-  char string[256];
-  for (int i = 0; i < 256; ++i)
-  {
-    string[i] = '\0';
-  }
-  for (int i = 0;; ++i)
-  {
-    char c = pgm_read_byte_near(flash + i);
-    if (c == '\0')
-      break;
-    string[i] = c;
-  }
-  printf(comId, connectionId, string, args);
+  vsnprintf(buf, sizeof(buf), fmt, args);
   va_end(args);
-}
+  for (int i = 0; i < nextInterface; i++)
+  {
+    if (interfaces[i] != NULL)
+    {
+      interfaces[i]->send(buf);
+    }
+  }
+
+  void CommManager::printf(const int comId, const int connectionId, const char *fmt, va_list args)
+  {
+    char buf[256] = {0};
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    if (interfaces[comId] != NULL)
+    {
+      interfaces[comId]->send(connectionId, buf);
+    }
+  }
+
+  void CommManager::printf(const int comId, const int connectionId, const __FlashStringHelper *fmt, ...)
+  {
+    va_list args;
+    va_start(args, fmt);
+
+    char *flash = (char *)fmt;
+    char string[256];
+    for (int i = 0; i < 256; ++i)
+    {
+      string[i] = '\0';
+    }
+    for (int i = 0;; ++i)
+    {
+      char c = pgm_read_byte_near(flash + i);
+      if (c == '\0')
+        break;
+      string[i] = c;
+    }
+    printf(comId, connectionId, string, args);
+    va_end(args);
+  }

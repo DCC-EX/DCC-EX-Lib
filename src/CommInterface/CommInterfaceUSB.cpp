@@ -52,7 +52,7 @@ void USBInterface::showConfiguration() {
 }
 
 void USBInterface::showInitInfo() {
-	CommManager::printf("<N0:SERIAL>");
+	CommManager::allprintf("<N0:SERIAL>");
 }
 
 void USBInterface::send(const char *buf, const int *connectionId) {

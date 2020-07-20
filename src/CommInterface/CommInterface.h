@@ -27,7 +27,7 @@ public:
   virtual void process() = 0;
   virtual void showConfiguration() = 0;
   virtual void showInitInfo() = 0;
-  virtual void send(const char *buf, const int *connectionId) = 0;
+  virtual void send(const char *buf, const int connId) = 0;
   virtual Stream* getStream() = 0;
   int id = 0;
 };

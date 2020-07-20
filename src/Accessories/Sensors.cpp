@@ -26,7 +26,7 @@
 #include <EEPROM.h>
 #endif
 
-void Sensor::check(){
+void Sensor::check(int comId, int connId,){
   Sensor *tt;
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
@@ -35,16 +35,16 @@ void Sensor::check(){
 
     if(!tt->active && tt->signal<0.5){
     tt->active=true;
-    CommManager::printf("<Q %d>", tt->data.snum);
+    CommManager::printf(comId, connId, "<Q %d>", tt->data.snum);
     } else if(tt->active && tt->signal>0.9){
     tt->active=false;
-    CommManager::printf("<q %d>", tt->data.snum);
+    CommManager::printf(comId, connId,"<q %d>", tt->data.snum);
     }
   } // loop over all sensors
 
 }
 
-Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
+Sensor *Sensor::create(int comId, int connId,int snum, int pin, int pullUp, int v){
   Sensor *tt;
 
   if(firstSensor==NULL){
@@ -60,7 +60,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return(tt);
   }
 
@@ -75,7 +75,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   digitalWrite(pin,pullUp);   
 
   if(v==1)
-    CommManager::printf("<O>");
+    CommManager::printf(comId, connId,"<O>");
   return(tt);
 
 }
@@ -86,7 +86,7 @@ Sensor* Sensor::get(int n){
   return(tt);
 }
 
-void Sensor::remove(int n){
+void Sensor::remove(int comId, int connId,int n){
   Sensor *tt,*pp;
   tt=firstSensor;
   pp=tt;
@@ -94,7 +94,7 @@ void Sensor::remove(int n){
   for( ;tt!=NULL && tt->data.snum!=n;pp=tt,tt=tt->nextSensor);
 
   if(tt==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return;
   }
 
@@ -105,32 +105,32 @@ void Sensor::remove(int n){
 
   free(tt);
 
-  CommManager::printf("<O>");
+  CommManager::printf(comId, connId,"<O>");
 }
 
-void Sensor::show(){
+void Sensor::show(int comId, int connId,){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return;
   }
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    CommManager::printf("<Q %d %d %d>", tt->data.snum, tt->data.pin, tt->data.pullUp);
+    CommManager::printf(comId, connId,"<Q %d %d %d>", tt->data.snum, tt->data.pin, tt->data.pullUp);
   }
 }
 
-void Sensor::status(){
+void Sensor::status(int comId, int connId,){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    CommManager::printf("<X>");
+    CommManager::printf(comId, connId,"<X>");
     return;
   }
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    CommManager::printf("<%c %d>", tt->active?'Q':'q', tt->data.snum);
+    CommManager::printf(comId, connId,"<%c %d>", tt->active?'Q':'q', tt->data.snum);
   }
 }
 

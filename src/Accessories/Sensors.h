@@ -38,13 +38,13 @@ struct Sensor{
   Sensor *nextSensor;
   static void load();
   static void store();
-  static Sensor *create(int, int, int, int=0);
+  static Sensor *create(int comId, int connId,int, int, int, int=0);
   static Sensor* get(int);  
-  static void remove(int);  
-  static void show();
-  static void status();
-  static void parse(const char *c);
-  static void check();   
+  static void remove(int comId, int connId,int);  
+  static void show(int comId, int connId,);
+  static void status(int comId, int connId,);
+  static void parse(int comId, int connId,const char *c);
+  static void check(int comId, int connId,);   
 };
 
 #endif  // COMMANDSTATION_ACCESSORIES_SENSORS_H_

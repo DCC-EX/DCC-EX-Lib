@@ -131,9 +131,9 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // argument is string with id number of turnout followed by zero (not 
     // thrown) or one (thrown)
     case 2:   
-      t=Turnout::get(p[0]);
+      t=Turnout::get(comid, connectionId,p[0]);
       if(t!=NULL)
-        t->activate(p[1], (DCCMain*) mainTrack);
+        t->activate(comid, connectionId,p[1], (DCCMain*) mainTrack);
       else
         CommManager::printf(comid, connectionId,F("<X>"));
       break;
@@ -141,15 +141,15 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // argument is string with id number of turnout followed by an address and 
     // subAddress
     case 3:                     
-      Turnout::create(p[0],p[1],p[2],1);
+      Turnout::create(comid, connectionId,p[0],p[1],p[2],1);
       break;
 
     case 1:                     // argument is a string with id number only
-      Turnout::remove(p[0]);
+      Turnout::remove(comid, connectionId,p[0]);
       break;
 
     case 0:                    // no arguments
-      Turnout::show(1);                  // verbose show
+      Turnout::show(comid, connectionId,1);                  // verbose show
       break;
     }
     
@@ -167,7 +167,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     case 2:                     
       o=Output::get(p[0]);
       if(o!=NULL)
-        o->activate(p[1]);
+        o->activate(comid, connectionId,p[1]);
       else
         CommManager::printf(comid, connectionId,F("<X>"));
       break;
@@ -175,15 +175,15 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // argument is string with id number of output followed by a pin number and 
     // invert flag
     case 3:                     
-      Output::create(p[0],p[1],p[2],1);
+      Output::create(comid, connectionId,p[0],p[1],p[2],1);
       break;
 
     case 1:                     // argument is a string with id number only
-      Output::remove(p[0]);
+      Output::remove(comid, connectionId,p[0]);
       break;
 
     case 0:                    // no arguments
-      Output::show(1);                  // verbose show
+      Output::show(comid, connectionId,1);                  // verbose show
       break;
     }
     
@@ -197,15 +197,15 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // argument is string with id number of sensor followed by a pin number and 
     // pullUp indicator (0=LOW/1=HIGH)
     case 3:                     
-      Sensor::create(p[0],p[1],p[2],1);
+      Sensor::create(comid, connectionId,p[0],p[1],p[2],1);
       break;
 
     case 1:                     // argument is a string with id number only
-      Sensor::remove(p[0]);
+      Sensor::remove(comid, connectionId,p[0]);
       break;
 
     case 0:                    // no arguments
-      Sensor::show();
+      Sensor::show(comid, connectionId);
       break;
 
     case 2:                     // invalid number of arguments
@@ -218,7 +218,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
 /***** SHOW STATUS OF ALL SENSORS ****/
 
   case 'Q':         // <Q>
-    Sensor::status();
+    Sensor::status(comid, connectionId);
     break;
 
 
@@ -324,8 +324,8 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
         F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), 
         "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
     CommManager::showInitInfo();
-    Turnout::show();
-    Output::show();
+    Turnout::show(comid, connectionId);
+    Output::show(comid, connectionId);
 
     break;
 
