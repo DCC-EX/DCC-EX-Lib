@@ -31,7 +31,7 @@ public:
 	void process();
 	void showConfiguration();
 	void showInitInfo();
-	void send(const char *buf, const int *connId);
+	void send(const char *buf, const int connId);
 	Stream* getStream() { return &serialStream; }
 	int id = -1;
 protected:
