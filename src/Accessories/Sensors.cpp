@@ -108,7 +108,7 @@ void Sensor::remove(int comId, int connId,int n){
   CommManager::printf(comId, connId,"<O>");
 }
 
-void Sensor::show(int comId, int connId,){
+void Sensor::show(int comId, int connId){
   Sensor *tt;
 
   if(firstSensor==NULL){
@@ -121,7 +121,7 @@ void Sensor::show(int comId, int connId,){
   }
 }
 
-void Sensor::status(int comId, int connId,){
+void Sensor::status(int comId, int connId){
   Sensor *tt;
 
   if(firstSensor==NULL){

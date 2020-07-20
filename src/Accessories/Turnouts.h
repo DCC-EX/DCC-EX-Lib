@@ -38,7 +38,7 @@ struct Turnout{
   void activate(int comId, int connId, int s, DCCMain* track);
   static Turnout* get(int, int,int);
   static void remove(int, int,int);
-  static void load();
+  static void load(int,int);
   static void store();
   static Turnout *create(int, int,int, int, int, int=0);
   static void show(int, int,int=0);

@@ -268,7 +268,6 @@ void WifiInterface::process()
 
 void WifiInterface::showConfiguration()
 {
-  
 }
 
 void WifiInterface::showInitInfo()
@@ -276,7 +275,7 @@ void WifiInterface::showInitInfo()
   CommManager::allprintf(connected ? "<WiFi:Connected>" : "<Wifi:Not Connected>");
 }
 
-void WifiInterface::send(int connId, const char *buf)
+void WifiInterface::send(const char *buf, const int connId)
 {
   streamer.flush();
   sending = true;

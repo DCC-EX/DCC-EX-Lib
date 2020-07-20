@@ -65,7 +65,7 @@ void USBInterface::showInitInfo()
 	CommManager::allprintf("<N0:SERIAL>");
 }
 
-void USBInterface::send(const char *buf, const int *connectionId)
+void USBInterface::send(const char *buf, const int *connId)
 {
 	serialStream.print(buf);
 }
