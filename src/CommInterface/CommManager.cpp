@@ -91,35 +91,36 @@ void CommManager::allprintf(const char *fmt, ...)
       interfaces[i]->send(buf);
     }
   }
+}
 
-  void CommManager::printf(const int comId, const int connectionId, const char *fmt, va_list args)
+void CommManager::printf(const int comId, const int connectionId, const char *fmt, va_list args)
+{
+  char buf[256] = {0};
+  vsnprintf(buf, sizeof(buf), fmt, args);
+  if (interfaces[comId] != NULL)
   {
-    char buf[256] = {0};
-    vsnprintf(buf, sizeof(buf), fmt, args);
-    if (interfaces[comId] != NULL)
-    {
-      interfaces[comId]->send(connectionId, buf);
-    }
+    interfaces[comId]->send(connectionId, buf);
   }
+}
 
-  void CommManager::printf(const int comId, const int connectionId, const __FlashStringHelper *fmt, ...)
+void CommManager::printf(const int comId, const int connectionId, const __FlashStringHelper *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+
+  char *flash = (char *)fmt;
+  char string[256];
+  for (int i = 0; i < 256; ++i)
   {
-    va_list args;
-    va_start(args, fmt);
-
-    char *flash = (char *)fmt;
-    char string[256];
-    for (int i = 0; i < 256; ++i)
-    {
-      string[i] = '\0';
-    }
-    for (int i = 0;; ++i)
-    {
-      char c = pgm_read_byte_near(flash + i);
-      if (c == '\0')
-        break;
-      string[i] = c;
-    }
-    printf(comId, connectionId, string, args);
-    va_end(args);
+    string[i] = '\0';
   }
+  for (int i = 0;; ++i)
+  {
+    char c = pgm_read_byte_near(flash + i);
+    if (c == '\0')
+      break;
+    string[i] = c;
+  }
+  printf(comId, connectionId, string, args);
+  va_end(args);
+}

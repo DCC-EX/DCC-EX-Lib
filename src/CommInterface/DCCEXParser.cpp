@@ -353,7 +353,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
   }
 }
 
-void DCCEXParser::cvResponse(serviceModeResponse response) {
+void DCCEXParser::cvResponse(int comId, int connId,serviceModeResponse response) {
   switch (response.type)
   {
   case READCV:
@@ -368,6 +368,6 @@ void DCCEXParser::cvResponse(serviceModeResponse response) {
   }
 }
 
-void DCCEXParser::POMResponse(RailcomPOMResponse response) {
-  CommManager::printf(comid, connectionId,F("<k %d %x>"), response.transactionID, response.data);
+void DCCEXParser::POMResponse(int comId, int connId,RailcomPOMResponse response) {
+  CommManager::printf(comId, connId,F("<k %d %x>"), response.transactionID, response.data);
 }
