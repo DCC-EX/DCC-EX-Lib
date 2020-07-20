@@ -31,7 +31,7 @@ class WiThrottle
 public:
   static void loop();
   void parse(Print &stream, char *cmd);
-  static WiThrottle *getThrottle(Print &stream, int wifiClient);
+  static WiThrottle *getThrottle(Print &stream, int comId,int wifiClient);
 
 private:
   WiThrottle(Print &stream, int comId,int wifiClientId);

@@ -79,7 +79,7 @@ int DCCEXParser::stringParser(const char *com, int result[]) {
 }
 
 // See documentation on DCC class for info on this section
-void DCCEXParser::parse(const int comId, const char *com, const int connectionId = -1) {
+void DCCEXParser::parse(const int comId, const char *com, const int connectionId) {
   int numArgs = stringParser(com+1, p);
   
   switch(com[0]) {
@@ -91,7 +91,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
 
     mainTrack->setThrottle(p[0], p[1], p[2], p[3], throttleResponse);
 
-    CommManager::printf(comid, connectionId, F("<T %d %d %d>"), throttleResponse.device, 
+    CommManager::printf(comId, connId, F("<T %d %d %d>"), throttleResponse.device, 
       throttleResponse.speed, throttleResponse.direction);
     
     break;
@@ -131,25 +131,25 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // argument is string with id number of turnout followed by zero (not 
     // thrown) or one (thrown)
     case 2:   
-      t=Turnout::get(comid, connectionId,p[0]);
+      t=Turnout::get(comId, connectionId,p[0]);
       if(t!=NULL)
-        t->activate(comid, connectionId,p[1], (DCCMain*) mainTrack);
+        t->activate(comId, connectionId,p[1], (DCCMain*) mainTrack);
       else
-        CommManager::printf(comid, connectionId,F("<X>"));
+        CommManager::printf(comId, connectionId,F("<X>"));
       break;
 
     // argument is string with id number of turnout followed by an address and 
     // subAddress
     case 3:                     
-      Turnout::create(comid, connectionId,p[0],p[1],p[2],1);
+      Turnout::create(comId, connectionId,p[0],p[1],p[2],1);
       break;
 
     case 1:                     // argument is a string with id number only
-      Turnout::remove(comid, connectionId,p[0]);
+      Turnout::remove(comId, connectionId,p[0]);
       break;
 
     case 0:                    // no arguments
-      Turnout::show(comid, connectionId,1);                  // verbose show
+      Turnout::show(comId, connectionId,1);                  // verbose show
       break;
     }
     
@@ -167,23 +167,23 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     case 2:                     
       o=Output::get(p[0]);
       if(o!=NULL)
-        o->activate(comid, connectionId,p[1]);
+        o->activate(comId, connectionId,p[1]);
       else
-        CommManager::printf(comid, connectionId,F("<X>"));
+        CommManager::printf(comId, connectionId,F("<X>"));
       break;
 
     // argument is string with id number of output followed by a pin number and 
     // invert flag
     case 3:                     
-      Output::create(comid, connectionId,p[0],p[1],p[2],1);
+      Output::create(comId, connectionId,p[0],p[1],p[2],1);
       break;
 
     case 1:                     // argument is a string with id number only
-      Output::remove(comid, connectionId,p[0]);
+      Output::remove(comId, connectionId,p[0]);
       break;
 
     case 0:                    // no arguments
-      Output::show(comid, connectionId,1);                  // verbose show
+      Output::show(comId, connectionId,1);                  // verbose show
       break;
     }
     
@@ -197,19 +197,19 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // argument is string with id number of sensor followed by a pin number and 
     // pullUp indicator (0=LOW/1=HIGH)
     case 3:                     
-      Sensor::create(comid, connectionId,p[0],p[1],p[2],1);
+      Sensor::create(comId, connectionId,p[0],p[1],p[2],1);
       break;
 
     case 1:                     // argument is a string with id number only
-      Sensor::remove(comid, connectionId,p[0]);
+      Sensor::remove(comId, connectionId,p[0]);
       break;
 
     case 0:                    // no arguments
-      Sensor::show(comid, connectionId);
+      Sensor::show(comId, connectionId);
       break;
 
     case 2:                     // invalid number of arguments
-      CommManager::printf(comid, connectionId,F("<X>"));
+      CommManager::printf(comId, connectionId,F("<X>"));
       break;
     }
   
@@ -218,7 +218,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
 /***** SHOW STATUS OF ALL SENSORS ****/
 
   case 'Q':         // <Q>
-    Sensor::status(comid, connectionId);
+    Sensor::status(comId, connectionId);
     break;
 
 
@@ -287,7 +287,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
   case '1':      // <1>
     mainTrack->hdw.setPower(true);
     progTrack->hdw.setPower(true);
-    CommManager::printf(comid, connectionId,F("<p1>"));
+    CommManager::printf(comId, connectionId,F("<p1>"));
     break;
 
 /***** TURN OFF POWER FROM MOTOR SHIELD TO TRACKS  ****/
@@ -295,7 +295,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
   case '0':     // <0>
     mainTrack->hdw.setPower(false);
     progTrack->hdw.setPower(false);
-    CommManager::printf(comid, connectionId,F("<p0>"));
+    CommManager::printf(comId, connectionId,F("<p0>"));
     break;
 
 /***** READ MAIN OPERATIONS TRACK CURRENT  ****/
@@ -306,26 +306,26 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
     // fix this.
     int currRead;
     currRead = mainTrack->hdw.getLastRead();
-    CommManager::printf(comid, connectionId,F("<a %d>"), currRead);
+    CommManager::printf(comId, connectionId,F("<a %d>"), currRead);
     break;
 
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
   case 's':      // <s>
-    CommManager::printf(comid, connectionId,F("<p%d MAIN>"), mainTrack->hdw.getStatus());
-    CommManager::printf(comid, connectionId,F("<p%d PROG>"), progTrack->hdw.getStatus());
+    CommManager::printf(comId, connectionId,F("<p%d MAIN>"), mainTrack->hdw.getStatus());
+    CommManager::printf(comId, connectionId,F("<p%d PROG>"), progTrack->hdw.getStatus());
     for(int i=1;i<mainTrack->numDevices;i++){
       if(mainTrack->speedTable[i].speed==0)
       continue;
-      CommManager::printf(comid, connectionId,"<T%d %d %d>", i, mainTrack->speedTable[i].speed, 
+      CommManager::printf(comId, connectionId,"<T%d %d %d>", i, mainTrack->speedTable[i].speed, 
         mainTrack->speedTable[i].forward);
     }
-    CommManager::printf(comid, connectionId,
+    CommManager::printf(comId, connectionId,
         F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), 
         "Command Station", BOARD_NAME, VERSION, __DATE__, __TIME__);
     CommManager::showInitInfo();
-    Turnout::show(comid, connectionId);
-    Output::show(comid, connectionId);
+    Turnout::show(comId, connectionId);
+    Output::show(comId, connectionId);
 
     break;
 
@@ -333,7 +333,7 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
 
   case 'E':     // <E>
     EEStore::store();
-    CommManager::printf(comid, connectionId,F("<e %d %d %d>"), EEStore::eeStore->data.nTurnouts, 
+    CommManager::printf(comId, connectionId,F("<e %d %d %d>"), EEStore::eeStore->data.nTurnouts, 
       EEStore::eeStore->data.nSensors, EEStore::eeStore->data.nOutputs);
     break;
 
@@ -342,13 +342,13 @@ void DCCEXParser::parse(const int comId, const char *com, const int connectionId
   case 'e':     // <e>
 
     EEStore::clear();
-    CommManager::printf(comid, connectionId,F("<O>"));
+    CommManager::printf(comId, connectionId,F("<O>"));
     break;
 
 /***** PRINT CARRIAGE RETURN IN SERIAL MONITOR WINDOW  ****/
 
   case ' ':     // < >
-    CommManager::printf(comid, connectionId,F("\n"));
+    CommManager::printf(comId, connectionId,F("\n"));
     break;
   }
 }
@@ -358,11 +358,11 @@ void DCCEXParser::cvResponse(int comId, int connId,serviceModeResponse response)
   {
   case READCV:
   case WRITECV:
-    CommManager::printf(comid, connectionId,F("<r%d|%d|%d %d>"), response.callback, 
+    CommManager::printf(comId, connectionId,F("<r%d|%d|%d %d>"), response.callback, 
       response.callbackSub, response.cv, response.cvValue);
     break;
   case WRITECVBIT:
-    CommManager::printf(comid, connectionId,F("<r%d|%d|%d %d %d>"), response.callback, 
+    CommManager::printf(comId, connectionId,F("<r%d|%d|%d %d %d>"), response.callback, 
       response.callbackSub, response.cv, response.cvBitNum, response.cvValue);
     break;
   }

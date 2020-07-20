@@ -36,7 +36,7 @@ struct Sensor{
   boolean active;
   float signal;
   Sensor *nextSensor;
-  static void load();
+  static void load(int,int);
   static void store();
   static Sensor *create(int comId, int connId,int, int, int, int=0);
   static Sensor* get(int);  

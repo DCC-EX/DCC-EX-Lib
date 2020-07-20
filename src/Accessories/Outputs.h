@@ -38,7 +38,7 @@ struct Output {
   static void parse(const char *c);
   static Output* get(int);
   static void remove(int comId, int connId,int);
-  static void load();
+  static void load(int,int);
   static void store();
   static Output *create(int , int ,int, int, int, int=0);
   static void show(int comId, int connId,int=0);

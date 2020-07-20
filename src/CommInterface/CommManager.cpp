@@ -48,7 +48,7 @@ void CommManager::registerInterface(CommInterface *interface)
   }
 }
 
-void CommManager::showConfiguration(const int comId, const int connectionId)
+void CommManager::showConfiguration()
 {
   if (interfaces[comId] != NULL)
   {
@@ -56,7 +56,7 @@ void CommManager::showConfiguration(const int comId, const int connectionId)
   }
 }
 
-void CommManager::showInitInfo(const int comId, const int connectionId)
+void CommManager::showInitInfo()
 {
   if (interfaces[comId] != NULL)
   {
