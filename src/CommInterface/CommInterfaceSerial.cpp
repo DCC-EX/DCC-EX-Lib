@@ -54,6 +54,6 @@ void SerialInterface::showInitInfo() {
   CommManager::printf("<N0:SERIAL>");
 }
 
-void SerialInterface::send(const char *buf) {
+void SerialInterface::send(const char *buf, const int *connectionId) {
   serialStream.print(buf);
 }

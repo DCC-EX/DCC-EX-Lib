@@ -31,8 +31,9 @@ public:
 	void process();
 	void showConfiguration();
 	void showInitInfo();
-	void send(const char *buf);
+	void send(const char *buf, const int *connectionId);
 	Stream* getStream() { return &serialStream; }
+	int id = -1;
 protected:
 	HardwareSerial &serialStream;
 	long baud;

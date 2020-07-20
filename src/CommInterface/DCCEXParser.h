@@ -30,7 +30,7 @@ struct DCCEXParser
   static DCCMain *mainTrack;
   static DCCService *progTrack;
   static void init(DCCMain* mainTrack_, DCCService* progTrack_);
-  static void parse(const char *);
+  static void parse(int comId, const char *, int connectionId);
   static void cvResponse(serviceModeResponse response);
   static void POMResponse(RailcomPOMResponse response);
 private:

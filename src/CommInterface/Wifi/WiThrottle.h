@@ -34,7 +34,7 @@ public:
   static WiThrottle *getThrottle(Print &stream, int wifiClient);
 
 private:
-  WiThrottle(Print &stream, int wifiClientId);
+  WiThrottle(Print &stream, int comId,int wifiClientId);
   ~WiThrottle();
 
   static const int MAX_MY_LOCO = 10;
@@ -45,7 +45,8 @@ private:
 
   WiThrottle *nextThrottle;
   int clientid;
-
+  int comId;
+  
   MYLOCO myLocos[MAX_MY_LOCO];
   bool heartBeatEnable;
   unsigned long heartBeat;

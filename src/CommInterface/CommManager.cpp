@@ -28,77 +28,89 @@
 CommInterface *CommManager::interfaces[5] = {NULL, NULL, NULL, NULL, NULL};
 int CommManager::nextInterface = 0;
 
-void CommManager::update() {
-  for(int i = 0; i < nextInterface; i++) {
-    if(interfaces[i] != NULL) {
+void CommManager::update()
+{
+  for (int i = 0; i < nextInterface; i++)
+  {
+    if (interfaces[i] != NULL)
+    {
       interfaces[i]->process();
     }
   }
 }
 
-void CommManager::registerInterface(CommInterface *interface) {
-  if(nextInterface < 5) {
+void CommManager::registerInterface(CommInterface *interface)
+{
+  if (nextInterface < 5)
+  {
     interfaces[nextInterface++] = interface;
+    interface->id = nextInterface;
   }
 }
 
-void CommManager::showConfiguration() {
-  for(int i = 0; i < nextInterface; i++) {
-    if(interfaces[i] != NULL) {
+void CommManager::showConfiguration()
+{
+  for (int i = 0; i < nextInterface; i++)
+  {
+    if (interfaces[i] != NULL)
+    {
       interfaces[i]->showConfiguration();
     }
   }
 }
 
-void CommManager::showInitInfo() {
-  for(int i = 0; i < nextInterface; i++) {
-    if(interfaces[i] != NULL) {
-      interfaces[i]->showInitInfo();	
+void CommManager::showInitInfo()
+{
+  for (int i = 0; i < nextInterface; i++)
+  {
+    if (interfaces[i] != NULL)
+    {
+      interfaces[i]->showInitInfo();
     }
   }
 }
 
-void CommManager::printf(const char *fmt, ...) {
+void CommManager::printf(const int comId, const int connectionId, const char *fmt, ...)
+{
   char buf[256] = {0};
   va_list args;
   va_start(args, fmt);
   vsnprintf(buf, sizeof(buf), fmt, args);
   va_end(args);
-  for(int i = 0; i < nextInterface; i++) {
-    if(interfaces[i] != NULL) {
-      interfaces[i]->send(buf);
-    }
+  if (interfaces[comId] != NULL)
+  {
+    interfaces[comId]->send(buf);
   }
 }
 
-void CommManager::printf(const char *fmt, va_list args) {
+void CommManager::printf(const int comId, const int connectionId, const char *fmt, va_list args)
+{
   char buf[256] = {0};
   vsnprintf(buf, sizeof(buf), fmt, args);
-  for(int i = 0; i < nextInterface; i++) {
-    if(interfaces[i] != NULL) {
-      interfaces[i]->send(buf);
-    }
+  if (interfaces[comId] != NULL)
+  {
+    interfaces[comId]->send(connectionId, buf);
   }
 }
 
-void CommManager::printf(const __FlashStringHelper *fmt, ...) {
-  for(int i = 0; i < nextInterface; i++) {
-    if(interfaces[i] != NULL) {
-      va_list args;
-      va_start(args, fmt);
+void CommManager::printf(const int comId, const int connectionId, const __FlashStringHelper *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
 
-      char* flash = (char*)fmt;
-      char string[256];
-      for(int i=0; i < 256; ++i) {
-        string[i] = '\0';
-      }
-      for(int i=0; ; ++i) {
-        char c=pgm_read_byte_near(flash+i);
-        if (c=='\0') break;
-        string[i] = c;
-      }
-      printf(string, args);
-      va_end(args);
-    }
+  char *flash = (char *)fmt;
+  char string[256];
+  for (int i = 0; i < 256; ++i)
+  {
+    string[i] = '\0';
   }
+  for (int i = 0;; ++i)
+  {
+    char c = pgm_read_byte_near(flash + i);
+    if (c == '\0')
+      break;
+    string[i] = c;
+  }
+  printf(comId, connectionId, string, args);
+  va_end(args);
 }

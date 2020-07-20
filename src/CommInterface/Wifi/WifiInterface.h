@@ -47,7 +47,7 @@ public:
   void showInitInfo();
   void send(const char *buf);
   Stream *getStream() { return &wifiStream; }
-
+  int id = -1;
 private:
   bool setup2(const __FlashStringHelper *SSSid, const __FlashStringHelper *password, const __FlashStringHelper *hostname, const __FlashStringHelper *servername, int port);
   bool checkForOK(const unsigned int timeout, const char *waitfor, bool echo);

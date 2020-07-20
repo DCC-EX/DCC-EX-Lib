@@ -46,6 +46,7 @@
 #include "StringFormatter.h"
 #include "../../Accessories/Turnouts.h"
 #include "DIAG.h"
+#include "../CommManager.h"
 
 #define LOOPLOCOS(THROTTLECHAR, CAB)             \
   for (int loco = 0; loco < MAX_MY_LOCO; loco++) \
@@ -53,17 +54,17 @@
 
 WiThrottle *WiThrottle::firstThrottle = NULL;
 
-WiThrottle *WiThrottle::getThrottle(Print &stream, int wifiClient)
+WiThrottle *WiThrottle::getThrottle(Print &stream, int comId, int wifiClient)
 {
   for (WiThrottle *wt = firstThrottle; wt != NULL; wt = wt->nextThrottle)
     if (wt->clientid == wifiClient)
       return wt;
-  return new WiThrottle(stream, wifiClient);
+  return new WiThrottle(stream, comId, wifiClient);
 }
 
 // One instance of WiTHrottle per connected client, so we know what the locos are
 
-WiThrottle::WiThrottle(Print &stream, int wificlientid)
+WiThrottle::WiThrottle(Print &stream, int comId, int wificlientid)
 {
   DIAG(F("\nCreating new WiThrottle for client %d\n"), wificlientid);
   nextThrottle = firstThrottle;
