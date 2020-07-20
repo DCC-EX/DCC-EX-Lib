@@ -260,7 +260,7 @@ void WifiInterface::process()
   }
   else
   {
-    WiThrottle::getThrottle(streamer, connectionId)->parse(streamer, buffer);
+    WiThrottle::getThrottle(streamer, id, connectionId)->parse(streamer, buffer);
   }
 
   loopstate = 0; // go back to looking for +IPD

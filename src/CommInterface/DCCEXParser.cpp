@@ -383,7 +383,7 @@ void DCCEXParser::cvResponse(serviceModeResponse response)
                         response.callbackSub, response.cv, response.cvValue);
     break;
   case WRITECVBIT:
-    CommManager::printf(response.comId, connId, F("<r%d|%d|%d %d %d>"), response.callback,
+    CommManager::printf(response.comId, response.connId, F("<r%d|%d|%d %d %d>"), response.callback,
                         response.callbackSub, response.cv, response.cvBitNum, response.cvValue);
     break;
   }
