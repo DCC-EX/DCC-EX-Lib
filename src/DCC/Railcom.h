@@ -95,6 +95,8 @@ struct RailcomDatagram {
 struct RailcomPOMResponse {
   uint32_t data;
   uint16_t transactionID;
+  int comId;
+  int connId;
 };
 
 class Railcom

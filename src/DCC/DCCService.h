@@ -41,6 +41,8 @@ struct serviceModeResponse {
   uint16_t cv;
   uint8_t cvBitNum;
   int cvValue;  // Might be -1, so int works
+  int comId;
+  int connId;
 };
 
 enum ackOpCodes {

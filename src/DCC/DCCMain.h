@@ -35,6 +35,8 @@ struct setThrottleResponse {
 
 struct genericResponse {
   uint16_t transactionID;
+  int comId;
+  int connId;
 };
 
 class DCCMain : public Waveform {
