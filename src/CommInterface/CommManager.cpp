@@ -50,17 +50,23 @@ void CommManager::registerInterface(CommInterface *interface)
 
 void CommManager::showConfiguration()
 {
-  if (interfaces[comId] != NULL)
+  for (int i = 0; i < nextInterface; i++)
   {
-    interfaces[comId]->showConfiguration(connectionId);
+    if (interfaces[i] != NULL)
+    {
+      interfaces[i]->showConfiguration();
+    }
   }
 }
 
 void CommManager::showInitInfo()
 {
-  if (interfaces[comId] != NULL)
+  for (int i = 0; i < nextInterface; i++)
   {
-    interfaces[comId]->showInitInfo(connectionId);
+    if (interfaces[i] != NULL)
+    {
+      interfaces[i]->showInitInfo();
+    }
   }
 }
 
@@ -73,7 +79,7 @@ void CommManager::printf(const int comId, const int connectionId, const char *fm
   va_end(args);
   if (interfaces[comId] != NULL)
   {
-    interfaces[comId]->send(buf);
+    interfaces[comId]->send(buf, connectionId);
   }
 }
 
@@ -88,7 +94,7 @@ void CommManager::allprintf(const char *fmt, ...)
   {
     if (interfaces[i] != NULL)
     {
-      interfaces[i]->send(buf);
+      interfaces[i]->send(buf, 0);
     }
   }
 }
@@ -99,7 +105,7 @@ void CommManager::printf(const int comId, const int connectionId, const char *fm
   vsnprintf(buf, sizeof(buf), fmt, args);
   if (interfaces[comId] != NULL)
   {
-    interfaces[comId]->send(connectionId, buf);
+    interfaces[comId]->send(buf, connectionId);
   }
 }
 
