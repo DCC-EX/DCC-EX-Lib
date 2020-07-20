@@ -36,12 +36,12 @@ struct Turnout{
   struct TurnoutData data;
   Turnout *nextTurnout;
   void activate(int comId, int connId, int s, DCCMain* track);
-  static Turnout* get(int comId, int connId,int);
-  static void remove(int comId, int connId,int);
+  static Turnout* get(int, int,int);
+  static void remove(int, int,int);
   static void load();
   static void store();
-  static Turnout *create(int comId, int connId,int, int, int, int=0);
-  static void show(int comId, int connId,int=0);
+  static Turnout *create(int, int,int, int, int, int=0);
+  static void show(int, int,int=0);
 };
   
 #endif  // COMMANDSTATION_ACCESSORIES_TURNOUTS_H_
