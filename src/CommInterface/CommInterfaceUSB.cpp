@@ -26,36 +26,47 @@
 #include "CommManager.h"
 #include "DCCEXParser.h"
 
-USBInterface::USBInterface(Serial_ &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {
+USBInterface::USBInterface(Serial_ &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false)
+{
 	serialStream.begin(baud);
 	serialStream.flush();
 }
 
-void USBInterface::process() {
-	while(serialStream.available()) {
+void USBInterface::process()
+{
+	while (serialStream.available())
+	{
 		char ch = serialStream.read();
-		if (ch == '<') {
+		if (ch == '<')
+		{
 			inCommandPayload = true;
 			buffer = "";
-		} else if (ch == '>') {
-			DCCEXParser::parse(buffer.c_str());
+		}
+		else if (ch == '>')
+		{
+			DCCEXParser::parse(id, buffer.c_str());
 			buffer = "";
 			inCommandPayload = false;
-		} else if(inCommandPayload) {
+		}
+		else if (inCommandPayload)
+		{
 			buffer += ch;
 		}
 	}
 }
 
-void USBInterface::showConfiguration() {
+void USBInterface::showConfiguration()
+{
 	serialStream.println("USB");
 }
 
-void USBInterface::showInitInfo() {
+void USBInterface::showInitInfo()
+{
 	CommManager::allprintf("<N0:SERIAL>");
 }
 
-void USBInterface::send(const char *buf, const int *connectionId) {
+void USBInterface::send(const char *buf, const int *connectionId)
+{
 	serialStream.print(buf);
 }
 

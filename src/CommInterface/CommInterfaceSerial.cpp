@@ -24,36 +24,47 @@
 #include "CommManager.h"
 #include "DCCEXParser.h"
 
-SerialInterface::SerialInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false) {
+SerialInterface::SerialInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false)
+{
   serialStream.begin(baud);
   serialStream.flush();
 }
 
-void SerialInterface::process() {
-  while(serialStream.available()) {
+void SerialInterface::process()
+{
+  while (serialStream.available())
+  {
     char ch = serialStream.read();
-    if (ch == '<') {
+    if (ch == '<')
+    {
       inCommandPayload = true;
       buffer = "";
-    } else if (ch == '>') {
-      DCCEXParser::parse(buffer.c_str());
+    }
+    else if (ch == '>')
+    {
+      DCCEXParser::parse(id, buffer.c_str());
       buffer = "";
       inCommandPayload = false;
-    } else if(inCommandPayload) {
+    }
+    else if (inCommandPayload)
+    {
       buffer += ch;
     }
   }
 }
 
-void SerialInterface::showConfiguration(const int connId) {
+void SerialInterface::showConfiguration()
+{
   serialStream.print("Hardware Serial - Speed:");
   serialStream.println(baud);
 }
 
-void SerialInterface::showInitInfo() {
+void SerialInterface::showInitInfo()
+{
   CommManager::allprintf("<N0:SERIAL>");
 }
 
-void SerialInterface::send(const char *buf, const int *connectionId) {
+void SerialInterface::send(const char *buf, const int *connectionId)
+{
   serialStream.print(buf);
 }

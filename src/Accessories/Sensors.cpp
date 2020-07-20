@@ -26,7 +26,7 @@
 #include <EEPROM.h>
 #endif
 
-void Sensor::check(int comId, int connId,){
+void Sensor::check(int comId, int connId){
   Sensor *tt;
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
