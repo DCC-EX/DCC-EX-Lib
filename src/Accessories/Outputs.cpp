@@ -82,13 +82,13 @@ void Output::show(int comId, int connId,int n){
   }
 }
 
-void Output::load(){
+void Output::load(int comId, int connId){
   struct OutputData data;
   Output *tt;
 
   for(int i=0;i<EEStore::eeStore->data.nOutputs;i++){
     EEPROM.get(EEStore::pointer(),data);
-    tt=create(data.id,data.pin,data.iFlag);
+    tt=create(comId, connId,data.id,data.pin,data.iFlag);
     tt->data.oStatus=bitRead(tt->data.iFlag,1)?bitRead(tt->data.iFlag,2):data.oStatus;      // restore status to EEPROM value is bit 1 of iFlag=0, otherwise set to value of bit 2 of iFlag
     digitalWrite(tt->data.pin,tt->data.oStatus ^ bitRead(tt->data.iFlag,0));
     pinMode(tt->data.pin,OUTPUT);

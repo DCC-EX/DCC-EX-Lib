@@ -58,9 +58,9 @@ void EEStore::init(){
   }
 
   reset();            // set memory pointer to first free EEPROM space
-  Turnout::load();    // load turnout definitions
-  Sensor::load();     // load sensor definitions
-  Output::load();     // load output definitions
+  Turnout::load(0,0);    // load turnout definitions
+  Sensor::load(0,0);     // load sensor definitions
+  Output::load(0,0);     // load output definitions
 }
 
 void EEStore::clear(){

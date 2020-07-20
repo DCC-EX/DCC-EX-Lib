@@ -134,13 +134,13 @@ void Sensor::status(int comId, int connId){
   }
 }
 
-void Sensor::load(){
+void Sensor::load(int comId, int connId){
   struct SensorData data;
   Sensor *tt;
 
   for(int i=0;i<EEStore::eeStore->data.nSensors;i++){
     EEPROM.get(EEStore::pointer(),data);
-    tt=create(data.snum,data.pin,data.pullUp);
+    tt=create(comId, connId,data.snum,data.pin,data.pullUp);
     EEStore::advance(sizeof(tt->data));
   }
 }

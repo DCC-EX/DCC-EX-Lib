@@ -34,7 +34,7 @@ public:
 	static void registerInterface(CommInterface *interface);
 	static void showConfiguration();
 	static void showInitInfo();
-	static void allprintf(const int comId, const int connectionId, const char *fmt, ...);
+	static void allprintf(const char *fmt, ...);
 	static void printf(const int comId, const int connectionId, const char *fmt, ...);
 	static void printf(const int comId, const int connectionId, const char *fmt, va_list args);
 	static void printf(const int comId, const int connectionId, const __FlashStringHelper* fmt, ...);
