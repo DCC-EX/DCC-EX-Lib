@@ -277,20 +277,15 @@ void WifiInterface::showInitInfo()
 
 void WifiInterface::send(const char *buf)
 {
-  while (sending)
-  {
-    delay(5000);
-  }
   streamer.flush();
   sending = true;
   streamer.write(buf);
   DIAG(F("WiFiInterface Responding client (%d) l(%d) %s\n"), connectionId, streamer.available(), buf);
-
-  StringFormatter::send(wifiStream, F("AT+CIPSEND=%d,%d\r\n"), connectionId, streamer.available());
-  if (checkForOK(1000, PROMPT_SEARCH, true))
+  StringFormatter::send(wifiStream, F("AT+CIPSENDBUF=%d,%d\r\n"), connectionId, streamer.available());
+  if (checkForOK(500, PROMPT_SEARCH, true))
   {
     wifiStream.print(buf);
   }
-  checkForOK(3000, SEND_OK_SEARCH, true);
+  checkForOK(1000, SEND_OK_SEARCH, true);
   sending = false;
 }
