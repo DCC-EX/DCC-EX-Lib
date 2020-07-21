@@ -43,7 +43,8 @@ enum control_type_t : uint8_t {
   DUAL_DIRECTION_INVERTED,    
   // Separate brake and enable lines. Brake is active high. Example: Arduino 
   // Motor Shield
-  DIRECTION_BRAKE_ENABLE      
+  DIRECTION_BRAKE_ENABLE,
+  DRV8873      
 };
 
 enum default_pin_state_t : uint8_t {

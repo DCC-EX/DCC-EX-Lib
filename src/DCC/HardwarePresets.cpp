@@ -29,7 +29,7 @@ DCCMain* DCCMain::Create_WSM_FireBox_MK1S_Main(uint8_t numDevices) {
 
   hdw.config_setChannelName("MAIN");
 
-  hdw.config_setControlScheme(DUAL_DIRECTION_INVERTED);
+  hdw.config_setControlScheme(DRV8873);
 
   hdw.config_setPinSignalA(21);  
   hdw.config_setPinSignalB(22);  
@@ -53,7 +53,7 @@ DCCMain* DCCMain::Create_WSM_FireBox_MK1S_Main(uint8_t numDevices) {
   rcom.config_setRxMux(PIO_SERCOM);
   rcom.config_setRxPad(SERCOM_RX_PAD_0);
   rcom.config_setTxPad(UART_TX_PAD_2);
-  rcom.config_setDACValue(0x7);
+  rcom.config_setDACValue(0x4E);
 
   return new DCCMain(numDevices, hdw, rcom);
 }
@@ -64,7 +64,7 @@ DCCService* DCCService::Create_WSM_FireBox_MK1S_Prog() {
   
   hdw.config_setChannelName("PROG");
 
-  hdw.config_setControlScheme(DUAL_DIRECTION_INVERTED);
+  hdw.config_setControlScheme(DRV8873);
 
   hdw.config_setPinSignalA(27);  
   hdw.config_setPinSignalB(28);  

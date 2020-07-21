@@ -33,7 +33,7 @@ void Hardware::setup() {
   pinMode(signal_a_pin, OUTPUT);
   writePin(signal_a_pin, LOW);
   if(control_scheme == DUAL_DIRECTION_INVERTED 
-    || control_scheme == DIRECTION_BRAKE_ENABLE) {
+    || control_scheme == DIRECTION_BRAKE_ENABLE || control_scheme == DRV8873) {
     pinMode(signal_b_pin, OUTPUT);
     writePin(signal_b_pin, signal_b_default);
   }
@@ -62,16 +62,22 @@ void Hardware::setPower(bool on) {
 
 void Hardware::setSignal(bool high) {
   writePin(signal_a_pin, high);
-  if(control_scheme == DUAL_DIRECTION_INVERTED)
+  if(control_scheme == DUAL_DIRECTION_INVERTED || control_scheme == DRV8873)
     writePin(signal_b_pin, !high);
 }
 
+// TODO: Fix this comment
 // setBrake(true) puts the bus into "brake" mode and connects leads
 // setBrake(false) puts the bus into "Hi-Z" mode and disconnects leads
 void Hardware::setBrake(bool on) {
   if(control_scheme == DUAL_DIRECTION_INVERTED) {
+    writePin(signal_a_pin, on);
+    writePin(signal_b_pin, on);
+  }
+  else if(control_scheme == DRV8873) {
     writePin(signal_a_pin, !on);
     writePin(signal_b_pin, !on);
+    writePin(enable_pin, on);
   }
   else if(control_scheme == DIRECTION_BRAKE_ENABLE) {
     writePin(signal_b_pin, signal_b_default?!on:on);
