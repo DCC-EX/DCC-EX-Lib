@@ -25,20 +25,20 @@
 #include "DCCEXParser.h"
 
 #if defined(ARDUINO_AVR_UNO)
-SerialInterface::SerialInterface(SoftwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false)
+ESPInterface::ESPInterface(SoftwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false)
 {
   serialStream.begin(baud);
   serialStream.flush();
 }
 #else
-SerialInterface::SerialInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false)
+ESPInterface::ESPInterface(HardwareSerial &serial, long baud) : serialStream(serial), baud(baud), buffer(""), inCommandPayload(false)
 {
   serialStream.begin(baud);
   serialStream.flush();
 }
 #endif
 
-void SerialInterface::process()
+void ESPInterface::process()
 {
   while (serialStream.available())
   {

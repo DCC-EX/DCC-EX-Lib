@@ -29,13 +29,13 @@
 #include <HardwareSerial.h>
 #endif
 
-class SerialInterface : public CommInterface
+class ESPInterface : public CommInterface
 {
 public:
 #if defined(ARDUINO_AVR_UNO)
-	SerialInterface(SoftwareSerial &serial, long baud = 9600);
+	ESPInterface(SoftwareSerial &serial, long baud = 9600);
 #else
-	SerialInterface(HardwareSerial &serial, long baud = 115200);
+	ESPInterface(HardwareSerial &serial, long baud = 115200);
 #endif
 	void process();
 	void showConfiguration();
