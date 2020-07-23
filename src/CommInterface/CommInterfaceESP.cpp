@@ -17,7 +17,7 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "CommInterfaceSerial.h"
+#include "CommInterfaceESP.h"
 
 #include <Arduino.h>
 
