@@ -63,18 +63,18 @@ void ESPInterface::process()
   }
 }
 
-void SerialInterface::showConfiguration()
+void ESPInterface::showConfiguration()
 {
   serialStream.print("[0 Wifi Serial - Speed:]");
   serialStream.println(baud);
 }
 
-void SerialInterface::showInitInfo()
+void ESPInterface::showInitInfo()
 {
   CommManager::printf("[0 <N0:SERIAL>]");
 }
 
-void SerialInterface::send(const char *buf)
+void ESPInterface::send(const char *buf)
 {
   CommManager::printf(F("[0 %s]"), buf);
 }
