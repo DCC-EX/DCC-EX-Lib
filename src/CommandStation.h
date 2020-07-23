@@ -27,11 +27,15 @@
 #include "DCC/DCCMain.h"
 #include "DCC/DCCService.h"
 
-#if defined (ARDUINO_ARCH_SAMD)
-  #include "CommInterface/CommInterfaceUSB.h"
+#if defined(ARDUINO_ARCH_SAMD)
+#include "CommInterface/CommInterfaceUSB.h"
+#endif
+
+#if defined(CONFIG_ENABLE_WIFI)
+#include "CommInterface/CommInterfaceESP.h"
 #endif
 
 #define VERSION "1.0.0"
 #define BOARD_NAME "DCC++ Command Station"
 
-#endif  // COMMANDSTATION_COMMANDSTATION_H_
+#endif // COMMANDSTATION_COMMANDSTATION_H_
