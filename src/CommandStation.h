@@ -31,9 +31,7 @@
 #include "CommInterface/CommInterfaceUSB.h"
 #endif
 
-#if defined(CONFIG_ENABLE_WIFI)
 #include "CommInterface/CommInterfaceESP.h"
-#endif
 
 #define VERSION "1.0.0"
 #define BOARD_NAME "DCC++ Command Station"
