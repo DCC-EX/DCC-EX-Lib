@@ -32,6 +32,6 @@
 #endif
 
 #define VERSION "1.0.0"
-#define BOARD_NAME "DCC++ Command Station"
+#define BOARD_NAME "DCC++ CommandStation"
 
 #endif  // COMMANDSTATION_COMMANDSTATION_H_
