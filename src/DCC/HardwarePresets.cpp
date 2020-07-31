@@ -143,7 +143,7 @@ DCCService* DCCService::Create_WSM_FireBox_MK1_Prog() {
   return new DCCService(hdw);
 }
 
-#elif defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_AVR)
+#endif
 
 DCCMain* DCCMain::Create_Arduino_L298Shield_Main(uint8_t numDevices) {
   Hardware hdw;
@@ -248,6 +248,4 @@ DCCService* DCCService::Create_Pololu_MC33926Shield_Prog() {
 
   return new DCCService(hdw);
 }
-
-#endif
 
