@@ -28,12 +28,11 @@ DCCMain::DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom) {
   packetQueue.clear();
 
   // Allocate memory for the speed table and clear it
-  speedTable = (Speed *)calloc(numDevices+1, sizeof(Speed));
-  for (int i = 0; i < numDevices+1; i++)
+  speedTable = (Speed *)calloc(numDevices, sizeof(Speed));
+  for (int i = 0; i < numDevices; i++)
   {
     speedTable[i].cab = 0;
-    speedTable[i].forward = true;
-    speedTable[i].speed = 0;
+    speedTable[i].speedCode = 128;
   }
 }
 
@@ -66,8 +65,7 @@ void DCCMain::updateSpeed() {
   for (; nextDev < numDevices; nextDev++) {
     if (speedTable[nextDev].cab > 0) {
       setThrottleResponse response;
-      setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, 
-        speedTable[nextDev].forward, response);
+      setThrottle(speedTable[nextDev].cab, speedTable[nextDev].speedCode, response);
       nextDev++;
       return;
     }
@@ -75,23 +73,18 @@ void DCCMain::updateSpeed() {
   for (nextDev = 0; nextDev < numDevices; nextDev++) {
     if (speedTable[nextDev].cab > 0) {
       setThrottleResponse response;
-      setThrottle(nextDev, speedTable[nextDev].cab, speedTable[nextDev].speed, 
-        speedTable[nextDev].forward, response);
+      setThrottle(speedTable[nextDev].cab, speedTable[nextDev].speedCode, response);
       nextDev++;
       return;
     }
   }
 }
 
-uint8_t DCCMain::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
-  uint8_t direction, setThrottleResponse& response) {
+uint8_t DCCMain::setThrottle(uint16_t addr, uint8_t speedCode, setThrottleResponse& response) {
   
   uint8_t b[5];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
   uint16_t railcomAddr = 0;  // For detecting the railcom instruction type
-
-  if((slot < 1) || (slot > numDevices))
-    return ERR_OUT_OF_RANGE;
 
   if(addr > 127) {
     b[nB++] = highByte(addr) | 0xC0;    // convert address to packet format
@@ -101,25 +94,15 @@ uint8_t DCCMain::setThrottle(uint8_t slot, uint16_t addr, uint8_t speed,
   b[nB++]=lowByte(addr);
   railcomAddr |= lowByte(addr);
   b[nB++]=0x3F;   // 128-step speed control byte
-  if(speed>=0)
-    // max speed is 126, but speed codes range from 2-127 
-    // (0=stop, 1=emergency stop)
-    b[nB++]=speed+(speed>0)+direction*128;   
-  else{
-    b[nB++]=1;
-    speed=0;
-  }
+  b[nB++]=speedCode;
 
   incrementCounterID();
   schedulePacket(b, nB, 0, counterID, kThrottleType, railcomAddr);
 
-  speedTable[slot].speed = speed;
-  speedTable[slot].cab = addr;
-  speedTable[slot].forward = direction; 
+  updateSpeedTable(addr, speedCode);
 
   response.device = addr;
-  response.direction = direction;
-  response.speed = speed;
+  response.speed = speedCode;
   response.transactionID = counterID;
 
   return ERR_OK;
@@ -337,4 +320,47 @@ uint8_t DCCMain::readCVBytesMain(uint16_t addr, uint16_t cv,
 
   return ERR_OK;
 
+}
+
+void DCCMain::updateSpeedTable(uint8_t cab, uint8_t speedCode) {
+  if(cab == 0) {
+    // broadcast to all locomotives
+    for(int dev = 0; dev < numDevices; dev++) 
+      speedTable[dev].speedCode = speedCode;
+    return;
+  }
+
+  int reg = lookupSpeedTable(cab);
+  if(reg >= 0) speedTable[reg].speedCode = speedCode;
+}
+
+int DCCMain::lookupSpeedTable(uint8_t cab) {
+  int firstEmpty = numDevices;
+  int reg;
+  for(reg = 0; reg < numDevices; reg++) {
+    if(speedTable[reg].cab == cab) break;   // We found the loco, break
+
+    // We didn't find the loco, but this slot is empty so update firstEmpty
+    if(speedTable[reg].cab == 0 && firstEmpty == numDevices) firstEmpty = reg;  
+  }
+  
+  if(reg == numDevices) reg = firstEmpty;   // If we got all the way to the end of the search, it isn't in the system
+  if(reg >= numDevices) return -1;    // Not enough locos
+
+  if(reg==firstEmpty) {   // If this cab isn't already in the system, add it
+    speedTable[reg].cab = cab;
+    speedTable[reg].speedCode = 128;
+  }
+
+  return reg;
+}
+
+void DCCMain::forgetDevice(uint8_t cab) {  // removes any speed reminders for this loco  
+  int reg = lookupSpeedTable(cab);
+
+  if(reg >= 0) speedTable[reg].cab = 0;
+}
+
+void DCCMain::forgetAllDevices() {  // removes all speed reminders
+  for(int i = 0; i < numDevices; i++) speedTable[i].cab = 0;  
 }

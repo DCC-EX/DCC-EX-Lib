@@ -32,8 +32,7 @@ const uint8_t kPacketMaxSize = 6;
 
 enum : uint8_t {
   ERR_OK = 1,
-  ERR_OUT_OF_RANGE = 2,
-  ERR_BUSY = 3,
+  ERR_BUSY = 2,
 };
 
 class Waveform {
