@@ -25,9 +25,6 @@
 #include "Waveform.h"
 #include "Queue.h"
 
-// Threshold (mA) that a sample must cross to ACK
-const uint8_t kACKThreshold = 20; 
-
 enum cv_edit_type : uint8_t {
   READCV,
   WRITECV,
@@ -40,7 +37,7 @@ struct serviceModeResponse {
   uint16_t callbackSub;
   uint16_t cv;
   uint8_t cvBitNum;
-  int cvValue;  // Might be -1, so int works
+  int cvValue;  // Might be -1, so int works best
 };
 
 enum ackOpCodes {
@@ -120,6 +117,7 @@ private:
   uint8_t ackManagerBitNum = 0;
   uint16_t ackManagerCV = 0;
   bool ackReceived = false;
+  int ackMaxCurrent;
   const uint8_t kProgRepeats = 8;
   const uint8_t kResetRepeats = 8;
   ACK_CALLBACK ackManagerCallback = NULL;
@@ -127,6 +125,15 @@ private:
   uint16_t ackManagerCallbackSub = 0;
   cv_edit_type ackManagerType = READCV;
   Print* responseStream;
+  unsigned long ackCheckStart; // millis
+  unsigned int ackCheckDuration; // millis       
+  unsigned long ackPulseStart; // micros
+  unsigned int ackPulseDuration;  // micros
+
+  // Threshold (mA) that a sample must cross to ACK
+  const uint8_t kACKThreshold = 30; 
+  const unsigned int kMinACKPulseDuration = 3000;
+  const unsigned int kMaxACKPulseDuration = 9000;
 
   uint8_t cv1(uint8_t opcode, uint16_t cv)  {
     cv--;

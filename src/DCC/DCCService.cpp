@@ -46,8 +46,7 @@ void DCCService::schedulePacket(const uint8_t buffer[], uint8_t byteCount,
   transmitResetCount = 0;
 }
 
-const int  MIN_ACK_PULSE_DURATION = 3000;
-const int  MAX_ACK_PULSE_DURATION = 9000;
+
 
 
 
@@ -147,10 +146,11 @@ void DCCService::ackManagerSetup(uint16_t cv, uint8_t value,
 }
 
 void DCCService::setAckPending() {
-  //ackPulseStart = 0;
-  //ackPulseDuration = 0;
+  ackMaxCurrent = 0;
+  ackPulseStart = 0;
+  ackPulseDuration = 0;
   ackDetected = false;
-  //ackCheckStart = millis();
+  ackCheckStart = millis();
   ackPending = true;
 }
 
@@ -162,21 +162,34 @@ uint8_t DCCService::didAck() {
 
 void DCCService::checkAck() {
   if(transmitResetCount > 6) {
-    // ackCheckDuration = millis() - ackCheckStart;
+    ackCheckDuration = millis() - ackCheckStart;
     ackPending = false;
     return;
   }
 
   lastCurrent = hdw.getMilliamps();
+  if (lastCurrent > ackMaxCurrent) ackMaxCurrent=lastCurrent;
+
 
   // Detect the leading edge of a pulse
   if(lastCurrent-hdw.getBaseCurrent() > kACKThreshold) {
-    ackDetected = true;
-    ackPending = false;
-    transmitRepeats = 0;  // stop sending repeats
-
-    return; 
+    if (ackPulseStart==0) ackPulseStart=micros();    // leading edge of pulse detected
+    return;
   }
+
+  if (ackPulseStart==0) return; // keep waiting for leading edge 
+
+  ackPulseDuration=micros()-ackPulseStart;
+
+  if (ackPulseDuration>=kMinACKPulseDuration && ackPulseDuration<=kMaxACKPulseDuration) {
+    ackCheckDuration=millis()-ackCheckStart;
+    ackDetected=true;
+    ackPending=false;
+    transmitRepeats=0;  // shortcut remaining repeat packets 
+    return;  // we have a genuine ACK result
+  }      
+
+  ackPulseStart=0;  // We have detected a too-short or too-long pulse so ignore and wait for next leading edge 
 }
 
 void DCCService::ackManagerLoop() {
