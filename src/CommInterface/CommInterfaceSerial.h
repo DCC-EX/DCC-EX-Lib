@@ -31,7 +31,6 @@ public:
 	void process();
 	void showConfiguration();
 	void showInitInfo();
-	void send(const char *buf);
 	Print* getStream() { return &serialStream; }
 protected:
 	HardwareSerial &serialStream;
