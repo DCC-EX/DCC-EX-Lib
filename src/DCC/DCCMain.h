@@ -74,21 +74,21 @@ public:
   // Writes a CV to a decoder on the main track and calls a callback function
   // if there is any railcom response to the request.
   uint8_t writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
-    genericResponse& response, void (*POMCallback)(RailcomPOMResponse));
+    genericResponse& response, Print *stream, void (*POMCallback)(Print*, RailcomPOMResponse));
   // Writes a single bit to the decoder on the main track and calls a callback 
   // function if there is any railcom response to the request.
   uint8_t writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
-    uint8_t bValue, genericResponse& response, 
-    void (*POMCallback)(RailcomPOMResponse));
+    uint8_t bValue, genericResponse& response, Print *stream, 
+    void (*POMCallback)(Print*, RailcomPOMResponse));
   // Reads one byte from the decoder over railcom and calls a callback function 
   // with the value
   uint8_t readCVByteMain(uint16_t addr, uint16_t cv, 
-    genericResponse& response, void (*POMCallback)(RailcomPOMResponse));
+    genericResponse& response, Print *stream, void (*POMCallback)(Print*, RailcomPOMResponse));
   // Reads four bytes from the decoder over railcom. CV corresponds to the
   // first byte, the rest are CV+1, CV+2, and CV+3. Calls a callback function
   // with the four values.
   uint8_t readCVBytesMain(uint16_t addr, uint16_t cv, 
-    genericResponse& response, void (*POMCallback)(RailcomPOMResponse));
+    genericResponse& response, Print *stream, void (*POMCallback)(Print*, RailcomPOMResponse));
 
   uint8_t numDevices;
 

@@ -36,15 +36,15 @@ struct Sensor{
   boolean active;
   float signal;
   Sensor *nextSensor;
-  static void load();
+  static void load(Print* stream);
   static void store();
-  static Sensor *create(int, int, int, int=0);
+  static Sensor *create(Print* stream, int, int, int, int=0);
   static Sensor* get(int);  
-  static void remove(int);  
-  static void show();
-  static void status();
+  static void remove(Print* stream, int);  
+  static void show(Print* stream);
+  static void status(Print* stream);
   static void parse(const char *c);
-  static void check();   
+  static void check(Print* stream);   
 };
 
 #endif  // COMMANDSTATION_ACCESSORIES_SENSORS_H_

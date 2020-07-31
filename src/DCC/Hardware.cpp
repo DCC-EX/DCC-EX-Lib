@@ -51,12 +51,17 @@ void Hardware::setup() {
   tripped = false;
 }
 
-void Hardware::setPower(bool on) {
+void Hardware::setPower(bool on, bool report) {
   if(enable_default != DEFAULT_NOT_USED) {
     writePin(enable_pin, on ? !enable_default : enable_default);
   }
   if(sleep_default != DEFAULT_NOT_USED) {
     writePin(sleep_pin, on ? !sleep_default : sleep_default);
+  }
+
+  if(report) {
+    if(on) TrackPowerCallback(channel_name, true);
+    else TrackPowerCallback(channel_name, false);
   }
 }
 
@@ -103,17 +108,14 @@ void Hardware::checkCurrent() {
     current = getMilliamps(reading);
 
     if(current > trigger_value && (enable_default ? !digitalRead(enable_pin) : digitalRead(enable_pin))) {
-      // TODO(davidcutting42@gmail.com) add announce feature back in so JMRI 
-      // knows when the power goes out.
-      TrackPowerCallback(channel_name, false);
-      setPower(false);    
+      setPower(false, true);    
       tripped=true;
       lastTripTime=millis();
     } 
     else if(current < trigger_value && tripped) {
       if (millis() - lastTripTime > kRetryTime) {
         TrackPowerCallback(channel_name, true);
-        setPower(true);
+        setPower(true, true);
         tripped=false;
       }
     }

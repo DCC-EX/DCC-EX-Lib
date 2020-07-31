@@ -38,7 +38,7 @@ void USBInterface::process() {
 			inCommandPayload = true;
 			buffer = "";
 		} else if (ch == '>') {
-			DCCEXParser::parse(buffer.c_str());
+			DCCEXParser::parse(&serialStream, buffer.c_str());
 			buffer = "";
 			inCommandPayload = false;
 		} else if(inCommandPayload) {
@@ -48,15 +48,11 @@ void USBInterface::process() {
 }
 
 void USBInterface::showConfiguration() {
-	serialStream.println("USB");
+	CommManager::send(&serialStream, F("USB"));
 }
 
 void USBInterface::showInitInfo() {
-	CommManager::printf("<N0:SERIAL>");
-}
-
-void USBInterface::send(const char *buf) {
-	serialStream.print(buf);
+	CommManager::broadcast(F("<N0:SERIAL>"));
 }
 
 #endif

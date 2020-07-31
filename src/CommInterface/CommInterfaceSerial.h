@@ -32,7 +32,7 @@ public:
 	void showConfiguration();
 	void showInitInfo();
 	void send(const char *buf);
-	Stream* getStream() { return &serialStream; }
+	Print* getStream() { return &serialStream; }
 protected:
 	HardwareSerial &serialStream;
 	long baud;

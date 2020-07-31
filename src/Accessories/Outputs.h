@@ -34,14 +34,14 @@ struct Output {
   int num;
   struct OutputData data;
   Output *nextOutput;
-  void activate(int s);
-  static void parse(const char *c);
+  void activate(Print* stream, int s);
+  static void parse(Print* stream, const char *c);
   static Output* get(int);
-  static void remove(int);
-  static void load();
+  static void remove(Print* stream, int);
+  static void load(Print* stream);
   static void store();
-  static Output *create(int, int, int, int=0);
-  static void show(int=0);
+  static Output *create(Print* stream, int, int, int, int=0);
+  static void show(Print* stream, int=0);
 };
   
 #endif  // COMMANDSTATION_ACCESSORIES_OUTPUTS_H_

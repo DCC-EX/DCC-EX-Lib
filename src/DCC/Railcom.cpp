@@ -270,7 +270,7 @@ void Railcom::processData() {
         response.data = datagrams[1].payload;
         response.transactionID = uniqueID;
 
-        POMResponse(response);
+        POMResponse(responseStream, response);
         
         break;
         }

@@ -33,7 +33,7 @@
 ExternalEEPROM EEPROM;
 #endif
 
-void EEStore::init(){
+void EEStore::init(Print* stream){
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
   // Address for Microchip 24-series EEPROM with all three address pins grounded 
   // (0b1010000 = 0x50)
@@ -58,9 +58,9 @@ void EEStore::init(){
   }
 
   reset();            // set memory pointer to first free EEPROM space
-  Turnout::load();    // load turnout definitions
-  Sensor::load();     // load sensor definitions
-  Output::load();     // load output definitions
+  Turnout::load(stream);    // load turnout definitions
+  Sensor::load(stream);     // load sensor definitions
+  Output::load(stream);     // load output definitions
 }
 
 void EEStore::clear(){

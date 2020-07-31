@@ -204,7 +204,7 @@ uint8_t DCCMain::setAccessory(uint16_t addr, uint8_t number, bool activate,
 }
 
 uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
-  genericResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  genericResponse& response, Print* stream, void (*POMCallback)(Print*, RailcomPOMResponse)) {
   
   uint8_t b[6];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -225,7 +225,7 @@ uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue,
   b[nB++] = lowByte(cv);
   b[nB++] = bValue;
 
-  railcom.config_setPOMResponseCallback(POMCallback);
+  railcom.config_setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
@@ -237,8 +237,8 @@ uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue,
 }
 
 uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum, 
-  uint8_t bValue, genericResponse& response,
-  void (*POMCallback)(RailcomPOMResponse)) {
+  uint8_t bValue, genericResponse& response, Print *stream, 
+  void (*POMCallback)(Print*, RailcomPOMResponse)) {
   
   uint8_t b[6];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -262,7 +262,7 @@ uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum,
   b[nB++] = lowByte(cv);
   b[nB++] = 0xF0 + (bValue * 8) + bNum;
 
-  railcom.config_setPOMResponseCallback(POMCallback);
+  railcom.config_setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   schedulePacket(b, nB, 4, counterID, kPOMBitWriteType, railcomAddr);
@@ -273,7 +273,7 @@ uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum,
 }
 
 uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv, 
-  genericResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  genericResponse& response, Print *stream, void (*POMCallback)(Print*, RailcomPOMResponse)) {
 
   uint8_t b[6];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -294,7 +294,7 @@ uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv,
   b[nB++] = lowByte(cv);
   b[nB++] = 0;  // For some reason the railcom spec leaves an empty byte  
 
-  railcom.config_setPOMResponseCallback(POMCallback);
+  railcom.config_setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
@@ -307,7 +307,7 @@ uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv,
 }
 
 uint8_t DCCMain::readCVBytesMain(uint16_t addr, uint16_t cv, 
-  genericResponse& response, void (*POMCallback)(RailcomPOMResponse)) {
+  genericResponse& response, Print *stream, void (*POMCallback)(Print*, RailcomPOMResponse)) {
 
   uint8_t b[5];     // Packet payload. Save space for checksum byte
   uint8_t nB = 0;   // Counter for number of bytes in the packet
@@ -327,7 +327,7 @@ uint8_t DCCMain::readCVBytesMain(uint16_t addr, uint16_t cv,
   b[nB++] = 0xE0 + (highByte(cv) & 0x03);   
   b[nB++] = lowByte(cv);  
 
-  railcom.config_setPOMResponseCallback(POMCallback);
+  railcom.config_setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)

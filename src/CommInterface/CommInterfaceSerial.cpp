@@ -36,7 +36,7 @@ void SerialInterface::process() {
       inCommandPayload = true;
       buffer = "";
     } else if (ch == '>') {
-      DCCEXParser::parse(buffer.c_str());
+      DCCEXParser::parse(&serialStream, buffer.c_str());
       buffer = "";
       inCommandPayload = false;
     } else if(inCommandPayload) {
@@ -46,14 +46,9 @@ void SerialInterface::process() {
 }
 
 void SerialInterface::showConfiguration() {
-  serialStream.print("Hardware Serial - Speed:");
-  serialStream.println(baud);
+  CommManager::send(&serialStream, F("Hardware Serial - Speed: %d"), baud);
 }
 
 void SerialInterface::showInitInfo() {
-  CommManager::printf("<N0:SERIAL>");
-}
-
-void SerialInterface::send(const char *buf) {
-  serialStream.print(buf);
+  CommManager::broadcast(F("<N0:SERIAL>"));
 }

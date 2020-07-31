@@ -43,7 +43,7 @@ struct EEStore{
   static EEStore *eeStore;
   EEStoreData data;
   static int eeAddress;
-  static void init();
+  static void init(Print* stream);
   static void reset();
   static int pointer();
   static void advance(int);

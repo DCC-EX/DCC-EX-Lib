@@ -63,7 +63,7 @@ public:
   uint8_t getPreambles() { return preambleBits; }
   
   // Waveform control functions
-  void setPower(bool on);
+  void setPower(bool on, bool report = false);
   void setSignal(bool high);
   void setBrake(bool on);
 

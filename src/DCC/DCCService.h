@@ -61,7 +61,7 @@ enum ackOpCodes {
               // number (use for reading CV bytes)
 };
 
-typedef void (*ACK_CALLBACK)(serviceModeResponse result);
+typedef void (*ACK_CALLBACK)(Print* stream, serviceModeResponse result);
 
 class DCCService : public Waveform {
 public:
@@ -88,12 +88,12 @@ public:
   void interrupt2();
 
   uint8_t writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
-    uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse));
+    uint16_t callbackSub, Print* stream, ACK_CALLBACK);
   uint8_t writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
-    uint16_t callback, uint16_t callbackSub, 
-    void(*callbackFunc)(serviceModeResponse));
-  uint8_t readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
-    void(*callbackFunc)(serviceModeResponse));
+    uint16_t callback, uint16_t callbackSub, Print* stream, 
+    ACK_CALLBACK);
+  uint8_t readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, Print* stream, 
+    ACK_CALLBACK);
 
 private:
   struct Packet {
@@ -112,9 +112,9 @@ private:
   // ACK MANAGER
   void ackManagerSetup(uint16_t cv, uint8_t value, ackOpCodes const program[],
     cv_edit_type type, uint16_t callbackNum, uint16_t callbackSub, 
-    ACK_CALLBACK callback);
+    Print* stream, ACK_CALLBACK callback);
   void ackManagerLoop();
-  void callback(serviceModeResponse value);
+  void callback(Print* stream, serviceModeResponse value);
   ackOpCodes const * ackManagerProg = NULL;
   uint8_t ackManagerByte = 0;
   uint8_t ackManagerBitNum = 0;
@@ -126,6 +126,7 @@ private:
   uint16_t ackManagerCallbackNum = 0;
   uint16_t ackManagerCallbackSub = 0;
   cv_edit_type ackManagerType = READCV;
+  Print* responseStream;
 
   uint8_t cv1(uint8_t opcode, uint16_t cv)  {
     cv--;

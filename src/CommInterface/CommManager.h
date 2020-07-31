@@ -24,17 +24,33 @@
 #include "../DCC/DCCMain.h"
 #include "../DCC/DCCService.h"
 
+#if defined(ARDUINO_ARCH_SAMD)
+  // Some processors use a gcc compiler that renames va_list!!!
+  #include <cstdarg>
+  #define DIAGSERIAL SerialUSB
+#elif defined(ARDUINO_ARCH_SAMC)
+  #include <cstdarg>
+  #define DIAGSERIAL Serial
+#elif defined(ARDUINO_ARCH_AVR)
+  #define DIAGSERIAL Serial
+#endif
+
 class CommManager {
 public:
-	static void update();
-	static void registerInterface(CommInterface *interface);
-	static void showConfiguration();
-	static void showInitInfo();
-	static void printf(const char *fmt, ...);
-	static void printf(const __FlashStringHelper* fmt, ...);
+  static void update();
+  static void registerInterface(CommInterface *interface);
+  static void showConfiguration();
+  static void showInitInfo();
+  static void broadcast(const __FlashStringHelper* input, ...);
+  static void print(const __FlashStringHelper* input, ...);
+  static void send(Print* stream, const __FlashStringHelper* input, ...);
+  static void printEscapes(Print* stream, char * input);
+  static void printEscapes(Print* stream, const __FlashStringHelper* input);
+  static void printEscape(Print* stream, char c);
 private:
-	static CommInterface *interfaces[5];
-	static int nextInterface;
+  static void send2(Print* stream, const __FlashStringHelper* format, va_list args);
+  static CommInterface *interfaces[5];
+  static int nextInterface;
 };
 
 #endif	// COMMANDSTATION_COMMINTERFACE_COMMMANAGER_H_

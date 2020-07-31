@@ -125,8 +125,9 @@ public:
   HardwareSerial* getSerial() { return serial; }
   void config_setSerial(HardwareSerial* serial) { this->serial = serial; }
 #endif
-  void config_setPOMResponseCallback(void (*_POMResponse)(RailcomPOMResponse)) {
+  void config_setPOMResponseCallback(Print* _stream, void (*_POMResponse)(Print*, RailcomPOMResponse)) {
     POMResponse = _POMResponse;
+    responseStream = _stream;
   }
 
 private:
@@ -135,7 +136,8 @@ private:
   uint16_t address;
   PacketType type;
   bool dataReady = false;
-  void (*POMResponse)(RailcomPOMResponse);
+  void (*POMResponse)(Print*, RailcomPOMResponse);
+  Print* responseStream = nullptr;
 
   // Railcom hardware declarations
   uint8_t rx_pin;

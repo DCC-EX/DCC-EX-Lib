@@ -28,7 +28,7 @@ public:
   virtual void showConfiguration() = 0;
   virtual void showInitInfo() = 0;
   virtual void send(const char *buf) = 0;
-  virtual Stream* getStream() = 0;
+  virtual Print* getStream() = 0;
 };
 
 #endif	// COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_

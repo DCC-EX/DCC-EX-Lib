@@ -26,25 +26,24 @@
 #include <EEPROM.h>
 #endif
 
-void Sensor::check(){
+void Sensor::check(Print* stream){
   Sensor *tt;
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    tt->signal = tt->signal * (1.0 - SENSOR_DECAY) + digitalRead(tt->data.pin) 
-      * SENSOR_DECAY;
+    tt->signal = tt->signal * (1.0 - SENSOR_DECAY) + digitalRead(tt->data.pin) * SENSOR_DECAY;
 
     if(!tt->active && tt->signal<0.5){
-    tt->active=true;
-    CommManager::printf("<Q %d>", tt->data.snum);
+      tt->active=true;
+      CommManager::send(stream, F("<Q %d>"), tt->data.snum);
     } else if(tt->active && tt->signal>0.9){
-    tt->active=false;
-    CommManager::printf("<q %d>", tt->data.snum);
+      tt->active=false;
+      CommManager::send(stream, F("<q %d>"), tt->data.snum);
     }
   } // loop over all sensors
 
 }
 
-Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
+Sensor *Sensor::create(Print* stream, int snum, int pin, int pullUp, int v){
   Sensor *tt;
 
   if(firstSensor==NULL){
@@ -60,7 +59,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
 
   if(tt==NULL){       // problem allocating memory
     if(v==1)
-    CommManager::printf("<X>");
+    CommManager::send(stream, F("<X>"));
     return(tt);
   }
 
@@ -75,7 +74,7 @@ Sensor *Sensor::create(int snum, int pin, int pullUp, int v){
   digitalWrite(pin,pullUp);   
 
   if(v==1)
-    CommManager::printf("<O>");
+    CommManager::send(stream, F("<O>"));
   return(tt);
 
 }
@@ -86,7 +85,7 @@ Sensor* Sensor::get(int n){
   return(tt);
 }
 
-void Sensor::remove(int n){
+void Sensor::remove(Print* stream, int n){
   Sensor *tt,*pp;
   tt=firstSensor;
   pp=tt;
@@ -94,7 +93,7 @@ void Sensor::remove(int n){
   for( ;tt!=NULL && tt->data.snum!=n;pp=tt,tt=tt->nextSensor);
 
   if(tt==NULL){
-    CommManager::printf("<X>");
+    CommManager::send(stream, F("<X>"));
     return;
   }
 
@@ -105,42 +104,42 @@ void Sensor::remove(int n){
 
   free(tt);
 
-  CommManager::printf("<O>");
+  CommManager::send(stream, F("<O>"));
 }
 
-void Sensor::show(){
+void Sensor::show(Print* stream){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    CommManager::printf("<X>");
+    CommManager::send(stream, F("<X>"));
     return;
   }
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    CommManager::printf("<Q %d %d %d>", tt->data.snum, tt->data.pin, tt->data.pullUp);
+    CommManager::send(stream, F("<Q %d %d %d>"), tt->data.snum, tt->data.pin, tt->data.pullUp);
   }
 }
 
-void Sensor::status(){
+void Sensor::status(Print* stream){
   Sensor *tt;
 
   if(firstSensor==NULL){
-    CommManager::printf("<X>");
+    CommManager::send(stream, F("<X>"));
     return;
   }
 
   for(tt=firstSensor;tt!=NULL;tt=tt->nextSensor){
-    CommManager::printf("<%c %d>", tt->active?'Q':'q', tt->data.snum);
+    CommManager::send(stream, F("<%c %d>"), tt->active?'Q':'q', tt->data.snum);
   }
 }
 
-void Sensor::load(){
+void Sensor::load(Print* stream){
   struct SensorData data;
   Sensor *tt;
 
   for(int i=0;i<EEStore::eeStore->data.nSensors;i++){
     EEPROM.get(EEStore::pointer(),data);
-    tt=create(data.snum,data.pin,data.pullUp);
+    tt=create(stream, data.snum, data.pin, data.pullUp);
     EEStore::advance(sizeof(tt->data));
   }
 }

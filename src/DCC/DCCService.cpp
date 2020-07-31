@@ -105,36 +105,35 @@ const ackOpCodes PROGMEM READ_CV_PROG[] = {
 };          
 
 uint8_t DCCService::writeCVByte(uint16_t cv, uint8_t bValue, uint16_t callback, 
-  uint16_t callbackSub, void(*callbackFunc)(serviceModeResponse)) {
+  uint16_t callbackSub, Print* stream, ACK_CALLBACK callbackFunc) {
   
-  ackManagerSetup(cv, bValue, WRITE_BYTE_PROG, WRITECV, callback, callbackSub, callbackFunc);
+  ackManagerSetup(cv, bValue, WRITE_BYTE_PROG, WRITECV, callback, callbackSub, stream, callbackFunc);
 
   return ERR_OK;
 }
 
 
 uint8_t DCCService::writeCVBit(uint16_t cv, uint8_t bNum, uint8_t bValue, 
-  uint16_t callback, uint16_t callbackSub, 
-  void(*callbackFunc)(serviceModeResponse)) {
+  uint16_t callback, uint16_t callbackSub, Print* stream, ACK_CALLBACK callbackFunc) {
 
   ackManagerSetup(cv, bNum, (bValue==0 ? WRITE_BIT0_PROG : WRITE_BIT1_PROG), 
-    WRITECVBIT, callback, callbackSub, callbackFunc);
+    WRITECVBIT, callback, callbackSub, stream, callbackFunc);
 
   return ERR_OK;
 }
 
 
 uint8_t DCCService::readCV(uint16_t cv, uint16_t callback, uint16_t callbackSub, 
-  void(*callbackFunc)(serviceModeResponse)) {
+  Print* stream, ACK_CALLBACK callbackFunc) {
   
-  ackManagerSetup(cv, 0, READ_CV_PROG, READCV, callback, callbackSub, callbackFunc);
+  ackManagerSetup(cv, 0, READ_CV_PROG, READCV, callback, callbackSub, stream, callbackFunc);
 
   return ERR_OK;
 }
 
 void DCCService::ackManagerSetup(uint16_t cv, uint8_t value, 
   ackOpCodes const program[], cv_edit_type type, uint16_t callbackNum, 
-  uint16_t callbackSub, ACK_CALLBACK callback) {
+  uint16_t callbackSub, Print* stream, ACK_CALLBACK callback) {
   
   ackManagerCV = cv;
   ackManagerProg = program;
@@ -144,6 +143,7 @@ void DCCService::ackManagerSetup(uint16_t cv, uint8_t value,
   ackManagerCallbackNum = callbackNum;
   ackManagerCallbackSub = callbackSub;
   ackManagerType = type;
+  responseStream = stream;
 }
 
 void DCCService::setAckPending() {
@@ -258,7 +258,7 @@ void DCCService::ackManagerLoop() {
           response.callback = ackManagerCallbackNum;
           response.callbackSub = ackManagerCallbackSub; 
           response.type = ackManagerType;
-          callback(response);
+          callback(responseStream, response);
           return;
         }
       }
@@ -275,7 +275,7 @@ void DCCService::ackManagerLoop() {
           response.callback = ackManagerCallbackNum;
           response.callbackSub = ackManagerCallbackSub; 
           response.type = ackManagerType;
-          callback(response);
+          callback(responseStream, response);
           return;
         }
       }
@@ -291,7 +291,7 @@ void DCCService::ackManagerLoop() {
           response.callback = ackManagerCallbackNum;
           response.callbackSub = ackManagerCallbackSub; 
           response.type = ackManagerType;
-          callback(response);
+          callback(responseStream, response);
           return;
         }
       }
@@ -306,7 +306,7 @@ void DCCService::ackManagerLoop() {
         response.callback = ackManagerCallbackNum;
         response.callbackSub = ackManagerCallbackSub; 
         response.type = ackManagerType;
-        callback(response);
+        callback(responseStream, response);
       }
       return;
           
@@ -330,13 +330,13 @@ void DCCService::ackManagerLoop() {
         response.callback = ackManagerCallbackNum;
         response.callbackSub = ackManagerCallbackSub; 
         response.type = ackManagerType;
-        callback(response);
+        callback(responseStream, response);
       }
       return;        
     }  // end of switch
     ackManagerProg++;
   }
 }
-void DCCService::callback(serviceModeResponse response) {
-  (ackManagerCallback)(response);
+void DCCService::callback(Print* stream, serviceModeResponse response) {
+  (ackManagerCallback)(stream, response);
 }
