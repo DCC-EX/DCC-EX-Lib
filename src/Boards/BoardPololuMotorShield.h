@@ -85,7 +85,7 @@ public:
 
   bool getStatus();
 
-  bool checkOverload();
+  void checkOverload();
 
   uint8_t getPreambles();
   

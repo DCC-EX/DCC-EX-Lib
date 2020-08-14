@@ -83,7 +83,7 @@ void Railcom::enableRecieve(uint8_t on) {
   #if defined(ARDUINO_ARCH_SAMD)
     pinPeripheral(config.rx_pin, config.rx_mux);
   #else
-    config.serial->begin(baud);
+    config.serial->begin(config.baud);
   #endif    
   }
   else {

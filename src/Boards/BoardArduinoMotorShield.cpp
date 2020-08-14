@@ -63,7 +63,7 @@ bool BoardArduinoMotorShield::getStatus() {
   return digitalRead(config.enable_pin);
 }
 
-bool BoardArduinoMotorShield::checkOverload() {
+void BoardArduinoMotorShield::checkOverload() {
   if(millis() - progOverloadTimer > config.prog_trip_time) config.prog_trip_time = 0; // Protect against wrapping 
 
   if(millis() - lastCheckTime > kCurrentSampleTime) {
@@ -99,6 +99,7 @@ bool BoardArduinoMotorShield::isCurrentLimiting() {
 
 uint16_t BoardArduinoMotorShield::setCurrentBase() {
   currentBase = getCurrentMilliamps();
+  return currentBase;
 }
 
 uint16_t BoardArduinoMotorShield::getCurrentBase() {

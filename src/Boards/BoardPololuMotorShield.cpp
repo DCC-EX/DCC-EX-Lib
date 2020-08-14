@@ -63,7 +63,7 @@ bool BoardPololuMotorShield::getStatus() {
   return digitalRead(config.enable_pin);
 }
 
-bool BoardPololuMotorShield::checkOverload() {
+void BoardPololuMotorShield::checkOverload() {
   if(millis() - progOverloadTimer > config.prog_trip_time) config.prog_trip_time = 0; // Protect against wrapping 
 
   if(millis() - lastCheckTime > kCurrentSampleTime) {
@@ -99,6 +99,7 @@ bool BoardPololuMotorShield::isCurrentLimiting() {
 
 uint16_t BoardPololuMotorShield::setCurrentBase() {
   currentBase = getCurrentMilliamps();
+  return currentBase;
 }
 
 uint16_t BoardPololuMotorShield::getCurrentBase() {

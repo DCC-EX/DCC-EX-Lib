@@ -101,17 +101,16 @@ struct RailComConfig {
   bool enable;
   long int baud;
 
-  uint8_t rx_pin = 0;
-  uint8_t tx_pin = 0;     
+  uint8_t rx_pin;
+  uint8_t tx_pin;     
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
-  Uart* serial = nullptr;
-  SERCOM* sercom = nullptr;
-  EPioType rx_mux = PIO_SERCOM;
-  SercomRXPad rx_pad = SERCOM_RX_PAD_0;
-  SercomUartTXPad tx_pad = UART_TX_PAD_0;
-  uint8_t dac_value = 0;
+  Uart* serial;
+  SERCOM* sercom;
+  EPioType rx_mux;
+  SercomRXPad rx_pad;
+  SercomUartTXPad tx_pad;
 #else
-  HardwareSerial* serial = Serial1;
+  HardwareSerial* serial;
 #endif
 };
 

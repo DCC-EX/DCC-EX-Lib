@@ -84,7 +84,7 @@ public:
 
   virtual bool getStatus() = 0;
 
-  virtual bool checkOverload() = 0;
+  virtual void checkOverload() = 0;
 
   virtual uint8_t getPreambles() = 0;
 protected:
