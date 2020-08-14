@@ -25,7 +25,7 @@
 #include "../Accessories/Outputs.h"
 #include "../Accessories/Sensors.h"
 #include "../Accessories/Turnouts.h"
-#include "../CommandStation.h"
+#include "../DCC-EX-Lib.h"
 #include "CommManager.h"
 
 DCCMain* DCCEXParser::mainTrack;
