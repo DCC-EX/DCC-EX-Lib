@@ -65,18 +65,10 @@ typedef void (*ACK_CALLBACK)(Print* stream, serviceModeResponse result);
 
 class DCCService : public Waveform {
 public:
-  DCCService(Hardware hardware);
-
-  static DCCService* Create_Arduino_L298Shield_Prog();
-  static DCCService* Create_Pololu_MC33926Shield_Prog();
-  #if defined(ARDUINO_ARCH_SAMD)
-  static DCCService* Create_WSM_FireBox_MK1_Prog();
-  #elif defined(ARDUINO_ARCH_SAMC)
-  static DCCService* Create_WSM_FireBox_MK1S_Prog();
-  #endif
+  DCCService(Board* board);
 
   void setup() {
-    hdw.setup();
+    // board.setup must be called from the main file
   }
 
   void loop() {

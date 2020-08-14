@@ -292,16 +292,16 @@ void DCCEXParser::parse(Print* stream, const char *com) {
 /***** TURN ON POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
   case '1':      // <1>
-    mainTrack->hdw.setPower(true);
-    progTrack->hdw.setPower(true);
+    mainTrack->board->power(true, false);
+    progTrack->board->power(true, false);
     CommManager::broadcast(F("<p1>"));
     break;
 
 /***** TURN OFF POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
   case '0':     // <0>
-    mainTrack->hdw.setPower(false);
-    progTrack->hdw.setPower(false);
+    mainTrack->board->power(false, false);
+    progTrack->board->power(false, false);
     CommManager::broadcast(F("<p0>"));
     break;
 
@@ -311,15 +311,15 @@ void DCCEXParser::parse(Print* stream, const char *com) {
     // TODO(davidcutting42@gmail.com): When JMRI moves to milliamp reporting, 
     // fix this.
     int currRead;
-    currRead = mainTrack->hdw.getLastRead();
+    currRead = mainTrack->board->getCurrentRaw();
     CommManager::send(stream, F("<a %d>"), currRead);
     break;
 
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
   case 's':      // <s>
-    CommManager::send(stream, F("<p%d MAIN>"), mainTrack->hdw.getStatus());
-    CommManager::send(stream, F("<p%d PROG>"), progTrack->hdw.getStatus());
+    trackPowerCallback(mainTrack->board->getName(), mainTrack->board->getStatus());
+    trackPowerCallback(progTrack->board->getName(), progTrack->board->getStatus());
     //  TODO(davidcutting42@gmail.com): Add throttle status notifications back
     CommManager::send(stream, 
         F("<iDCC++ EX CommandStation / %s: V-%s / %s %s>"), 

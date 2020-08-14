@@ -22,20 +22,20 @@
 bool DCCMain::interrupt1() {
   switch (interruptState) {
   case 0:   // start of bit transmission
-    hdw.setSignal(HIGH);    
+    board->signal(HIGH);    
     interruptState = 1; 
     return true; // must call interrupt2 to set currentBit
   case 1:   // 29us after case 0
     if(generateRailcomCutout) {
-      hdw.setBrake(true);             // Start the cutout
+      board->cutout(true);             // Start the cutout
       inRailcomCutout = true;         
-      railcom.enableRecieve(true);  // Turn on the serial port so we can RX
+      railcom->enableRecieve(true);  // Turn on the serial port so we can RX
     }
     interruptState = 2;
     break;
   case 2:   // 58us after case 0
     if(currentBit && !generateRailcomCutout) {
-      hdw.setSignal(LOW);  
+      board->signal(LOW);  
     }
     interruptState = 3;
     break; 
@@ -48,7 +48,7 @@ bool DCCMain::interrupt1() {
     break;
   case 4:   // 116us after case 0
     if(!generateRailcomCutout) {
-      hdw.setSignal(LOW);
+      board->signal(LOW);
     }
     interruptState = 5;
     break;
@@ -62,11 +62,11 @@ bool DCCMain::interrupt1() {
     break;
   // Cases 8-15 are for railcom timing
   case 16:
-    hdw.setBrake(false);      // Stop the cutout
-    hdw.setSignal(LOW);     // Send out 29us of signal before case 0 flips it
-    railcom.enableRecieve(false); // Turn off serial so we don't get garbage
+    board->cutout(false);      // Stop the cutout
+    board->signal(LOW);     // Send out 29us of signal before case 0 flips it
+    railcom->enableRecieve(false); // Turn off serial so we don't get garbage
     // Read the data out and tag it with identifying info
-    railcom.readData(transmitID, transmitType, transmitAddress); 
+    railcom->readData(transmitID, transmitType, transmitAddress); 
     generateRailcomCutout = false;    // Don't generate another railcom cutout
     inRailcomCutout = false;        // We aren't in a railcom pulse
     interruptState = 0;         // Go back to start of new bit
@@ -85,7 +85,7 @@ void DCCMain::interrupt2() {
 
     // If we're on the first preamble bit and railcom is enabled, send out a 
     // railcom cutout. 
-    if((hdw.getPreambles() - remainingPreambles == 0) && railcom.enable) {
+    if((board->getPreambles() - remainingPreambles == 0) && railcom->config.enable) {
       generateRailcomCutout = true; 
       remainingPreambles -= 4;    // We're skipping 4 bits in the cutout
       return;
@@ -107,7 +107,7 @@ void DCCMain::interrupt2() {
     if (bytes_sent >= transmitLength) { 
       // end of transmission buffer... repeat or switch to next message
       bytes_sent = 0;
-      remainingPreambles = hdw.getPreambles() + 1;  // Add one for the stop bit
+      remainingPreambles = board->getPreambles() + 1;  // Add one for the stop bit
 
       int pendingCount = packetQueue.count();
 

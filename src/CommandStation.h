@@ -22,14 +22,18 @@
 
 #include "Accessories/EEStore.h"
 #include "CommInterface/CommManager.h"
-#include "CommInterface/CommInterfaceSerial.h"
 #include "CommInterface/DCCEXParser.h"
 #include "DCC/DCCMain.h"
 #include "DCC/DCCService.h"
 
+#include "CommInterface/CommInterfaceSerial.h"
 #if defined (ARDUINO_ARCH_SAMD)
   #include "CommInterface/CommInterfaceUSB.h"
 #endif
+
+// Motor board includes
+#include "Boards/BoardArduinoMotorShield.h"
+#include "Boards/BoardPololuMotorShield.h"
 
 #define VERSION "1.0.0"
 #define BOARD_NAME "DCC++ CommandStation"

@@ -39,25 +39,17 @@ struct genericResponse {
 
 class DCCMain : public Waveform {
 public:
-  DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom);
-
-  static DCCMain* Create_Arduino_L298Shield_Main(uint8_t numDevices);
-  static DCCMain* Create_Pololu_MC33926Shield_Main(uint8_t numDevices);
-  #if defined(ARDUINO_ARCH_SAMD)
-  static DCCMain* Create_WSM_FireBox_MK1_Main(uint8_t numDevices);
-  #elif defined(ARDUINO_ARCH_SAMC)
-  static DCCMain* Create_WSM_FireBox_MK1S_Main(uint8_t numDevices);
-  #endif
+  DCCMain(uint8_t numDevices, Board* board, Railcom* railcom);
 
   void setup() {
-    hdw.setup();
-    railcom.setup();
+    // board.setup must be called from the main file
+    railcom->setup();
   }
 
   void loop() {
     Waveform::loop();
     updateSpeed();
-    railcom.processData();
+    railcom->processData();
   }
 
   bool interrupt1();
@@ -99,7 +91,7 @@ public:
   Speed* speedTable;
 
   // Railcom object, complements hdw object inherited from Waveform
-  Railcom railcom;
+  Railcom* railcom;
 
   void forgetDevice(uint8_t cab);
   void forgetAllDevices();

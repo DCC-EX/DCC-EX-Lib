@@ -19,8 +19,8 @@
 
 #include "DCCMain.h"
 
-DCCMain::DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom) {
-  this->hdw = hardware;
+DCCMain::DCCMain(uint8_t numDevices, Board* board, Railcom* railcom) {
+  this->board = board;
   this->railcom = railcom;
   this->numDevices = numDevices;
   
@@ -208,7 +208,7 @@ uint8_t DCCMain::writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue,
   b[nB++] = lowByte(cv);
   b[nB++] = bValue;
 
-  railcom.config_setPOMResponseCallback(stream, POMCallback);
+  railcom->setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
@@ -245,7 +245,7 @@ uint8_t DCCMain::writeCVBitMain(uint16_t addr, uint16_t cv, uint8_t bNum,
   b[nB++] = lowByte(cv);
   b[nB++] = 0xF0 + (bValue * 8) + bNum;
 
-  railcom.config_setPOMResponseCallback(stream, POMCallback);
+  railcom->setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   schedulePacket(b, nB, 4, counterID, kPOMBitWriteType, railcomAddr);
@@ -277,7 +277,7 @@ uint8_t DCCMain::readCVByteMain(uint16_t addr, uint16_t cv,
   b[nB++] = lowByte(cv);
   b[nB++] = 0;  // For some reason the railcom spec leaves an empty byte  
 
-  railcom.config_setPOMResponseCallback(stream, POMCallback);
+  railcom->setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
@@ -310,7 +310,7 @@ uint8_t DCCMain::readCVBytesMain(uint16_t addr, uint16_t cv,
   b[nB++] = 0xE0 + (highByte(cv) & 0x03);   
   b[nB++] = lowByte(cv);  
 
-  railcom.config_setPOMResponseCallback(stream, POMCallback);
+  railcom->setPOMResponseCallback(stream, POMCallback);
 
   incrementCounterID();
   // Repeat the packet four times (one plus 3 repeats)
