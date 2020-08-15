@@ -19,7 +19,7 @@
 
 #include "Hardware.h"
 
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC) || defined(ARDUINO_ARCH_MEGAAVR)
 #define writePin digitalWrite
 #elif defined(ARDUINO_ARCH_AVR)
 // Library DIO2.h is only compatible with AVR, and SAM digitalWrite is a lot 
