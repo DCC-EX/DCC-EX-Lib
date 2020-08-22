@@ -22,13 +22,13 @@
 bool DCCService::interrupt1() {
   switch (interruptState) {
   case 0:   // start of bit transmission
-    hdw.setSignal(HIGH);    
+    board->signal(HIGH);    
     interruptState = 1; 
     return true; // must call interrupt2 to set currentBit
   // Case 1 falls to default case
   case 2:   // 58us after case 0
     if(currentBit) {
-      hdw.setSignal(LOW);  
+      board->signal(LOW);  
     }
     interruptState = 3;
     break; 
@@ -40,7 +40,7 @@ bool DCCService::interrupt1() {
     else interruptState = 4;
     break;
   case 4:   // 116us after case 0
-    hdw.setSignal(LOW);
+    board->signal(LOW);
     interruptState = 5;
     break;
   // Case 5 and 6 fall to default case
@@ -75,7 +75,7 @@ void DCCService::interrupt2() {
     if (bytes_sent >= transmitLength) { 
       // end of transmission buffer... repeat or switch to next message
       bytes_sent = 0;
-      remainingPreambles = hdw.getPreambles() + 1;  // Add one for the stop bit
+      remainingPreambles = board->getPreambles() + 1;  // Add one for the stop bit
 
       int pendingCount = packetQueue.count();
 

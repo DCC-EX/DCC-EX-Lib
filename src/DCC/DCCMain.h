@@ -39,38 +39,26 @@ struct genericResponse {
 
 class DCCMain : public Waveform {
 public:
-  DCCMain(uint8_t numDevices, Hardware hardware, Railcom railcom);
-
-  static DCCMain* Create_Arduino_L298Shield_Main(uint8_t numDevices);
-  static DCCMain* Create_Pololu_MC33926Shield_Main(uint8_t numDevices);
-  #if defined(ARDUINO_ARCH_SAMD)
-  static DCCMain* Create_WSM_FireBox_MK1_Main(uint8_t numDevices);
-  #elif defined(ARDUINO_ARCH_SAMC)
-  static DCCMain* Create_WSM_FireBox_MK1S_Main(uint8_t numDevices);
-  #endif
+  DCCMain(uint8_t numDevices, Board* board, Railcom* railcom);
 
   void setup() {
-    hdw.setup();
-    railcom.setup();
+    // board.setup must be called from the main file
+    railcom->setup();
   }
 
   void loop() {
     Waveform::loop();
     updateSpeed();
-    railcom.processData();
+    railcom->processData();
   }
 
   bool interrupt1();
   void interrupt2();
 
-  uint8_t setThrottle(uint8_t slot, uint16_t addr, uint8_t speed, 
-    uint8_t direction, setThrottleResponse& response);
-  uint8_t setFunction(uint16_t addr, uint8_t byte1, 
-    genericResponse& response);
-  uint8_t setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, 
-    genericResponse& response);
-  uint8_t setAccessory(uint16_t addr, uint8_t number, bool activate, 
-    genericResponse& response);
+  uint8_t setThrottle(uint16_t addr, uint8_t speedCode, setThrottleResponse& response);
+  uint8_t setFunction(uint16_t addr, uint8_t byte1, genericResponse& response);
+  uint8_t setFunction(uint16_t addr, uint8_t byte1, uint8_t byte2, genericResponse& response);
+  uint8_t setAccessory(uint16_t addr, uint8_t number, bool activate, genericResponse& response);
   // Writes a CV to a decoder on the main track and calls a callback function
   // if there is any railcom response to the request.
   uint8_t writeCVByteMain(uint16_t addr, uint16_t cv, uint8_t bValue, 
@@ -96,20 +84,19 @@ public:
   // TODO(davidcutting42@gmail.com): Make this private
   struct Speed {
     uint16_t cab;
-    // TODO(davidcutting42@gmail.com): Merge these 2 variables into 1 uint8_t
-    uint8_t speed;
-    uint8_t forward;
+    uint8_t speedCode;
   };
   // Speed table holds speed of all devices on the bus that have been set since
   // startup. 
   Speed* speedTable;
 
   // Railcom object, complements hdw object inherited from Waveform
-  Railcom railcom;
+  Railcom* railcom;
+
+  void forgetDevice(uint8_t cab);
+  void forgetAllDevices();
 
 private:
-  
-
   // Queues a packet for the next device in line reminding it of its speed.
   void updateSpeed();
   // Holds state for updateSpeed function.
@@ -133,13 +120,14 @@ private:
   void schedulePacket(const uint8_t buffer[], uint8_t byteCount, 
     uint8_t repeats, uint16_t identifier, PacketType type, uint16_t address);
 
-  
-
   // Railcom cutout variables
   // TODO(davidcutting42@gmail.com): Move these to the railcom class
   bool generateRailcomCutout = false; // Should we do a railcom cutout?
   bool inRailcomCutout = false;    // Are we in a cutout?
   bool railcomData = false;    // Is there railcom data available? 
+
+  void updateSpeedTable(uint8_t cab, uint8_t speedCode);
+  int lookupSpeedTable(uint8_t cab);
 };
 
 #endif

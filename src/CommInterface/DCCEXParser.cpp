@@ -86,15 +86,22 @@ void DCCEXParser::parse(Print* stream, const char *com) {
   
 /***** SET ENGINE THROTTLES USING 128-STEP SPEED CONTROL ****/
 
-  case 't':       // <t REGISTER CAB SPEED DIRECTION>
+  case 't': {      // <t REGISTER CAB SPEED DIRECTION>
     setThrottleResponse throttleResponse;
 
-    mainTrack->setThrottle(p[0], p[1], p[2], p[3], throttleResponse);
+    int speed=p[2];
+    if (speed>126 || speed<-1) break; // invalid JMRI speed code
+    if (speed<0) speed=1; // emergency stop DCC speed
+    else if (speed>0) speed++; // map 1-126 -> 2-127
 
-    CommManager::send(stream, F("<T %d %d %d>"), throttleResponse.device, 
-      throttleResponse.speed, throttleResponse.direction);
+    uint8_t speedCode = (speed & 0x7F) + p[3] * 128;
+
+    if(mainTrack->setThrottle(p[1], speedCode, throttleResponse) == ERR_OK)
+      // TODO(davidcutting42@gmail.com): move back to throttleResponse struct items instead of p[]
+      CommManager::send(stream, F("<T %d %d %d>"), throttleResponse.device, p[2], p[3]);
     
     break;
+  }
   
 /***** OPERATE ENGINE DECODER FUNCTIONS F0-F28 ****/
 
@@ -285,16 +292,16 @@ void DCCEXParser::parse(Print* stream, const char *com) {
 /***** TURN ON POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
   case '1':      // <1>
-    mainTrack->hdw.setPower(true);
-    progTrack->hdw.setPower(true);
+    mainTrack->board->power(true, false);
+    progTrack->board->power(true, false);
     CommManager::broadcast(F("<p1>"));
     break;
 
 /***** TURN OFF POWER FROM MOTOR SHIELD TO TRACKS  ****/
 
   case '0':     // <0>
-    mainTrack->hdw.setPower(false);
-    progTrack->hdw.setPower(false);
+    mainTrack->board->power(false, false);
+    progTrack->board->power(false, false);
     CommManager::broadcast(F("<p0>"));
     break;
 
@@ -304,23 +311,18 @@ void DCCEXParser::parse(Print* stream, const char *com) {
     // TODO(davidcutting42@gmail.com): When JMRI moves to milliamp reporting, 
     // fix this.
     int currRead;
-    currRead = mainTrack->hdw.getLastRead();
+    currRead = mainTrack->board->getCurrentRaw();
     CommManager::send(stream, F("<a %d>"), currRead);
     break;
 
 /***** READ STATUS OF DCC++ BASE STATION  ****/
 
   case 's':      // <s>
-    CommManager::send(stream, F("<p%d MAIN>"), mainTrack->hdw.getStatus());
-    CommManager::send(stream, F("<p%d PROG>"), progTrack->hdw.getStatus());
-    for(int i=1;i<=mainTrack->numDevices;i++){
-      if(mainTrack->speedTable[i].speed==0)
-      continue;
-      CommManager::send(stream, F("<T%d %d %d>"), i, mainTrack->speedTable[i].speed, 
-        mainTrack->speedTable[i].forward);
-    }
+    trackPowerCallback(mainTrack->board->getName(), mainTrack->board->getStatus());
+    trackPowerCallback(progTrack->board->getName(), progTrack->board->getStatus());
+    //  TODO(davidcutting42@gmail.com): Add throttle status notifications back
     CommManager::send(stream, 
-        F("<iDCC++ BASE STATION FOR ARDUINO %s / %s: V-%s / %s %s>"), 
+        F("<iDCC++ EX CommandStation / %s: V-%s / %s %s>"), 
         "CommandStation", BOARD_NAME, VERSION, __DATE__, __TIME__);
     CommManager::showInitInfo();
     Turnout::show(stream);

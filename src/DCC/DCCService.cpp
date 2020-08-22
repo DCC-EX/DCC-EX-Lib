@@ -19,8 +19,8 @@
 
 #include "DCCService.h"
 
-DCCService::DCCService(Hardware settings) {
-  this->hdw = settings; 
+DCCService::DCCService(Board* settings) {
+  this->board = settings; 
 }
 
 void DCCService::schedulePacket(const uint8_t buffer[], uint8_t byteCount, 
@@ -167,10 +167,10 @@ void DCCService::checkAck() {
     return;
   }
 
-  lastCurrent = hdw.getMilliamps();
+  lastCurrent = board->getCurrentMilliamps();
 
   // Detect the leading edge of a pulse
-  if(lastCurrent-hdw.getBaseCurrent() > kACKThreshold) {
+  if(lastCurrent-board->getCurrentBase() > kACKThreshold) {
     ackDetected = true;
     ackPending = false;
     transmitRepeats = 0;  // stop sending repeats
@@ -193,7 +193,7 @@ void DCCService::ackManagerLoop() {
     switch (opcode) {
     case BASELINE:
       if (resets<kResetRepeats) return; // try later 
-      hdw.setBaseCurrent();
+      board->setCurrentBase();
       break;   
     case W0:    // write 0 bit 
     case W1:    // write 1 bit 

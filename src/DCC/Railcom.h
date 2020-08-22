@@ -97,35 +97,48 @@ struct RailcomPOMResponse {
   uint16_t transactionID;
 };
 
+struct RailComConfig {
+  bool enable;
+  long int baud;
+
+  uint8_t rx_pin;
+  uint8_t tx_pin;     
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
+  Uart* serial;
+  SERCOM* sercom;
+  EPioType rx_mux;
+  SercomRXPad rx_pad;
+  SercomUartTXPad tx_pad;
+#else
+  HardwareSerial* serial;
+#endif
+};
+
 class Railcom
 {
 public:
-  uint8_t enable;
+  RailComConfig config;
 
-  Railcom() {}
+  static void getDefaultConfig(RailComConfig& _config) {
+    _config.enable = false;
+    _config.baud = 250000;
+  }
+
+  Railcom(RailComConfig _config) {
+    config = _config;
+  }
   void setup();
 
   void enableRecieve(uint8_t on);
   void readData(uint16_t dataID, PacketType _packetType, uint16_t _address);
   void processData();
 
-  // Railcom config modification
-  void config_setEnable(uint8_t isRailcom) { enable = isRailcom; }
-  void config_setRxPin(uint8_t pin) { rx_pin = pin; }
-  void config_setTxPin(uint8_t pin) { tx_pin = pin; }
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
-  Uart* getSerial() { return serial; }
-  void config_setSerial(Uart* serial) { this->serial = serial; }
-  void config_setSercom(SERCOM* sercom) { this->sercom = sercom; }
-  void config_setRxMux(EPioType mux) { rx_mux = mux; }
-  void config_setRxPad(SercomRXPad pad) { rx_pad = pad; }
-  void config_setTxPad(SercomUartTXPad pad) { tx_pad = pad; }
-  void config_setDACValue(uint8_t value) { dac_value = value; }
+  Uart* getSerial() { return config.serial; }
 #else
-  HardwareSerial* getSerial() { return serial; }
-  void config_setSerial(HardwareSerial* serial) { this->serial = serial; }
+  HardwareSerial* getSerial() { return config.serial; }
 #endif
-  void config_setPOMResponseCallback(Print* _stream, void (*_POMResponse)(Print*, RailcomPOMResponse)) {
+  void setPOMResponseCallback(Print* _stream, void (*_POMResponse)(Print*, RailcomPOMResponse)) {
     POMResponse = _POMResponse;
     responseStream = _stream;
   }
@@ -138,23 +151,6 @@ private:
   bool dataReady = false;
   void (*POMResponse)(Print*, RailcomPOMResponse);
   Print* responseStream = nullptr;
-
-  // Railcom hardware declarations
-  uint8_t rx_pin;
-  uint8_t tx_pin;     
-  static const long baud = 250000;
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
-  Uart* serial = nullptr;
-  SERCOM* sercom;
-  EPioType rx_mux;
-  SercomRXPad rx_pad;
-  SercomUartTXPad tx_pad;
-  uint8_t dac_value;      // Sets the DAC according to the calculation 
-                          // in the datasheet for a 1V reference
-  void setupDAC();       // Enable DAC for LM393 reference
-#else
-  HardwareSerial* serial;
-#endif
 };
 
 #endif  // COMMANDSTATION_DCC_RAILCOM_H_

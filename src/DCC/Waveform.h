@@ -22,7 +22,7 @@
 
 #include <Arduino.h>
 
-#include "Hardware.h"
+#include "../Boards/Board.h"
 
 const uint8_t kIdlePacket[] = {0xFF,0x00,0xFF};
 const uint8_t kResetPacket[] = {0x00,0x00,0x00};
@@ -32,8 +32,7 @@ const uint8_t kPacketMaxSize = 6;
 
 enum : uint8_t {
   ERR_OK = 1,
-  ERR_OUT_OF_RANGE = 2,
-  ERR_BUSY = 3,
+  ERR_BUSY = 2,
 };
 
 class Waveform {
@@ -42,10 +41,10 @@ public:
   virtual void interrupt2() = 0;
 
   void loop() {
-    hdw.checkCurrent();
+    board->checkOverload();
   }
 
-  Hardware hdw;
+  Board* board;
 protected:
   // Data that controls the packet currently being sent out.
   uint8_t bits_sent;  // Bits sent from byte
