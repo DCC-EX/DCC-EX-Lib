@@ -27,7 +27,13 @@ public:
   virtual void process() = 0;
   virtual void showConfiguration() = 0;
   virtual void showInitInfo() = 0;
+
+#if defined(ARDUINO_ARCH_MEGAAVR)
+  virtual arduino::Print* getStream() = 0;
+#else
   virtual Print* getStream() = 0;
+#endif
+
 };
 
 #endif	// COMMANDSTATION_COMMINTERFACE_COMMINTERFACE_H_
