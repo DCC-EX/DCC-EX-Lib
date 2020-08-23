@@ -34,6 +34,7 @@
 // Motor board includes
 #include "Boards/BoardArduinoMotorShield.h"
 #include "Boards/BoardPololuMotorShield.h"
+#include "Boards/BoardWSMFireBoxMK1T.h"
 
 #define VERSION "1.0.0"
 #define BOARD_NAME "DCC++ CommandStation"
