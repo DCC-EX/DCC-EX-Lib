@@ -1,5 +1,5 @@
 /*
- *  BoardPololuMotorShield.h
+ *  FireBit.h
  * 
  *  This file is part of CommandStation.
  *
@@ -17,54 +17,58 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMANDSTATION_BOARDS_BOARDPOLOLUMOTORSHIELD_H_
-#define COMMANDSTATION_BOARDS_BOARDPOLOLUMOTORSHIELD_H_
+#ifndef COMMANDSTATION_HBRIDGES_FIREBIT_H_
+#define COMMANDSTATION_HBRIDGES_FIREBIT_H_
 
-#include "Board.h"
+#include "HBridge.h"
 
-struct BoardConfigPololuMotorShield : public BoardConfig {
-  // Used to store functionality special to this type of shield
+struct HBridgeConfigFireBit : public HBridgeConfig {
+  int fault_pin;
+  int limit_pin;
+  int cutout_pin;
 };
 
-class BoardPololuMotorShield : public Board
+class HBridgeFireBit : public HBridge
 {
 public:
-  BoardConfigPololuMotorShield config;
+  HBridgeConfigFireBit config;
 
-  BoardPololuMotorShield(BoardConfigPololuMotorShield _config) {
+  HBridgeFireBit(HBridgeConfigFireBit _config) {
     config = _config;
   }
 
-  static void getDefaultConfigA(BoardConfigPololuMotorShield& _config) {
-    _config.track_name = "A";
-    _config.signal_a_pin = 7;
-    _config.signal_b_pin = 9;
-    _config.enable_pin = 4;
-    _config.sense_pin = A0;   
-    _config.board_voltage = 5.0;
-    _config.amps_per_volt = 1.904762;
-    _config.current_trip = 3000;
-    _config.current_trip_prog = 250;
-    _config.prog_trip_time = 100;
-    _config.main_preambles = 16;
-    _config.prog_preambles = 22;
-    _config.track_power_callback = nullptr; // Needs to be set in the main file
-  }
+  static HBridgeConfigFireBit getDefaultConfig( 
+    const char* track_name,
+    int signal_a_pin, 
+    int signal_b_pin, 
+    int sleep_pin, 
+    int sense_pin, 
+    // Board specific configs
+    int fault_pin = NOT_A_PIN, 
+    int limit_pin = NOT_A_PIN,
+    int cutout_pin = NOT_A_PIN
+  ) {  
+    HBridgeConfigFireBit _config;
 
-  static void getDefaultConfigB(BoardConfigPololuMotorShield& _config) {
-    _config.track_name = "B";
-    _config.signal_a_pin = 8;
-    _config.signal_b_pin = 10;
-    _config.enable_pin = 4;
-    _config.sense_pin = A1;       
-    _config.board_voltage = 5.0;
-    _config.amps_per_volt = 1.904762;
-    _config.current_trip = 3000;
+    _config.track_name = track_name;
+    _config.signal_a_pin = signal_a_pin;
+    _config.signal_b_pin = signal_b_pin;
+    _config.enable_pin = sleep_pin;
+    _config.sense_pin = sense_pin;   
+    _config.board_voltage = 3.3;
+    _config.amps_per_volt = 0.6;
+    _config.current_trip = 5000;
     _config.current_trip_prog = 250;
     _config.prog_trip_time = 100;
     _config.main_preambles = 16;
     _config.prog_preambles = 22;
     _config.track_power_callback = nullptr; // Needs to be set in the main file
+
+    // Board-specific configs
+    _config.fault_pin = fault_pin;
+    _config.limit_pin = limit_pin;
+
+    return _config;
   }
 
   void setup();

@@ -1,6 +1,6 @@
-#include "BoardArduinoMotorShield.h"
+#include "FireBit.h"
 
-void BoardArduinoMotorShield::setup() {
+void HBridgeFireBit::setup() {
   pinMode(config.enable_pin, OUTPUT);
   writePin(config.enable_pin, LOW);
 
@@ -12,18 +12,24 @@ void BoardArduinoMotorShield::setup() {
 
   pinMode(config.sense_pin, INPUT);
 
+  pinMode(config.fault_pin, INPUT);
+  
+  pinMode(config.limit_pin, OUTPUT);
+  writePin(config.limit_pin, HIGH);
+
   tripped = false;
 }
 
-const char * BoardArduinoMotorShield::getName() {
+const char * BoardWSMFireBoxMK1T::getName() {
   return config.track_name;
 }
 
-void BoardArduinoMotorShield::progMode(bool on) {
+void BoardWSMFireBoxMK1T::progMode(bool on) {
   inProgMode = on; // Not equipped with active current limiting, so just enable the programming mode variable
+  writePin(config.limit_pin, !on);
 }
 
-void BoardArduinoMotorShield::power(bool on, bool announce) {
+void BoardWSMFireBoxMK1T::power(bool on, bool announce) {
   if(inProgMode) {
     progOverloadTimer = millis();
   }
@@ -35,35 +41,42 @@ void BoardArduinoMotorShield::power(bool on, bool announce) {
   }
 }
 
-void BoardArduinoMotorShield::signal(bool dir) {
+void BoardWSMFireBoxMK1T::signal(bool dir) {
   writePin(config.signal_a_pin, dir);
+  writePin(config.signal_b_pin, !dir);
 }
 
-void BoardArduinoMotorShield::cutout(bool on) {
-  writePin(config.signal_b_pin, on);
+void BoardWSMFireBoxMK1T::cutout(bool on) {
+  if(on) {
+    writePin(config.signal_a_pin, on);
+    writePin(config.signal_b_pin, on);
+    writePin(config.cutout_pin, ON);
+  } else {
+    writePin(config.cutout_pin, OFF);
+  }
 }
 
-uint16_t BoardArduinoMotorShield::getCurrentRaw() {
+uint16_t BoardWSMFireBoxMK1T::getCurrentRaw() {
   return analogReadFast(config.sense_pin);
 }
 
-uint16_t BoardArduinoMotorShield::getCurrentMilliamps() {
+uint16_t BoardWSMFireBoxMK1T::getCurrentMilliamps() {
   uint16_t currentMilliamps;
   currentMilliamps = getCurrentMilliamps(getCurrentRaw());
   return currentMilliamps;
 }
 
-uint16_t BoardArduinoMotorShield::getCurrentMilliamps(uint16_t reading) {
+uint16_t BoardWSMFireBoxMK1T::getCurrentMilliamps(uint16_t reading) {
   uint16_t currentMilliamps;
   currentMilliamps = reading / 1023.0 * config.board_voltage * 1000 * config.amps_per_volt;
   return currentMilliamps;
 }
 
-bool BoardArduinoMotorShield::getStatus() {
+bool BoardWSMFireBoxMK1T::getStatus() {
   return digitalRead(config.enable_pin);
 }
 
-void BoardArduinoMotorShield::checkOverload() {
+void BoardWSMFireBoxMK1T::checkOverload() {
   if(millis() - progOverloadTimer > config.prog_trip_time) config.prog_trip_time = 0; // Protect against wrapping 
 
   if(millis() - lastCheckTime > kCurrentSampleTime) {
@@ -75,13 +88,12 @@ void BoardArduinoMotorShield::checkOverload() {
     if(isCurrentLimiting()) current_trip = 250;
 
     if(current > current_trip && getStatus()) {
-      power(OFF, true); // TODO: Add track power notice callback
+      power(OFF, true);
       tripped=true;
       lastTripTime=millis();
     } 
     else if(current < current_trip && tripped) {
       if (millis() - lastTripTime > kRetryTime) {
-        // TODO: Add track power notice callback
         power(ON, true);
         tripped=false;
       }
@@ -89,7 +101,7 @@ void BoardArduinoMotorShield::checkOverload() {
   }
 }
 
-bool BoardArduinoMotorShield::isCurrentLimiting() {
+bool BoardWSMFireBoxMK1T::isCurrentLimiting() {
   // If we're in programming mode and it's been less than prog_trip_time since we turned the power on... or if the timeout is set to zero.
   if(inProgMode && ((millis() - progOverloadTimer < config.prog_trip_time) || config.prog_trip_time == 0))
     return true;
@@ -97,16 +109,16 @@ bool BoardArduinoMotorShield::isCurrentLimiting() {
   return false;
 }
 
-uint16_t BoardArduinoMotorShield::setCurrentBase() {
+uint16_t BoardWSMFireBoxMK1T::setCurrentBase() {
   currentBase = getCurrentMilliamps();
   return currentBase;
 }
 
-uint16_t BoardArduinoMotorShield::getCurrentBase() {
+uint16_t BoardWSMFireBoxMK1T::getCurrentBase() {
   return currentBase;
 }
 
-uint8_t BoardArduinoMotorShield::getPreambles() {
+uint8_t BoardWSMFireBoxMK1T::getPreambles() {
   if(inProgMode) return config.prog_preambles;
   return config.main_preambles;
 }

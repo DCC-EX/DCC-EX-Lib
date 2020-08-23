@@ -1,5 +1,5 @@
 /*
- *  Board.h
+ *  HBridge.h
  * 
  *  This file is part of CommandStation.
  *
@@ -17,12 +17,11 @@
  *  along with CommandStation.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMANDSTATION_BOARDS_BOARD_H_
-#define COMMANDSTATION_BOARDS_BOARD_H_
+#ifndef COMMANDSTATION_HBRIDGES_HBRIDGE_H_
+#define COMMANDSTATION_HBRIDGES_HBRIDGE_H_
 
 #include <Arduino.h>
-#include "AnalogReadFast.h"
-#include "../HBridges/HBridge.h"
+#include "../Utils/AnalogReadFast.h"
 
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMC)
 #define writePin digitalWrite
@@ -35,6 +34,8 @@
 #define ON  true
 #define OFF false
 
+#define NOT_A_PIN -1
+
 // Time between current samples (millis)
 const int kCurrentSampleTime = 1;
 
@@ -44,15 +45,25 @@ const float kCurrentSampleSmoothing = 0.01;
 // Number of milliseconds between retries when the "breaker" is tripped.
 const int kRetryTime = 10000;
 
-const int kNumChannels = 2;
-
-struct BoardConfig
+struct HBridgeConfig;
 {
-  const char* board_name;
+  const char* track_name;
+  int signal_a_pin;
+  int signal_b_pin;
+  int enable_pin;
+  int sense_pin;  
+  float board_voltage;
+  float amps_per_volt;
+  uint16_t current_trip;
+  uint16_t current_trip_prog;
+  uint16_t prog_trip_time;
+  uint8_t main_preambles;
+  uint8_t prog_preambles;
+  void (*track_power_callback)(const char* name, bool status);
 };
 
 
-class Board
+class HBridge
 {
 public:
   virtual const char* getName() = 0;
@@ -78,15 +89,6 @@ public:
   virtual void checkOverload() = 0;
 
   virtual uint8_t getPreambles() = 0;
-
-  // Register an HBridge as a channel on this board. It needs to be initialized
-  // and ready to go.
-  void registerHBridge(HBridge* channel) {
-    if(nextChannel < kNumChannels)
-      channels[nextChannel] = channel;
-    else return;
-    nextChannel++;
-  }
 protected:
   // Current reading variables
   uint16_t reading;
@@ -100,9 +102,6 @@ protected:
   uint16_t currentBase;
 
   virtual bool isCurrentLimiting() = 0;
-
-  HBridge* channels[2];
-  uint8_t nextChannel = 0;
 };
 
 #endif  // COMMANDSTATION_BOARDS_BOARD_H_
